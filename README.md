@@ -17,7 +17,7 @@ Currently implemented algorithms include:
 
  - spectral norm estimation
 
-- dense matrices:
+- dense matrix routines:
 
  - recursive skeletonization (multiply, sparse extension)
 
