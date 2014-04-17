@@ -19,7 +19,7 @@ function ie_sphere1x(n,nquad,occ,p,rank_or_tol,skip,store)
     rank_or_tol = 1e-3;
   end
   if nargin < 6 || isempty(skip)
-    skip = 0;
+    skip = 1;
   end
   if nargin < 7 || isempty(store)
     store = 'a';
@@ -102,11 +102,7 @@ function ie_sphere1x(n,nquad,occ,p,rank_or_tol,skip,store)
   clear V F trans rot V2 V3 T I J
 
   % convert to CSC format
-  Ai = cell(N,1);
-  Ax = cell(N,1);
-  for i = 1:N
-    [Ai{i},~,Ax{i}] = find(S(:,i));
-  end
+  [Ai,Ax,P] = spcsc(S);
   clear S
 
   % factor matrix using HIFIE
@@ -203,7 +199,7 @@ function ie_sphere1x(n,nquad,occ,p,rank_or_tol,skip,store)
     end
     [I,J] = ndgrid(i,j);
     A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
-    S = spget(i,j);
+    S = spsmat(Ai,Ax,P,i,j);
     idx = S ~= 0;
     A(idx) = S(idx);
     A(I == J) = -0.5;
@@ -227,20 +223,6 @@ function ie_sphere1x(n,nquad,occ,p,rank_or_tol,skip,store)
       K = [Kfun(rx(:,slf),pxy,'s')];
     elseif strcmp(rc,'c')
       K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
-    end
-  end
-
-  % sparse matrix access
-  function A = spget(i,j)
-    m = length(i);
-    n = length(j);
-    [isrt,E] = sort(i);
-    P(isrt) = E;
-    A = zeros(m,n);
-    for k = 1:n
-      Ai_ = Ai{j(k)};
-      idx = ismembc(Ai_,isrt);
-      A(P(Ai_(idx)),k) = Ax{j(k)}(idx);
     end
   end
 end

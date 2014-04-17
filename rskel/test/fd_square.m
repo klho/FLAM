@@ -47,15 +47,11 @@ function fd_square(n,occ,rank_or_tol,symm)
   clear idx Im Jm Sm Il Jl Sl Ir Jr Sr Iu Ju Su Id Jd Sd I J S
 
   % convert to CSC format
-  Ai = cell(N,1);
-  Ax = cell(N,1);
-  for i = 1:N
-    [Ai{i},~,Ax{i}] = find(A(:,i));
-  end
+  [Ai,Ax,P] = spcsc(A);
 
   % compress matrix
   opts = struct('symm',symm,'verb',1);
-  F = rskel(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskel(@(i,j)(spsmat(Ai,Ax,P,i,j)),x,x,occ,rank_or_tol,@pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -117,11 +113,6 @@ function fd_square(n,occ,rank_or_tol,symm)
   fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter,iter,t)
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = spget(i,j);
-  end
-
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     Kpxy = zeros(0,length(slf));
@@ -142,19 +133,5 @@ function fd_square(n,occ,rank_or_tol,symm)
       Y = P*(L'\(D\(L\(P'*X))));
     end
     Y = Y(1:N,:);
-  end
-
-  % sparse matrix access
-  function A = spget(i,j)
-    m = length(i);
-    n = length(j);
-    [isrt,E] = sort(i);
-    P(isrt) = E;
-    A = zeros(m,n);
-    for k = 1:n
-      Ai_ = Ai{j(k)};
-      idx = ismembc(Ai_,isrt);
-      A(P(Ai_(idx)),k) = Ax{j(k)}(idx);
-    end
   end
 end

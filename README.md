@@ -15,7 +15,7 @@ Currently implemented algorithms include:
 
  - interpolative decomposition
 
- - spectral norm estimation
+ - fast spectral norm estimation
 
 - dense matrix routines:
 

@@ -65,7 +65,6 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   if ~isfield(opts,'verb')
     opts.verb = 0;
   end
-  spdir = Inf;
 
   % check inputs
   opts.symm = lower(opts.symm);
@@ -113,7 +112,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   I = zeros(mnz,1);
   J = zeros(mnz,1);
   S = zeros(mnz,1);
-  Q = zeros(N,1);
+  P = zeros(N,1);
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1
@@ -209,16 +208,16 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
           dist = sqrt(dx.^2 + dy.^2 + dz.^2);
           near = bsxfun(@eq,dist,min(dist,[],1));
           for i = 1:length(xi)
-            Q(xi(i)) = box2ctr{box}(find(near(:,i),1));
+            P(xi(i)) = box2ctr{box}(find(near(:,i),1));
           end
         end
         for box = 1:nbox
           xi = [t.nodes(t.lvp(lvl)+box).xi];
           if ~isempty(xi)
-            m = histc(Q(xi),1:nb);
+            m = histc(P(xi),1:nb);
             p = cumsum(m);
             p = [0; p(:)];
-            [~,idx] = sort(Q(xi));
+            [~,idx] = sort(P(xi));
             xi = xi(idx);
             for j = box2ctr{box}
               blocks(j).xi = [blocks(j).xi xi(p(j)+1:p(j+1))];
@@ -228,7 +227,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % keep only nonempty centers
-        m = histc(Q(rem),1:nb);
+        m = histc(P(rem),1:nb);
         idx = m > 0;
         ctr = ctr(idx,:);
         blocks = blocks(idx);
@@ -285,6 +284,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
       F.lvp(nlvl+1) = F.lvp(nlvl) + nb;
       nblk = pblk(lvl) + nb;
       nrem1 = sum(rem);
+      [Ai,Ax,~] = spcsc(M);
       nz = 0;
 
       % loop over blocks
@@ -324,16 +324,9 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         if strcmp(opts.symm,'n')
           K1 = [K1; full(A(slf,nbr))'];
         end
-        if nlvl > spdir
-          K2 = full(M(nbr,slf));
-          if strcmp(opts.symm,'n')
-            K2 = [K2; full(M(slf,nbr))'];
-          end
-        else
-          K2 = spget('nbr','slf');
-          if strcmp(opts.symm,'n')
-            K2 = [K2; spget('slf','nbr')'];
-          end
+        K2 = spsmat(Ai,Ax,P,nbr,slf);
+        if strcmp(opts.symm,'n')
+          K2 = [K2; spsmat(Ai,Ax,P,slf,nbr)'];
         end
         K = [K1 + K2; Kpxy];
 
@@ -356,11 +349,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % compute factors
-        if nlvl > spdir
-          K = full(A(slf,slf)) + full(M(slf,slf));
-        else
-          K = full(A(slf,slf)) + spget('slf','slf');
-        end
+        K = full(A(slf,slf)) + spsmat(Ai,Ax,P,slf,slf);
         if strcmp(opts.symm,'n') || strcmp(opts.symm,'h')
           K(rd,:) = K(rd,:) - T'*K(sk,:);
         elseif strcmp(opts.symm,'s')
@@ -368,11 +357,11 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         end
         K(:,rd) = K(:,rd) - K(:,sk)*T;
         if strcmp(opts.symm,'n') || strcmp(opts.symm,'s')
-          [L,U,P] = lu(K(rd,rd));
-          X = U\(L\P);
+          [L,U,Q] = lu(K(rd,rd));
+          X = U\(L\Q);
         elseif strcmp(opts.symm,'h')
-          [L,U,P] = ldl(K(rd,rd));
-          X = P*(L'\(U\(L\P')));
+          [L,U,Q] = ldl(K(rd,rd));
+          X = Q*(L'\(U\(L\Q')));
         end
         E = K(sk,rd)*X;
         if strcmp(opts.symm,'n')
@@ -410,25 +399,18 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         F.factors(n).T = T;
         F.factors(n).E = E;
         F.factors(n).F = G;
-        F.factors(n).P = P;
+        F.factors(n).P = Q;
         F.factors(n).L = L;
         F.factors(n).U = U;
       end
       F.lvp(nlvl+1) = n;
 
       % update modified entries
-      if nlvl > spdir
-        idx = find(rem);
-        [I_,J_,S_] = find(M(idx,idx));
-        I_ = idx(I_);
-        J_ = idx(J_);
-      else
-        [I_,J_,S_] = find(M);
-        idx = rem(I_) & rem(J_);
-        I_ = I_(idx);
-        J_ = J_(idx);
-        S_ = S_(idx);
-      end
+      [I_,J_,S_] = find(M);
+      idx = rem(I_) & rem(J_);
+      I_ = I_(idx);
+      J_ = J_(idx);
+      S_ = S_(idx);
       m = length(S_);
       while mnz < nz + m
         e = zeros(mnz,1);
@@ -462,37 +444,5 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   if opts.verb
     fprintf(['-'*ones(1,80) '\n'])
     toc(start)
-  end
-
-  % sparse matrix access function (native MATLAB is slow for large matrices)
-  function A = spget(Ityp,Jtyp)
-    if strcmp(Ityp,'slf')
-      I_ = slf;
-      nI = nslf;
-      I_sort = sslf;
-    elseif strcmp(Ityp,'nbr')
-      I_ = nbr;
-      nI = nnbr;
-      I_sort = snbr;
-    end
-    if strcmp(Jtyp,'slf')
-      J_ = slf;
-      nJ = nslf;
-    elseif strcmp(Jtyp,'nbr')
-      J_ = nbr;
-      nJ = nnbr;
-    end
-    Q(I_) = 1:nI;
-    A = zeros(nI,nJ);
-    [I_,J_,S_] = find(M(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    if nI == 1
-      S_ = S_';
-    end
-    idx = Q(I_) + (J_ - 1)*nI;
-    A(idx) = A(idx) + S_;
   end
 end

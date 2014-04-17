@@ -99,11 +99,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   clear V F trans rot V2 V3 T I J
 
   % convert to CSC format
-  Ai = cell(N,1);
-  Ax = cell(N,1);
-  for i = 1:N
-    [Ai{i},~,Ax{i}] = find(S(:,i));
-  end
+  [Ai,Ax,P] = spcsc(S);
   clear S
 
   % compress matrix using RSKEL
@@ -226,7 +222,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
     end
     [I,J] = ndgrid(i,j);
     A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
-    S = spget(i,j);
+    S = spsmat(Ai,Ax,P,i,j);
     idx = S ~= 0;
     A(idx) = S(idx);
     A(I == J) = -0.5;
@@ -278,19 +274,5 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
       end
     end
     Y = Y(1:N,:);
-  end
-
-  % sparse matrix access
-  function A = spget(i,j)
-    m = length(i);
-    n = length(j);
-    [isrt,E] = sort(i);
-    P(isrt) = E;
-    A = zeros(m,n);
-    for k = 1:n
-      Ai_ = Ai{j(k)};
-      idx = ismembc(Ai_,isrt);
-      A(P(Ai_(idx)),k) = Ax{j(k)}(idx);
-    end
   end
 end

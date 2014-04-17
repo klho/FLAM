@@ -80,7 +80,7 @@ function [s,niter] = snorm(n,mv,mva,niter_or_tol,herm,niter_max)
     end
 
     % check for termination
-    if nrm > 0
+    if nrm > eps
       if niter_or_tol < 1
         if all(abs(s - s_) > abs(s_)*niter_or_tol) && niter < niter_max
           continue
