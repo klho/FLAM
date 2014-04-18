@@ -277,7 +277,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         % add neighbors with modified interactions
         [mod,~] = find(M(:,slf));
         mod = unique(mod);
-        mod = mod(~ismembc(unique(mod),sslf));
+        mod = mod(~ismembc(mod,sslf));
         nbr = unique([nbr(:); mod(:)]);
         nnbr = length(nbr);
         snbr = sort(nbr);
