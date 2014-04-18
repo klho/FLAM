@@ -1,6 +1,6 @@
 % Second-kind integral equation on the unit sphere, Laplace double-layer.
 
-function ie_sphere1(n,nquad,occ,p,rank_or_tol,skip,store)
+function ie_sphere1x(n,nquad,occ,p,rank_or_tol,skip,store)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -217,7 +217,7 @@ function ie_sphere1(n,nquad,occ,p,rank_or_tol,skip,store)
   function K = pxyfun_ifmm(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmp(rc,'r')
-      K = [Kfun(rx(:,slf),pxy,'s')];
+      K = Kfun(rx(:,slf),pxy,'s');
     elseif strcmp(rc,'c')
       K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
     end

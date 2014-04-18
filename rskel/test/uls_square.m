@@ -77,7 +77,7 @@ function uls_square(m,n,occ,p,rank_or_tol,store)
   fprintf('qr: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6)
 
   % set up right-hand side
-  [Ms,Ns] = size(A);
+  Ms = size(A,1);
   nC = Ms - N;
   X = rand(N,1);
   B = ifmm_mv(G,X,@Afun);

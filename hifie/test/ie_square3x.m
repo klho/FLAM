@@ -1,6 +1,6 @@
 % Second-kind integral equation on the unit square, Helmholtz single-layer.
 
-function ie_square3(n,k,occ,p,rank_or_tol,skip,symm)
+function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)

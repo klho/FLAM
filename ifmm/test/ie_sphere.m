@@ -211,7 +211,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmp(rc,'r')
-      K = [Kfun(rx(:,slf),pxy,'s')];
+      K = Kfun(rx(:,slf),pxy,'s');
     elseif strcmp(rc,'c')
       K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
     end
