@@ -285,7 +285,6 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
       F.lvp(nlvl+1) = F.lvp(nlvl) + nb;
       nblk = pblk(lvl) + nb;
       nrem1 = sum(rem);
-      [Ai,Ax,~] = spcsc(M);
       nz = 0;
 
       % loop over blocks
@@ -325,9 +324,9 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
         if strcmp(opts.symm,'n')
           K1 = [K1; full(A(slf,nbr))'];
         end
-        K2 = spsmat(Ai,Ax,P,nbr,slf);
+        K2 = spget('nbr','slf');
         if strcmp(opts.symm,'n')
-          K2 = [K2; spsmat(Ai,Ax,P,slf,nbr)'];
+          K2 = [K2; spget('slf','nbr')'];
         end
         K = [K1 + K2; Kpxy];
 
@@ -416,7 +415,7 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % compute factors
-        K = full(A(slf,slf)) + spsmat(Ai,Ax,P,slf,slf);
+        K = full(A(slf,slf)) + spget('slf','slf');
         if strcmp(opts.symm,'n') || strcmp(opts.symm,'h')
           K(rd,:) = K(rd,:) - T'*K(sk,:);
         elseif strcmp(opts.symm,'s')
@@ -511,5 +510,33 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
   if opts.verb
     fprintf(['-'*ones(1,80) '\n'])
     toc(start)
+  end
+
+  % sparse matrix access function (native MATLAB is slow for large matrices)
+  function A = spget(Ityp,Jtyp)
+    if strcmp(Ityp,'slf')
+      I_ = slf;
+      m_ = nslf;
+      I_sort = sslf;
+    elseif strcmp(Ityp,'nbr')
+      I_ = nbr;
+      m_ = nnbr;
+      I_sort = snbr;
+    end
+    if strcmp(Jtyp,'slf')
+      J_ = slf;
+      n_ = nslf;
+    elseif strcmp(Jtyp,'nbr')
+      J_ = nbr;
+      n_ = nnbr;
+    end
+    P(I_) = 1:m_;
+    A = zeros(m_,n_);
+    [I_,J_,S_] = find(M(:,J_));
+    idx = ismembc(I_,I_sort);
+    I_ = I_(idx);
+    J_ = J_(idx);
+    S_ = S_(idx);
+    A(P(I_) + (J_ - 1)*m_) = S_;
   end
 end

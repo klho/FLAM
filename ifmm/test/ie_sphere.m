@@ -93,14 +93,11 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
     S = [];
   end
   S = sparse(I,J,S,N,N);
+  P = zeros(N,1);
   t = toc;
   w = whos('S');
   fprintf('quad: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6)
   clear V F trans rot V2 V3 T I J
-
-  % convert to CSC format
-  [Ai,Ax,P] = spcsc(S);
-  clear S
 
   % compress matrix
   opts = struct('store',store,'verb',1);
@@ -204,9 +201,9 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
     end
     [I,J] = ndgrid(i,j);
     A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
-    S = spsmat(Ai,Ax,P,i,j);
-    idx = S ~= 0;
-    A(idx) = S(idx);
+    M = spget(i,j);
+    idx = M ~= 0;
+    A(idx) = M(idx);
     A(I == J) = -0.5;
   end
 
@@ -218,5 +215,20 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
     elseif strcmp(rc,'c')
       K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
     end
+  end
+
+  % sparse matrix access
+  function A = spget(I_,J_)
+    m_ = length(I_);
+    n_ = length(J_);
+    [I_sort,E] = sort(I_);
+    P(I_sort) = E;
+    A = zeros(m_,n_);
+    [I_,J_,S_] = find(S(:,J_));
+    idx = ismembc(I_,I_sort);
+    I_ = I_(idx);
+    J_ = J_(idx);
+    S_ = S_(idx);
+    A(P(I_) + (J_ - 1)*m_) = S_;
   end
 end

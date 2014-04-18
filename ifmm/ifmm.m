@@ -153,6 +153,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   crem = ones(N,1);
 
   % process direct interactions
+  tic
   for lvl = 1:t.nlvl
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
       rslf = t.nodes(i).rxi;
@@ -189,6 +190,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     end
   end
   F.lvpd(2) = nd;
+  fprintf('%3s | %63.2e (s)\n','-',toc)
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1

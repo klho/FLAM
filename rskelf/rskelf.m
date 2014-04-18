@@ -130,7 +130,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       nslf = length(slf);
 
       % generate modified diagonal block
-      M{i} = A(slf,slf);
+      M{i} = full(A(slf,slf));
       if lvl < t.nlvl
         I(slf) = 1:nslf;
         for j = t.nodes(i).chld
