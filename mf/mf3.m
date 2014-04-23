@@ -1,0 +1,242 @@
+% MF3   Multifrontal factorization for nearest neighbor interactions on a
+%       regular mesh in 3D.
+%
+%    F = MF3(A,N,OCC) produces a factorization F of the sparse interaction
+%    matrix A on the interior vertices of a regular N x N x N finite element
+%    mesh of the unit cube with leaf size OCC x OCC x OCC.
+%
+%    F = MF3(A,N,OCC,OPTS) also passes various options to the algorithm. Valid
+%    options include:
+%
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%
+%      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
+%              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
+%              positive definite if SYMM = 'P' (default: SYMM = 'N'). If
+%              SYMM = 'N' or 'S', then local factors are computed using the LU
+%              decomposition; if SYMM = 'H', the LDL decomposition; and if
+%              SYMM = 'P', the Cholesky decomposition.
+%
+%      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
+%
+%    References:
+%
+%      I.S. Duff, J.K. Reid. The multifrontal solution of indefinite sparse
+%        symmetric linear equations. ACM Trans. Math. Softw. 9 (3): 302-325,
+%        1983.
+%
+%      A. George. Nested dissection of a regular finite element mesh. SIAM J.
+%        Numer. Anal. 10 (2): 345-363, 1973.
+%
+%      B.M. Irons. A frontal solution program for finite element analysis. Int.
+%        J. Numer. Meth. Eng. 2: 5-32, 1970.
+%
+%    See also MF2, MF_MV, MF_SV, MFX.
+
+function F = mf3(A,n,occ,opts)
+  start = tic;
+
+  % set default parameters
+  if nargin < 4
+    opts = [];
+  end
+  if ~isfield(opts,'lvlmax')
+    opts.lvlmax = Inf;
+  end
+  if ~isfield(opts,'symm')
+    opts.symm = 'n';
+  end
+  if ~isfield(opts,'verb')
+    opts.verb = 0;
+  end
+
+  % check inputs
+  if occ <= 0 && ~isfinite(opts.lvlmax)
+    error('FLAM:mf3:nonpositiveOcc', ...
+          'Leaf occupancy must be positive if no maximum depth set.')
+  end
+  if opts.lvlmax < 1
+    error('FLAM:mf3:invalidLvlmax','Maximum tree depth must be at least 1.')
+  end
+  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
+    error('FLAM:mf3:invalidSymm', ...
+          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  end
+
+  % print header
+  if opts.verb
+    fprintf(['-'*ones(1,80) '\n'])
+  end
+
+  % initialize
+  nd = n - 1;
+  N = nd^3;
+  nlvl = min(opts.lvlmax,ceil(max(0,log2(n/occ)))+1);
+  nbox = (8^nlvl - 1)/7;
+  e = cell(nbox,1);
+  F = struct('sk',e,'rd',e,'E',e,'F',e,'P',e,'L',e,'U',e);
+  F = struct('N',N,'nlvl',nlvl,'lvp',zeros(1,nlvl+1),'factors',F,'symm', ...
+             opts.symm);
+  nlvl = 0;
+  nf = 0;
+  grd = reshape(1:N,nd,nd,nd);
+  rem = true(nd,nd,nd);
+  mnz = 128;
+  I = zeros(mnz,1);
+  J = zeros(mnz,1);
+  S = zeros(mnz,1);
+  P = zeros(N,1);
+
+  % set initial width
+  w = n;
+  for lvl = 1:F.nlvl
+    w = ceil(w/2);
+  end
+
+  % loop over tree levels
+  for lvl = F.nlvl:-1:1
+    tic
+    nlvl = nlvl + 1;
+    w = 2*w;
+    nb = ceil(n/w);
+    nrem1 = sum(rem(:));
+    nz = 0;
+
+    % loop over cells
+    for i = 1:nb
+      for j = 1:nb
+        for k = 1:nb
+
+          % set up indices
+          ia = (i - 1)*w;
+          ib =  i     *w;
+          is = max(1,ia):min(nd,ib);
+          ja = (j - 1)*w;
+          jb =  j     *w;
+          js = max(1,ja):min(nd,jb);
+          ka = (k - 1)*w;
+          kb =  k     *w;
+          ks = max(1,ka):min(nd,kb);
+          [ii,jj,kk] = ndgrid(is,js,ks);
+
+          % initialize local arrays
+          grd_ = grd(is,js,ks);
+          rem_ = rem(is,js,ks);
+          idx = zeros(size(grd_));
+          idx(rem_) = 1:sum(rem_(:));
+          slf = grd_(rem_);
+          slf = slf(:)';
+
+          % skeletonize (eliminate interior nodes)
+          in = ii ~= ia & ii ~= ib & jj ~= ja & jj ~= jb & kk ~= ka & kk ~= kb;
+          sk = idx(rem_ & ~in);
+          rd = idx(rem_ &  in);
+          sk = sk(:)';
+          rd = rd(:)';
+
+          % move on if no compression
+          if isempty(rd)
+            continue
+          end
+          rem(slf(rd)) = 0;
+
+          % compute factors
+          K = spget_slf;
+          E = eye(length(rd));
+          if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+            [L,U] = lu(K(rd,rd));
+            X = U\(L\E);
+          elseif strcmpi(opts.symm,'h')
+            [L,U] = ldl(K(rd,rd));
+            X = L'\(U\(L\E));
+          elseif strcmpi(opts.symm,'p')
+            L = chol(K(rd,rd),'lower');
+            X = L'\(L\E);
+            U = [];
+          end
+          E = K(sk,rd)*X;
+          if strcmpi(opts.symm,'n')
+            G = X*K(rd,sk);
+          else
+            G = [];
+          end
+
+          % update self-interaction
+          S_ = -K(sk,rd)*X*K(rd,sk);
+          [I_,J_] = ndgrid(slf(sk));
+          m = length(sk)^2;
+          while mnz < nz + m
+            e = zeros(mnz,1);
+            I = [I; e];
+            J = [J; e];
+            S = [S; e];
+            mnz = 2*mnz;
+          end
+          I(nz+1:nz+m) = I_(:);
+          J(nz+1:nz+m) = J_(:);
+          S(nz+1:nz+m) = S_(:);
+          nz = nz + m;
+
+          % store matrix factors
+          nf = nf + 1;
+          F.factors(nf).sk = slf(sk);
+          F.factors(nf).rd = slf(rd);
+          F.factors(nf).E = E;
+          F.factors(nf).F = G;
+          F.factors(nf).L = L;
+          F.factors(nf).U = U;
+        end
+      end
+    end
+    F.lvp(nlvl+1) = nf;
+
+    % update modified entries
+    [I_,J_,S_] = find(A);
+    idx = rem(I_) & rem(J_);
+    I_ = I_(idx);
+    J_ = J_(idx);
+    S_ = S_(idx);
+    m = length(S_);
+    while mnz < nz + m
+      e = zeros(mnz,1);
+      I = [I; e];
+      J = [J; e];
+      S = [S; e];
+      mnz = 2*mnz;
+    end
+    I(nz+1:nz+m) = I_;
+    J(nz+1:nz+m) = J_;
+    S(nz+1:nz+m) = S_;
+    nz = nz + m;
+    A = sparse(I(1:nz),J(1:nz),S(1:nz),N,N);
+
+    % print summary
+    if opts.verb
+      nrem2 = sum(rem(:));
+      nblk = nb^3;
+      fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e (s)\n', ...
+              lvl,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,toc)
+    end
+  end
+
+  % finish
+  F.factors = F.factors(1:nf);
+  if opts.verb
+    fprintf(['-'*ones(1,80) '\n'])
+    toc(start)
+  end
+
+  % sparse matrix access function (native MATLAB is slow for large matrices)
+  function X = spget_slf
+    nslf = length(slf);
+    P(slf) = 1:nslf;
+    X = zeros(nslf);
+    [I_,J_,S_] = find(A(:,slf));
+    idx = ismembc(I_,slf);
+    I_ = I_(idx);
+    J_ = J_(idx);
+    S_ = S_(idx);
+    X(P(I_) + (J_ - 1)*nslf) = S_;
+  end
+end

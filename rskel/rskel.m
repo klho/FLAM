@@ -25,11 +25,15 @@
 %    F = RSKEL(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various options
 %    to the algorithm. Valid options include:
 %
+%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%             If EXT is empty (default), then the root extent is calculated from
+%             the data.
+%
 %      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
-%              symmetric if SYMM = 'S', and Hermitian if SYMM = 'H' (default:
-%              SYMM = 'N').
+%              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
+%              positive definite if SYMM = 'P' (default: SYMM = 'N').
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
@@ -65,6 +69,9 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if nargin < 7
     opts = [];
   end
+  if ~isfield(opts,'ext')
+    opts.ext = [];
+  end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
   end
@@ -76,17 +83,17 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  opts.symm = lower(opts.symm);
-  if ~(strcmp(opts.symm,'n') || strcmp(opts.symm,'s') || strcmp(opts.symm,'h'))
+  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
     error('FLAM:rskel:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', or ''H''.')
+          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
   end
 
   % build tree
   M = size(rx,2);
   N = size(cx,2);
   tic
-  t = hypoct([rx cx],occ,opts.lvlmax);
+  t = hypoct([rx cx],occ,opts.lvlmax,opts.ext);
   for i = 1:t.lvp(t.nlvl+1)
     xi = t.nodes(i).xi;
     idx = xi <= M;
@@ -185,7 +192,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       [rsk,rrd,rT] = id(K,rank_or_tol);
 
       % compress column space
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         Kpxy = zeros(0,length(cslf));
         if lvl > 2
           if isempty(pxyfun)
@@ -197,7 +204,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         K = full(A(rnbr,cslf));
         K = [K; Kpxy];
         [csk,crd,cT] = id(K,rank_or_tol);
-      elseif strcmp(opts.symm,'s') || strcmp(opts.symm,'h')
+      else
         csk = [];
         crd = [];
         cT  = [];
@@ -220,10 +227,10 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       % restrict to skeletons
       t.nodes(i).rxi = rslf(rsk);
       rrem(rslf(rrd)) = 0;
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         t.nodes(i).cxi = cslf(csk);
         crem(cslf(crd)) = 0;
-      elseif strcmp(opts.symm,'s') || strcmp(opts.symm,'h')
+      else
         t.nodes(i).cxi = t.nodes(i).rxi;
         crem(cslf(rrd)) = 0;
       end

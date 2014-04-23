@@ -27,9 +27,13 @@ Currently implemented algorithms include:
 
  - interpolative fast multipole method (multiply)
 
-Still to come (hopefully):
+- sparse matrix routines:
 
-- sparse matrix routines
+ - multifrontal factorization (multiply, solve)
+
+ - hierarchical interpolative factorization (multiply, solve)
+
+Still to come (hopefully):
 
 - Cholesky multiply/solve, determinant, selected inversion
 

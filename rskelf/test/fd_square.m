@@ -17,7 +17,7 @@ function fd_square(n,occ,rank_or_tol,symm)
   end
 
   % initialize
-  [x1,x2] = ndgrid((1:n)/(n + 1));
+  [x1,x2] = ndgrid((1:n)/n);
   x = [x1(:) x2(:)]';
   N = size(x,2);
   clear x1 x2
@@ -74,7 +74,7 @@ function fd_square(n,occ,rank_or_tol,symm)
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % run CG
-  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  [~,flag,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
 
   % run PCG
   tic

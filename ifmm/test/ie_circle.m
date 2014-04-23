@@ -79,9 +79,9 @@ function ie_circle(n,occ,p,rank_or_tol,store,symm)
     dx = bsxfun(@minus,x(1,:)',y(1,:));
     dy = bsxfun(@minus,x(2,:)',y(2,:));
     dr = sqrt(dx.^2 + dy.^2);
-    if strcmp(lp,'s')
+    if strcmpi(lp,'s')
       K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
-    elseif strcmp(lp,'d')
+    elseif strcmpi(lp,'d')
       rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
       K = 1/(2*pi).*rdotn./dr.^2;
     end
@@ -97,9 +97,9 @@ function ie_circle(n,occ,p,rank_or_tol,store,symm)
   % proxy function
   function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       K = Kfun(rx(:,slf),pxy,'s');
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       K = Kfun(pxy,cx(:,slf),'s');
     end
   end

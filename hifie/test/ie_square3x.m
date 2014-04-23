@@ -120,7 +120,7 @@ function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm)
     pxy = bsxfun(@plus,proxy*l,ctr');
     Kpxy = Kfun(pxy,x(:,slf))/N;
     Kpxy = bsxfun(@times,Kpxy,sqrtb(slf)');
-    if strcmp(symm,'n')
+    if strcmpi(symm,'n')
       Kpxy = [Kpxy; conj(Kpxy)];
     end
     dx = x(1,nbr) - ctr(1);

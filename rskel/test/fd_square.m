@@ -17,7 +17,7 @@ function fd_square(n,occ,rank_or_tol,symm)
   end
 
   % initialize
-  [x1,x2] = ndgrid((1:n)/(n + 1));
+  [x1,x2] = ndgrid((1:n)/n);
   x = [x1(:) x2(:)]';
   N = size(x,2);
   clear x1 x2
@@ -61,18 +61,18 @@ function fd_square(n,occ,rank_or_tol,symm)
   w = whos('S');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
   tic
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     [L,U] = lu(S);
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     [L,D,P] = ldl(S);
   end
   t = toc;
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     w = whos('L');
     spmem = w.bytes;
     w = whos('U');
     spmem = (spmem + w.bytes)/1e6;
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     w = whos('L');
     spmem = w.bytes;
     w = whos('D');
@@ -114,7 +114,7 @@ function fd_square(n,occ,rank_or_tol,symm)
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     Kpxy = zeros(0,length(slf));
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       Kpxy = Kpxy';
     end
     snbr = sort(nbr);
@@ -125,9 +125,9 @@ function fd_square(n,occ,rank_or_tol,symm)
   % sparse LU solve
   function Y = sv(X)
     X = [X; zeros(size(S,1)-N,size(X,2))];
-    if strcmp(F.symm,'n')
+    if strcmpi(F.symm,'n')
       Y = U\(L\X);
-    elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
       Y = P*(L'\(D\(L\(P'*X))));
     end
     Y = Y(1:N,:);

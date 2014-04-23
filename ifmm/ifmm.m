@@ -75,14 +75,13 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  opts.store = lower(opts.store);
-  opts.symm = lower(opts.symm);
-  if ~(strcmp(opts.store,'n') || strcmp(opts.store,'s') || ...
-       strcmp(opts.store,'d') || strcmp(opts.store,'a'))
+  if ~(strcmpi(opts.store,'n') || strcmpi(opts.store,'s') || ...
+       strcmpi(opts.store,'d') || strcmpi(opts.store,'a'))
     error('FLAM:ifmm:invalidStore', ...
           'Storage parameter must be one of ''N'', ''S'', ''D'', or ''A''.')
   end
-  if ~(strcmp(opts.symm,'n') || strcmp(opts.symm,'s') || strcmp(opts.symm,'h'))
+  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+       strcmpi(opts.symm,'h'))
     error('FLAM:ifmm:invalidSymm', ...
           'Symmetry parameter must be one of ''N'', ''S'', or ''H''.')
   end
@@ -173,16 +172,16 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       nd = nd + 1;
       F.D(nd).is = rslf;
       F.D(nd).ie = rdir;
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         F.D(nd).js = cslf;
         F.D(nd).je = cdir;
       end
-      if strcmp(opts.store,'s') || strcmp(opts.store,'d') || ...
-         strcmp(opts.store,'a')
+      if strcmpi(opts.store,'s') || strcmpi(opts.store,'d') || ...
+         strcmpi(opts.store,'a')
         F.D(nd).Ds = A(rslf,cslf);
-        if strcmp(opts.store,'d') || strcmp(opts.store,'a')
+        if strcmpi(opts.store,'d') || strcmpi(opts.store,'a')
           F.D(nd).Do = A(rdir,cslf);
-          if strcmp(opts.symm,'n')
+          if strcmpi(opts.symm,'n')
             F.D(nd).Di = A(rslf,cdir);
           end
         end
@@ -223,7 +222,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       [rsk,rrd,rT] = id(K',rank_or_tol);
 
       % compress column space
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         if lvl > 2 && ~isempty(pxyfun)
           K = pxyfun('c',rx,cx,cslf,rnbr,l,t.nodes(i).ctr);
         else
@@ -231,7 +230,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
           K = A(rfar,cslf);
         end
         [csk,crd,cT] = id(K,rank_or_tol);
-      elseif strcmp(opts.symm,'s') || strcmp(opts.symm,'h')
+      else
         csk = [];
         crd = [];
         cT  = [];
@@ -254,10 +253,10 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       % restrict to skeletons
       t.nodes(i).rxi = rslf(rsk);
       rrem(rslf(rrd)) = 0;
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         t.nodes(i).cxi = cslf(csk);
         crem(cslf(crd)) = 0;
-      elseif strcmp(opts.symm,'s') || strcmp(opts.symm,'h')
+      else
         t.nodes(i).cxi = t.nodes(i).rxi;
         crem(cslf(rrd)) = 0;
       end
@@ -296,13 +295,13 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         nd = nd + 1;
         F.D(nd).is = rslf;
         F.D(nd).ie = rint;
-        if strcmp(opts.symm,'n')
+        if strcmpi(opts.symm,'n')
           F.D(nd).js = cslf;
           F.D(nd).je = cint;
         end
-        if strcmp(opts.store,'a')
+        if strcmpi(opts.store,'a')
           F.D(nd).Do = A(rint,cslf);
-          if strcmp(opts.symm,'n')
+          if strcmpi(opts.symm,'n')
             F.D(nd).Di = A(rslf,cint);
           end
         end

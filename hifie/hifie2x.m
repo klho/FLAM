@@ -24,16 +24,21 @@
 %    F = HIFIE2X(A,X,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various options to
 %    the algorithm. Valid options include:
 %
+%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%             If EXT is empty (default), then the root extent is calculated from
+%             the data.
+%
 %      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SKIP: skip the dimension reductions on the first SKIP levels (default:
 %              SKIP = 0).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
-%              symmetric if SYMM = 'S', and Hermitian if SYMM = 'H' (default:
-%              SYMM = 'N'). If SYMM = 'N' or 'S', then local factors are
-%              computed using the LU decomposition; if SYMM = 'H', then these
-%              are computed using the LDL decomposition.
+%              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
+%              positive definite if SYMM = 'P' (default: SYMM = 'N'). If
+%              SYMM = 'N' or 'S', then local factors are computed using the LU
+%              decomposition; if SYMM = 'H', the LDL decomposition; and if
+%              SYMM = 'P', the Cholesky decomposition.
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
@@ -57,6 +62,9 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
   if nargin < 6
     opts = [];
   end
+  if ~isfield(opts,'ext')
+    opts.ext = [];
+  end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
   end
@@ -71,19 +79,19 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  opts.symm = lower(opts.symm);
   if opts.skip < 0
     error('FLAM:hifie2x:negativeSkip','Skip parameter must be nonnegative.')
   end
-  if ~(strcmp(opts.symm,'n') || strcmp(opts.symm,'s') || strcmp(opts.symm,'h'))
+  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
     error('FLAM:hifie2x:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', or ''H''.')
+          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
   end
 
   % build tree
   N = size(x,2);
   tic
-  t = hypoct(x,occ,opts.lvlmax);
+  t = hypoct(x,occ,opts.lvlmax,opts.ext);
 
   % print summary
   if opts.verb
@@ -105,7 +113,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
   % initialize
   mn = t.lvp(end);
   e = cell(mn,1);
-  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'P',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
   F = struct('N',N,'nlvl',0,'lvp',zeros(1,2*t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
@@ -276,19 +284,19 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
 
         % add neighbors with modified interactions
         [mod,~] = find(M(:,slf));
-        mod = unique(mod);
+        mod = sort(mod);
         mod = mod(~ismembc(mod,sslf));
         nbr = unique([nbr(:); mod(:)]);
         nnbr = length(nbr);
         snbr = sort(nbr);
 
-        % compute interaction matrices
+        % compute interaction matrix
         K1 = full(A(nbr,slf));
-        if strcmp(opts.symm,'n')
+        if strcmpi(opts.symm,'n')
           K1 = [K1; full(A(slf,nbr))'];
         end
         K2 = spget('nbr','slf');
-        if strcmp(opts.symm,'n')
+        if strcmpi(opts.symm,'n')
           K2 = [K2; spget('slf','nbr')'];
         end
         K = [K1 + K2; Kpxy];
@@ -370,32 +378,37 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
             t.nodes(blk.prnt(j)).xi = [t.nodes(blk.prnt(j)).xi slf(j)];
           end
         end
-        rem(slf(rd)) = 0;
 
         % move on if no compression
         if isempty(rd)
           continue
         end
+        rem(slf(rd)) = 0;
 
         % compute factors
         K = full(A(slf,slf)) + spget('slf','slf');
-        if strcmp(opts.symm,'n') || strcmp(opts.symm,'h')
-          K(rd,:) = K(rd,:) - T'*K(sk,:);
-        elseif strcmp(opts.symm,'s')
+        if strcmpi(opts.symm,'s')
           K(rd,:) = K(rd,:) - T.'*K(sk,:);
+        else
+          K(rd,:) = K(rd,:) - T'*K(sk,:);
         end
         K(:,rd) = K(:,rd) - K(:,sk)*T;
-        if strcmp(opts.symm,'n') || strcmp(opts.symm,'s')
-          [L,U,Q] = lu(K(rd,rd));
-          X = U\(L\Q);
-        elseif strcmp(opts.symm,'h')
-          [L,U,Q] = ldl(K(rd,rd));
-          X = Q*(L'\(U\(L\Q')));
+        E = eye(length(rd));
+        if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+          [L,U] = lu(K(rd,rd));
+          X = U\(L\E);
+        elseif strcmpi(opts.symm,'h')
+          [L,U] = ldl(K(rd,rd));
+          X = L'\(U\(L\E));
+        elseif strcmpi(opts.symm,'p')
+          L = chol(K(rd,rd),'lower');
+          X = L'\(L\E);
+          U = [];
         end
         E = K(sk,rd)*X;
-        if strcmp(opts.symm,'n')
+        if strcmpi(opts.symm,'n')
           G = X*K(rd,sk);
-        elseif strcmp(opts.symm,'s') || strcmp(opts.symm,'h')
+        elseif strcmpi(opts.symm,'s') || strcmpi(opts.symm,'h')
           G = [];
         end
 
@@ -419,7 +432,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         n = n + 1;
         while mn < n
           e = cell(mn,1);
-          s = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'P',e,'L',e,'U',e);
+          s = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
           F.factors = [F.factors; s];
           mn = 2*mn;
         end
@@ -428,7 +441,6 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         F.factors(n).T = T;
         F.factors(n).E = E;
         F.factors(n).F = G;
-        F.factors(n).P = Q;
         F.factors(n).L = L;
         F.factors(n).U = U;
       end
@@ -477,19 +489,19 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
 
   % sparse matrix access function (native MATLAB is slow for large matrices)
   function A = spget(Ityp,Jtyp)
-    if strcmp(Ityp,'slf')
+    if strcmpi(Ityp,'slf')
       I_ = slf;
       m_ = nslf;
       I_sort = sslf;
-    elseif strcmp(Ityp,'nbr')
+    elseif strcmpi(Ityp,'nbr')
       I_ = nbr;
       m_ = nnbr;
       I_sort = snbr;
     end
-    if strcmp(Jtyp,'slf')
+    if strcmpi(Jtyp,'slf')
       J_ = slf;
       n_ = nslf;
-    elseif strcmp(Jtyp,'nbr')
+    elseif strcmpi(Jtyp,'nbr')
       J_ = nbr;
       n_ = nnbr;
     end

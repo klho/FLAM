@@ -27,17 +27,24 @@
 %
 %    T = HYPOCT(X,OCC,LVLMAX) builds a hyperoctree to a maximum depth LVLMAX
 %    (default: LVLMAX = INF).
+%
+%    T = HYPOCT(X,OCC,LVLMAX,EXT) sets the root node extent to
+%    [EXT(I,1) EXT(I,2)] along dimension I. If EXT is empty (default), then the
+%    root extent is calculated from the data.
 
-function T = hypoct(x,occ,lvlmax)
+function T = hypoct(x,occ,lvlmax,ext)
 
   % set default parameters
   if nargin < 3 || isempty(lvlmax)
     lvlmax = Inf;
   end
+  if nargin < 4
+    ext = [];
+  end
 
   % check inputs
   if occ < 0
-    error('FLAM:hypoct:NegativeOcc','Leaf occupancy must be nonnegative.')
+    error('FLAM:hypoct:negativeOcc','Leaf occupancy must be nonnegative.')
   end
   if lvlmax < 1
     error('FLAM:hypoct:invalidLvlmax','Maximum tree depth must be at least 1.')
@@ -45,10 +52,12 @@ function T = hypoct(x,occ,lvlmax)
 
   % initialize
   [d,n] = size(x);
-  xmin = min(x,[],2)';
-  xmax = max(x,[],2)';
-  l = max(xmax - xmin);
-  s = struct('ctr',0.5*(xmin+xmax),'xi',1:n,'prnt',[],'chld',[],'nbor',[]);
+  if isempty(ext)
+    ext = [min(x,[],2) max(x,[],2)];
+  end
+  l = max(ext(:,2) - ext(:,1));
+  ctr = 0.5*(ext(:,1) + ext(:,2));
+  s = struct('ctr',ctr','xi',1:n,'prnt',[],'chld',[],'nbor',[]);
   T = struct('nlvl',1,'lvp',[0 1],'lrt',l,'nodes',s);
   nlvl = 1;
   nbox = 1;

@@ -20,7 +20,7 @@ function fd_cube(n,occ,rank_or_tol,skip,symm)
   end
 
   % initialize
-  [x1,x2,x3] = ndgrid((1:n)/(n + 1));
+  [x1,x2,x3] = ndgrid((1:n)/n);
   x = [x1(:) x2(:) x3(:)]';
   N = size(x,2);
   clear x1 x2 x3

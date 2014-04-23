@@ -45,18 +45,18 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
   w = whos('A');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
   tic
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     [L,U] = lu(A);
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     [L,D,P] = ldl(A);
   end
   t = toc;
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     w = whos('L');
     spmem = w.bytes;
     w = whos('U');
     spmem = (spmem + w.bytes)/1e6;
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     w = whos('L');
     spmem = w.bytes;
     w = whos('D');
@@ -111,11 +111,11 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy)/N;
       dx = cx(1,nbr) - ctr(1);
       dy = cx(2,nbr) - ctr(2);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       Kpxy = Kfun(pxy,cx(:,slf))/N;
       dx = rx(1,nbr) - ctr(1);
       dy = rx(2,nbr) - ctr(2);
@@ -133,9 +133,9 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
   % sparse LU solve
   function Y = sv(X)
     X = [X; zeros(size(A,1)-N,size(X,2))];
-    if strcmp(F.symm,'n')
+    if strcmpi(F.symm,'n')
       Y = U\(L\X);
-    elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
       Y = P*(L'\(D\(L\(P'*X))));
     end
     Y = Y(1:N,:);

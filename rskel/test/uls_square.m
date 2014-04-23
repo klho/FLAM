@@ -116,11 +116,11 @@ function uls_square(m,n,occ,p,rank_or_tol,store)
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy);
       dx = cx(1,nbr) - ctr(1);
       dy = cx(2,nbr) - ctr(2);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       Kpxy = Kfun(pxy,cx(:,slf));
       dx = rx(1,nbr) - ctr(1);
       dy = rx(2,nbr) - ctr(2);
@@ -132,9 +132,9 @@ function uls_square(m,n,occ,p,rank_or_tol,store)
   % proxy function for IFMM
   function K = pxyfun_ifmm(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       K = Kfun(rx(:,slf),pxy);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       K = Kfun(pxy,cx(:,slf));
     end
   end
@@ -154,9 +154,9 @@ function uls_square(m,n,occ,p,rank_or_tol,store)
 
   % matrix multiply for LSQR
   function y = mv(x,trans)
-    if strcmp(trans,'notransp')
+    if strcmpi(trans,'notransp')
       y = ifmm_mv(G,x,@Afun,'n');
-    elseif strcmp(trans,'transp')
+    elseif strcmpi(trans,'transp')
       y = ifmm_mv(G,x,@Afun,'c');
     end
   end

@@ -90,9 +90,9 @@ function mv_cube2(m,n,k,occ,p,rank_or_tol,store)
   % proxy function
   function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       K = Kfun(rx(:,slf),pxy);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       K = Kfun(pxy,cx(:,slf));
     end
   end

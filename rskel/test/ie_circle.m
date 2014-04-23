@@ -41,18 +41,18 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   w = whos('A');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
   tic
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     [L,U] = lu(A);
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     [L,D,P] = ldl(A);
   end
   t = toc;
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     w = whos('L');
     spmem = w.bytes;
     w = whos('U');
     spmem = (spmem + w.bytes)/1e6;
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     w = whos('L');
     spmem = w.bytes;
     w = whos('D');
@@ -106,9 +106,9 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
     dx = bsxfun(@minus,x(1,:)',y(1,:));
     dy = bsxfun(@minus,x(2,:)',y(2,:));
     dr = sqrt(dx.^2 + dy.^2);
-    if strcmp(lp,'s')
+    if strcmpi(lp,'s')
       K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
-    elseif strcmp(lp,'d')
+    elseif strcmpi(lp,'d')
       rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
       K = 1/(2*pi).*rdotn./dr.^2;
     end
@@ -124,11 +124,11 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy,'s')*(2*pi/N);
       dx = cx(1,nbr) - ctr(1);
       dy = cx(2,nbr) - ctr(2);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       Kpxy = Kfun(pxy,cx(:,slf),'s')*(2*pi/N);
       dx = rx(1,nbr) - ctr(1);
       dy = rx(2,nbr) - ctr(2);
@@ -145,9 +145,9 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   % sparse LU solve
   function Y = sv(X)
     X = [X; zeros(size(A,1)-N,size(X,2))];
-    if strcmp(F.symm,'n')
+    if strcmpi(F.symm,'n')
       Y = U\(L\X);
-    elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
       Y = P*(L'\(D\(L\(P'*X))));
     end
     Y = Y(1:N,:);

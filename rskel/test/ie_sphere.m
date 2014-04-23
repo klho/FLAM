@@ -120,18 +120,18 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   w = whos('A');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
   tic
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     [L,U] = lu(A);
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     [L,D,P] = ldl(A);
   end
   t = toc;
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     w = whos('L');
     spmem = w.bytes;
     w = whos('U');
     spmem = (spmem + w.bytes)/1e6;
-  elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
     w = whos('L');
     spmem = w.bytes;
     w = whos('D');
@@ -201,9 +201,9 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
     dy = bsxfun(@minus,x(2,:)',y(2,:));
     dz = bsxfun(@minus,x(3,:)',y(3,:));
     dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-    if strcmp(lp,'s')
+    if strcmpi(lp,'s')
       K = 1/(4*pi)./dr;
-    elseif strcmp(lp,'d')
+    elseif strcmpi(lp,'d')
       rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
               bsxfun(@times,dz,nu(3,:));
       K = 1/(4*pi).*rdotn./dr.^3;
@@ -228,11 +228,11 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy,'s')*(2*pi/N);
       dx = cx(1,nbr) - ctr(1);
       dy = cx(2,nbr) - ctr(2);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       Kpxy = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
       dx = rx(1,nbr) - ctr(1);
       dy = rx(2,nbr) - ctr(2);
@@ -244,9 +244,9 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   % proxy function for IFMM
   function K = pxyfun_ifmm(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       K = Kfun(rx(:,slf),pxy,'s');
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
     end
   end
@@ -257,16 +257,16 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
       trans = 'n';
     end
     X = [X; zeros(size(A,1)-N,size(X,2))];
-    if strcmp(F.symm,'n')
-      if strcmp(trans,'n')
+    if strcmpi(F.symm,'n')
+      if strcmpi(trans,'n')
         Y = U\(L\X);
-      elseif strcmp(trans,'c')
+      elseif strcmpi(trans,'c')
         Y = L'\(U'\X);
       end
-    elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
-      if strcmp(trans,'n')
+    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+      if strcmpi(trans,'n')
         Y = P*(L'\(D\(L\(P'*X))));
-      elseif strcmp(trans,'c')
+      elseif strcmpi(trans,'c')
         Y = P*(L'\(D'\(L\(P'*X))));
       end
     end

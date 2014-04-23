@@ -49,9 +49,9 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   % factor extended sparsification
   tic
   A = rskel_xsp(F);
-  if strcmp(symm,'s')
+  if strcmpi(symm,'s')
     A = A + tril(A,-1).';
-  elseif strcmp(symm,'h')
+  elseif strcmpi(symm,'h')
     A = A + tril(A,-1)';
   end
   t = toc;
@@ -137,12 +137,12 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   % proxy function
   function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmp(rc,'r')
+    if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy)/N;
       Kpxy = bsxfun(@times,sqrtb(slf),Kpxy);
       dx = cx(1,nbr) - ctr(1);
       dy = cx(2,nbr) - ctr(2);
-    elseif strcmp(rc,'c')
+    elseif strcmpi(rc,'c')
       Kpxy = Kfun(pxy,cx(:,slf))/N;
       Kpxy = bsxfun(@times,Kpxy,sqrtb(slf)');
       dx = rx(1,nbr) - ctr(1);
@@ -167,9 +167,9 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   % sparse LU solve
   function Y = sv(X,trans)
     X = [X; zeros(size(A,1)-N,size(X,2))];
-    if strcmp(trans,'n')
+    if strcmpi(trans,'n')
       Y = U\(L\X);
-    elseif strcmp(trans,'c')
+    elseif strcmpi(trans,'c')
       Y = L'\(U'\X);
     end
     Y = Y(1:N,:);

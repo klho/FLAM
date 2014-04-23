@@ -27,20 +27,20 @@ function A = rskel_xsp(F)
     end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmp(F.symm,'n')
+      if strcmpi(F.symm,'n')
         crem(F.U(i).crd) = 0;
         nz = nz + numel(F.U(i).rT) + numel(F.U(i).cT);
-      elseif strcmp(F.symm,'s')
+      elseif strcmpi(F.symm,'s')
         crem(F.U(i).rrd) = 0;
         nz = nz + 2*numel(F.U(i).rT);
-      elseif strcmp(F.symm,'h')
+      elseif strcmpi(F.symm,'h')
         crem(F.U(i).rrd) = 0;
         nz = nz + numel(F.U(i).rT);
       end
     end
-    if strcmp(F.symm,'n') || strcmp(F.symm,'s')
+    if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
       nz = nz + 2*(sum(rrem) + sum(crem));
-    elseif strcmp(F.symm,'h')
+    elseif strcmpi(F.symm,'h')
       nz = nz + sum(rrem) + sum(crem);
     end
   end
@@ -59,9 +59,9 @@ function A = rskel_xsp(F)
     pcrem1 = cumsum(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmp(F.symm,'n')
+      if strcmpi(F.symm,'n')
         crem(F.U(i).crd) = 0;
-      elseif strcmp(F.symm,'s') || strcmp(F.symm,'h')
+      elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
         crem(F.U(i).rrd) = 0;
       end
     end
@@ -95,7 +95,7 @@ function A = rskel_xsp(F)
     J(nz+1:nz+rk) = N + cn + prrem2(rrem);
     S(nz+1:nz+rk) = ones(rk,1);
     nz = nz + rk;
-    if strcmp(F.symm,'n') || strcmp(F.symm,'s')
+    if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
       I(nz+1:nz+ck) = M + rn + pcrem2(crem);
       J(nz+1:nz+ck) = N + pcrem1(crem);
       S(nz+1:nz+ck) = ones(ck,1);
@@ -107,15 +107,15 @@ function A = rskel_xsp(F)
       rrd = F.U(i).rrd;
       rsk = F.U(i).rsk;
       rT  = F.U(i).rT;
-      if strcmp(F.symm,'n')
+      if strcmpi(F.symm,'n')
         crd = F.U(i).crd;
         csk = F.U(i).csk;
         cT  = F.U(i).cT;
-      elseif strcmp(F.symm,'s')
+      elseif strcmpi(F.symm,'s')
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT.';
-      elseif strcmp(F.symm,'h')
+      elseif strcmpi(F.symm,'h')
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT';
@@ -130,7 +130,7 @@ function A = rskel_xsp(F)
       nz = nz + m;
 
       % column interpolation
-      if strcmp(F.symm,'n') || strcmp(F.symm,'s')
+      if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
         [j,k] = ndgrid(csk,crd);
         m = numel(cT);
         I(nz+1:nz+m) = M + rn + pcrem2(j(:));
@@ -143,7 +143,7 @@ function A = rskel_xsp(F)
     % embed identity matrices
     M = M + rn;
     N = N + cn;
-    if strcmp(F.symm,'n') || strcmp(F.symm,'s')
+    if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
       I(nz+1:nz+rk) = M + ck + (1:rk);
       J(nz+1:nz+rk) = N + (1:rk);
       S(nz+1:nz+rk) = -ones(rk,1);
@@ -160,15 +160,15 @@ function A = rskel_xsp(F)
   end
 
   % assemble sparse matrix
-  if strcmp(F.symm,'n')
+  if strcmpi(F.symm,'n')
     A = sparse(I,J,S,M,N);
-  elseif strcmp(F.symm,'s')
+  elseif strcmpi(F.symm,'s')
     idx = I <= J;
     I = I(idx);
     J = J(idx);
     S = S(idx);
     A = sparse(J,I,S,M,N);
-  elseif strcmp(F.symm,'h')
+  elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
     idx = I <= J;
     I = I(idx);
     J = J(idx);

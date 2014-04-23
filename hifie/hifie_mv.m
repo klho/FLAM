@@ -17,14 +17,13 @@ function Y = hifie_mv(F,X,trans)
   end
 
   % check inputs
-  trans = lower(trans);
-  if ~(strcmp(trans,'n') || strcmp(trans,'t') || strcmp(trans,'c'))
+  if ~(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'))
     error('FLAM:hifie_mv:invalidTrans', ...
           'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
   end
 
   % handle transpose by conjugation
-  if strcmp(trans,'t')
+  if strcmpi(trans,'t')
     Y = conj(hifie_mv(F,conj(X),'c'));
     return
   end
@@ -37,22 +36,22 @@ function Y = hifie_mv(F,X,trans)
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    if strcmp(F.symm,'n')
+    if strcmpi(F.symm,'n')
       T = F.factors(i).T;
-      if strcmp(trans,'n')
+      if strcmpi(trans,'n')
         G = F.factors(i).F;
-      elseif strcmp(trans,'c')
+      else
         G = F.factors(i).E';
       end
-    elseif strcmp(F.symm,'s')
-      if strcmp(trans,'n')
+    elseif strcmpi(F.symm,'s')
+      if strcmpi(trans,'n')
         T = F.factors(i).T;
         G = F.factors(i).E.';
-      elseif strcmp(trans,'c')
+      else
         T = conj(F.factors(i).T);
         G = F.factors(i).E';
       end
-    elseif strcmp(F.symm,'h')
+    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
       T = F.factors(i).T;
       G = F.factors(i).E';
     end
@@ -60,22 +59,23 @@ function Y = hifie_mv(F,X,trans)
     Y(rd,:) = Y(rd,:) + G*Y(sk,:);
 
     % apply diagonal blocks
-    P = F.factors(i).P;
     L = F.factors(i).L;
-    if strcmp(F.symm,'n') || strcmp(F.symm,'s')
+    if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
       U = F.factors(i).U;
-      if strcmp(trans,'n')
-        Y(rd,:) = P'*(L*(U*Y(rd,:)));
-      elseif strcmp(trans,'c')
-        Y(rd,:) = U'*(L'*(P*Y(rd,:)));
+      if strcmpi(trans,'n')
+        Y(rd,:) = L*(U*Y(rd,:));
+      else
+        Y(rd,:) = U'*(L'*Y(rd,:));
       end
-    elseif strcmp(F.symm,'h')
-      D = F.factors(i).U;
-      if strcmp(trans,'n')
-        Y(rd,:) = P*(L*(D*(L'*(P'*Y(rd,:)))));
-      elseif strcmp(trans,'c')
-        Y(rd,:) = P*(L*(D'*(L'*(P'*Y(rd,:)))));
+    elseif strcmpi(F.symm,'h')
+      if strcmpi(trans,'n')
+        D = F.factors(i).U;
+      elseif strcmpi(trans,'c')
+        D = F.factors(i).U';
       end
+      Y(rd,:) = L*(D*(L'*Y(rd,:)));
+    elseif strcmpi(F.symm,'p')
+      Y(rd,:) = L*(L'*Y(rd,:));
     end
   end
 
@@ -83,22 +83,22 @@ function Y = hifie_mv(F,X,trans)
   for i = n:-1:1
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    if strcmp(F.symm,'n')
+    if strcmpi(F.symm,'n')
       T = F.factors(i).T';
-      if strcmp(trans,'n')
+      if strcmpi(trans,'n')
         E = F.factors(i).E;
-      elseif strcmp(trans,'c')
+      else
         E = F.factors(i).F';
       end
-    elseif strcmp(F.symm,'s')
-      if strcmp(trans,'n')
+    elseif strcmpi(F.symm,'s')
+      if strcmpi(trans,'n')
         T = F.factors(i).T.';
         E = F.factors(i).E;
-      elseif strcmp(trans,'c')
+      else
         T = F.factors(i).T';
         E = conj(F.factors(i).E);
       end
-    elseif strcmp(F.symm,'h')
+    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
       T = F.factors(i).T';
       E = F.factors(i).E;
     end

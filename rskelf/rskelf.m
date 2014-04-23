@@ -22,31 +22,29 @@
 %    F = RSKELF(A,X,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various options to
 %    the algorithm. Valid options include:
 %
+%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%             If EXT is empty (default), then the root extent is calculated from
+%             the data.
+%
 %      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
-%              symmetric if SYMM = 'S', and Hermitian if SYMM = 'H' (default:
-%              SYMM = 'N'). If SYMM = 'N' or 'S', then local factors are
-%              computed using the LU decomposition; if SYMM = 'H', then these
-%              are computed using the LDL decomposition.
+%              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
+%              positive definite if SYMM = 'P' (default: SYMM = 'N'). If
+%              SYMM = 'N' or 'S', then local factors are computed using the LU
+%              decomposition; if SYMM = 'H', the LDL decomposition; and if
+%              SYMM = 'P', the Cholesky decomposition.
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
 %    References:
 %
-%      A. Gillman, P.M. Young, P.-G. Martinsson. A direct solver with O(N)
-%        complexity for integral equations on one-dimensional domains. Front.
-%        Math. China 7 (2): 217-247, 2012.
-%
-%      K.L. Ho, L. Greengard. A fast direct solver for structured linear systems
-%        by recursive skeletonization. SIAM J. Sci. Comput. 34 (5): A2507-A2532,
-%        2012.
+%      S. Chandrasekaran, M. Gu, T. Pals. A fast ULV decomposition solver for
+%        hierarchically semiseparable representations. SIAM J. Matrix Anal.
+%        Appl. 28 (3): 603-622, 2006.
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
 %        operators: integral equations. arXiv:1307.2666, 2013.
-%
-%      P.G. Martinsson, V. Rokhlin. A fast direct solver for boundary integral
-%        equations in two dimensions. J. Comput. Phys. 205: 1-23, 2005.
 %
 %    See also HYPOCT, ID, RSKELF_MV, RSKELF_SV.
 
@@ -60,6 +58,9 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   if nargin < 6
     opts = [];
   end
+  if ~isfield(opts,'ext')
+    opts.ext = [];
+  end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
   end
@@ -71,16 +72,16 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  opts.symm = lower(opts.symm);
-  if ~(strcmp(opts.symm,'n') || strcmp(opts.symm,'s') || strcmp(opts.symm,'h'))
+  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
     error('FLAM:rskelf:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', or ''H''.')
+          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
   end
 
   % build tree
   N = size(x,2);
   tic
-  t = hypoct(x,occ,opts.lvlmax);
+  t = hypoct(x,occ,opts.lvlmax,opts.ext);
 
   % print summary
   if opts.verb
@@ -102,7 +103,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   % initialize
   nbox = t.lvp(end);
   e = cell(nbox,1);
-  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'P',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
   F = struct('N',N,'nlvl',t.nlvl,'lvp',zeros(1,t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
@@ -150,9 +151,9 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
         end
       end
 
-      % compute interaction matrices
+      % compute interaction matrix
       K = full(A(nbr,slf));
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         K = [K; full(A(slf,nbr))'];
       end
       K = [K; Kpxy];
@@ -167,23 +168,28 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % compute factors
       K = M{i};
-      if strcmp(opts.symm,'n') || strcmp(opts.symm,'h')
-        K(rd,:) = K(rd,:) - T'*K(sk,:);
-      elseif strcmp(opts.symm,'s')
+      if strcmpi(opts.symm,'s')
         K(rd,:) = K(rd,:) - T.'*K(sk,:);
+      else
+        K(rd,:) = K(rd,:) - T'*K(sk,:);
       end
       K(:,rd) = K(:,rd) - K(:,sk)*T;
-      if strcmp(opts.symm,'n') || strcmp(opts.symm,'s')
-        [L,U,P] = lu(K(rd,rd));
-        X = U\(L\P);
-      elseif strcmp(opts.symm,'h')
-        [L,U,P] = ldl(K(rd,rd));
-        X = P*(L'\(U\(L\P')));
+      E = eye(length(rd));
+      if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+        [L,U] = lu(K(rd,rd));
+        X = U\(L\E);
+      elseif strcmpi(opts.symm,'h')
+        [L,U] = ldl(K(rd,rd));
+        X = L'\(U\(L\E));
+      elseif strcmpi(opts.symm,'p')
+        L = chol(K(rd,rd),'lower');
+        X = L'\(L\E);
+        U = [];
       end
       E = K(sk,rd)*X;
-      if strcmp(opts.symm,'n')
+      if strcmpi(opts.symm,'n')
         G = X*K(rd,sk);
-      elseif strcmp(opts.symm,'s') || strcmp(opts.symm,'h')
+      else
         G = [];
       end
 
@@ -197,7 +203,6 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       F.factors(n).T = T;
       F.factors(n).E = E;
       F.factors(n).F = G;
-      F.factors(n).P = P;
       F.factors(n).L = L;
       F.factors(n).U = U;
 
