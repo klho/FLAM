@@ -13,7 +13,7 @@ function fd_square(n,occ,rank_or_tol,symm)
     rank_or_tol = 1e-9;
   end
   if nargin < 4 || isempty(symm)
-    symm = 's';
+    symm = 'p';
   end
 
   % initialize

@@ -43,12 +43,10 @@ function T = hypoct(x,occ,lvlmax,ext)
   end
 
   % check inputs
-  if occ < 0
-    error('FLAM:hypoct:negativeOcc','Leaf occupancy must be nonnegative.')
-  end
-  if lvlmax < 1
-    error('FLAM:hypoct:invalidLvlmax','Maximum tree depth must be at least 1.')
-  end
+  assert(occ >= 0,'FLAM:hypoct:negativeOcc', ...
+         'Leaf occupancy must be nonnegative.')
+  assert(lvlmax >= 1,'FLAM:hypoct:invalidLvlmax', ...
+         'Maximum tree depth must be at least 1.')
 
   % initialize
   [d,n] = size(x);

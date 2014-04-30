@@ -56,11 +56,10 @@ function F = mfx(A,x,occ,opts)
   end
 
   % check inputs
-  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
-    error('FLAM:mfx:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  end
+  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
+         'FLAM:mfx:invalidSymm', ...
+         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % build tree
   N = size(x,2);
@@ -87,7 +86,7 @@ function F = mfx(A,x,occ,opts)
   % initialize
   nbox = t.lvp(end);
   e = cell(nbox,1);
-  F = struct('sk',e,'rd',e,'E',e,'F',e,'P',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'E',e,'F',e,'L',e,'U',e);
   F = struct('N',N,'nlvl',t.nlvl,'lvp',zeros(1,t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;

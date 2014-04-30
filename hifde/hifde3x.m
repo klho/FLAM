@@ -1,27 +1,12 @@
-% HIFIE3        Hierarchical interpolative factorization for integral operators
-%               in 3D.
+% HIFDE3X       Hierarchical interpolative factorization for differential
+%               operators on general meshes in 3D.
 %
-%    F = HIFIE3(A,X,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of the
-%    interaction matrix A on the points X using tree occupancy parameter OCC,
-%    local precision parameter RANK_OR_TOL, and proxy function PXYFUN to capture
-%    the far field. This is a function of the form
+%    F = HIFDE3X(A,X,OCC,RANK_OR_TOL) produces a factorization F of the sparse
+%    interaction matrix A on the points X using tree occupancy parameter OCC and
+%    local skeletonization precision parameter RANK_OR_TOL.
 %
-%      [KPXY,NBR] = PXYFUN(X,SLF,NBR,L,CTR)
-%
-%    that is called for every block, where
-%
-%      - KPXY: interaction matrix against artificial proxy points
-%      - NBR:  block neighbor indices (can be modified)
-%      - X:    input points
-%      - SLF:  block indices
-%      - L:    block size
-%      - CTR:  block center
-%
-%    See the examples for further details. If PXYFUN is not provided or empty
-%    (default), then the code uses the naive global compression scheme.
-%
-%    F = HIFIE3(A,X,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various options to
-%    the algorithm. Valid options include:
+%    F = HIFDE3X(A,X,OCC,RANK_OR_TOL,OPTS) also passes various options to the
+%    algorithm. Valid options include:
 %
 %      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
 %             If EXT is empty (default), then the root extent is calculated from
@@ -44,28 +29,22 @@
 %    References:
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: integral equations. arXiv:1307.2666, 2013.
+%        operators: differential equations. arXiv:1307.2895, 2013.
 %
-%    See also HIFIE2, HIFIE2X, HIFIE3X, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
+%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE_MV, HIFDE_SV, HYPOCT, ID.
 
-function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
+function F = hifde3x(A,x,occ,rank_or_tol,opts)
   start = tic;
 
   % set default parameters
   if nargin < 5
-    pxyfun = [];
-  end
-  if nargin < 6
     opts = [];
-  end
-  if ~isfield(opts,'ext')
-    opts.ext = [];
   end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
   end
-  if ~isfield(opts,'skip')
-    opts.skip = 0;
+  if ~isfield(opts,'ext')
+    opts.ext = [];
   end
   if ~isfield(opts,'symm')
     opts.symm = 'n';
@@ -75,11 +54,9 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  assert(opts.skip >= 0,'FLAM:hifie3:negativeSkip', ...
-         'Skip parameter must be nonnegative.')
   assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:hifie3:invalidSymm', ...
+         'FLAM:hifde3x:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % build tree
@@ -107,14 +84,13 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   % initialize
   mn = t.lvp(end);
   e = cell(mn,1);
-  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'E',e,'F',e,'L',e,'U',e);
   F = struct('N',N,'nlvl',0,'lvp',zeros(1,2*t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
   n = 0;
   rem = true(N,1);
   mnz = 128;
-  M = sparse(N,N);
   I = zeros(mnz,1);
   J = zeros(mnz,1);
   S = zeros(mnz,1);
@@ -127,15 +103,97 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
 
     % pull up skeletons from children
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-        t.nodes(i).xi = [t.nodes(i).xi [t.nodes(t.nodes(i).chld).xi]];
+      t.nodes(i).xi = unique([t.nodes(i).xi [t.nodes(t.nodes(i).chld).xi]]);
     end
 
     % loop over dimensions
-    for d = [3 2 1]
+    for d = [3 2]
       tic
+      nrem1 = sum(rem);
 
-      % dimension reduction
-      if d < 3
+      % form matrix transpose
+      if strcmpi(opts.symm,'n')
+        B = A';
+      end
+
+      % block elimination
+      if d == 3
+        nb = t.lvp(lvl+1) - t.lvp(lvl);
+        e = cell(nb,1);
+        blocks = struct('slf',e,'sk',e,'rd',e,'T',e);
+        nb_ = nb;
+        nb = 0;
+
+        % loop over nodes
+        for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+          slf = t.nodes(i).xi;
+          sslf = sort(slf);
+
+          % skeletonize (eliminate interior nodes)
+          [I_,J_] = find(A(:,slf));
+          idx = ~ismembc(I_,sslf);
+          I_ = I_(idx);
+          J_ = J_(idx);
+          if strcmpi(opts.symm,'n')
+            [I__,J__] = find(B(:,slf));
+            idx = ~ismembc(I__,sslf);
+            I__ = I__(idx);
+            J__ = J__(idx);
+            I_ = [I_(:); I__(:)];
+            J_ = [J_(:); J__(:)];
+            [J_,idx] = sort(J_);
+            I_ = I_(idx);
+          end
+          sk = unique(J_)';
+
+          % optimize by sharing skeletons among neighbors
+          nbr = t.nodes(i).nbor;
+          nbr = nbr(nbr < i);
+          if ~isempty(nbr)
+            nbr = sort([t.nodes(nbr).xi]);
+            idx = ismembc(J_,sk);
+            I_ = I_(idx);
+            J_ = J_(idx);
+            nsk = length(sk);
+            P(sk) = 1:nsk;
+            J_ = P(J_);
+            p = cumsum(histc(J_,1:nsk));
+            p = [0; p(:)];
+            idx = ismembc(I_,nbr);
+
+            % keep only skeletons that are not made redundant by neighbor skeletons
+            keep = true(nsk,1);
+            mod = [];
+            for j = 1:nsk
+              if all(idx(p(j)+1:p(j+1)))
+                keep(j) = 0;
+                mod = [mod I_(p(j)+1:p(j+1))'];
+              end
+            end
+            mod = unique(mod);
+            sk = [sk(keep) length(slf)+(1:length(mod))];
+            slf = [slf mod];
+          end
+
+          % restrict to skeletons
+          t.nodes(i).xi = slf(sk);
+          rd = find(~ismembc(1:length(slf),sort(sk)));
+
+          % move on if no compression
+          if isempty(rd)
+            continue
+          end
+          rem(slf(rd)) = 0;
+
+          % store data
+          nb = nb + 1;
+          blocks(nb).slf = slf;
+          blocks(nb).sk = sk;
+          blocks(nb).rd = rd;
+        end
+
+      % face skeletonization
+      else
 
         % continue if in skip stage
         if lvl > t.nlvl - opts.skip
@@ -143,32 +201,14 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % generate face centers
-        if d == 2
-          ctr = zeros(6*nbox,3);
-          box2ctr = cell(nbox,1);
-          for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-            j = i - t.lvp(lvl);
-            idx = 6*(j-1)+1:6*j;
-            off = [0 0 -1; 0 -1 0; -1 0 0; 0 0 1; 0 1 0; 1 0 0];
-            ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
-            box2ctr{j} = idx;
-          end
-
-        % generate edge centers
-        elseif d == 1
-          ctr = zeros(12*nbox,3);
-          box2ctr = cell(nbox,1);
-          ctr2box = zeros(12*nbox,1);
-          for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-            j = i - t.lvp(lvl);
-            idx = 12*(j-1)+1:12*j;
-            off = [ 0 -1 -1;  0 -1 1; 0  1 -1; 0 1 1;
-                   -1  0 -1; -1  0 1; 1  0 -1; 1 0 1;
-                   -1 -1  0; -1  1 0; 1 -1  0; 1 1 0];
-            ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
-            box2ctr{j} = idx;
-            ctr2box(idx) = i;
-          end
+        ctr = zeros(6*nbox,3);
+        box2ctr = cell(nbox,1);
+        for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+          j = i - t.lvp(lvl);
+          idx = 6*(j-1)+1:6*j;
+          off = [0 0 -1; 0 -1 0; -1 0 0; 0 0 1; 0 1 0; 1 0 0];
+          ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
+          box2ctr{j} = idx;
         end
 
         % find unique shared centers
@@ -177,24 +217,6 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         [~,i,j] = unique(idx,'rows');
         idx(:) = 0;
         p = find(histc(j,1:max(j)) > 1);
-
-        % for D = 1 means shared across a diagonal
-        if d == 1
-          for k = 1:length(p)
-            c = i(p(k));
-            box = ctr2box(c);
-            nbr = t.nodes(box).nbor;
-            nbr = nbr(nbr > t.lvp(lvl));
-            box_ctr = t.nodes(box).ctr;
-            nbr_ctr = reshape([t.nodes(nbr).ctr],3,[])';
-            dist_ctr = round(2*(box_ctr - ctr(c,:))/l);
-            dist_nbr = round(bsxfun(@minus,box_ctr,nbr_ctr)/l);
-            if ~any(all(bsxfun(@eq,dist_nbr,dist_ctr),2))
-              p(k) = 0;
-            end
-          end
-          p = nonzeros(p);
-        end
         i = i(p);
         idx(p) = 1:length(p);
         ctr = ctr(i,:);
@@ -203,7 +225,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         end
         nb = size(ctr,1);
         e = cell(nb,1);
-        blocks = struct('ctr',e,'xi',e,'prnt',e,'nbr1',e,'nbr2',e);
+        blk = struct('ctr',e,'xi',e,'prnt',e);
 
         % sort points by centers
         for box = 1:nbox
@@ -227,8 +249,8 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
             [~,idx] = sort(P(xi));
             xi = xi(idx);
             for j = box2ctr{box}
-              blocks(j).xi = [blocks(j).xi xi(p(j)+1:p(j+1))];
-              blocks(j).prnt = [blocks(j).prnt (t.lvp(lvl)+box)*ones(1,m(j))];
+              blk(j).xi = [blk(j).xi xi(p(j)+1:p(j+1))];
+              blk(j).prnt = [blk(j).prnt (t.lvp(lvl)+box)*ones(1,m(j))];
             end
           end
         end
@@ -237,131 +259,105 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         m = histc(P(rem),1:nb);
         idx = m > 0;
         ctr = ctr(idx,:);
-        blocks = blocks(idx);
-        nb = length(blocks);
-        for i = 1:nb
-          blocks(i).ctr = ctr(i,:);
-        end
+        blk = blk(idx);
+        nb = length(blk);
         p = cumsum(m == 0);
         for box = 1:nbox
           box2ctr{box} = box2ctr{box}(idx(box2ctr{box}));
           box2ctr{box} = box2ctr{box} - p(box2ctr{box})';
         end
 
-        % find neighbors for each center
-        proc = zeros(nb,1);
-        for box = 1:nbox
-          j = t.nodes(t.lvp(lvl)+box).nbor;
-          j = j(j <= t.lvp(lvl));
-          for i = box2ctr{box}
-            blocks(i).nbr1 = [blocks(i).nbr1 j];
+        % remove duplicate points
+        for i = 1:nb
+          blk(i).ctr = ctr(i,:);
+          [blk(i).xi,idx] = unique(blk(i).xi,'first');
+          blk(i).prnt = blk(i).prnt(idx);
+        end
+
+        % initialize storage
+        e = cell(nb,1);
+        blocks = struct('slf',e,'sk',e,'rd',e,'T',e);
+        nb_ = nb;
+        nb = 0;
+
+        % clear current level
+        for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+          t.nodes(i).xi = [];
+        end
+
+        % loop over faces
+        for i = 1:nb_
+          slf = blk(i).xi;
+          nslf = length(slf);
+          sslf = sort(slf);
+
+          % find neighbors
+          [nbr,~] = find(A(:,slf));
+          nbr = unique(nbr);
+          idx = ~ismembc(nbr,sslf);
+          nbr = nbr(idx);
+          if strcmpi(opts.symm,'n')
+            [nbr_,~] = find(B(:,slf));
+            idx = ~ismembc(nbr_,sslf);
+            nbr_ = nbr_(idx);
+            nbr = [nbr(:); nbr_(:)]';
           end
-          slf = box2ctr{box};
-          nbr = t.nodes(t.lvp(lvl)+box).nbor;
-          nbr = nbr(nbr > t.lvp(lvl)) - t.lvp(lvl);
-          nbr = unique([box2ctr{[box nbr]}]);
-          dx = abs(round(bsxfun(@minus,ctr(slf,1),ctr(nbr,1)')/l));
-          dy = abs(round(bsxfun(@minus,ctr(slf,2),ctr(nbr,2)')/l));
-          dz = abs(round(bsxfun(@minus,ctr(slf,3),ctr(nbr,3)')/l));
-          nrx = bsxfun(@le,dx,1);
-          nry = bsxfun(@le,dy,1);
-          nrz = bsxfun(@le,dz,1);
-          near = nrx & nry & nrz;
-          for i = 1:length(slf)
-            j = slf(i);
-            if ~proc(j)
-              k = nbr(near(i,:));
-              blocks(j).nbr2 = k(k ~= j);
-              proc(j) = 1;
-            end
+          nnbr = length(nbr);
+          snbr = sort(nbr);
+
+          % compute interaction matrix
+          K = spget('nbr','slf');
+          if strcmpi(opts.symm,'n')
+            K = [K; spget('slf','nbr')'];
           end
+
+          % skeletonize
+          [sk,rd,T] = id(K,rank_or_tol);
+
+          % restrict to skeletons
+          for j = sk
+            t.nodes(blk(i).prnt(j)).xi = [t.nodes(blk(i).prnt(j)).xi slf(j)];
+          end
+
+          % move on if no compression
+          if isempty(rd)
+            continue
+          end
+          rem(slf(rd)) = 0;
+
+          % store data
+          nb = nb + 1;
+          blocks(nb).slf = slf;
+          blocks(nb).sk = sk;
+          blocks(nb).rd = rd;
+          blocks(nb).T = T;
         end
       end
 
       % initialize
       nlvl = nlvl + 1;
-      if d == 3
-        nb = t.lvp(lvl+1) - t.lvp(lvl);
-      else
-        nb = length(blocks);
-        for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-          t.nodes(i).xi = [];
-        end
-      end
-      F.lvp(nlvl+1) = F.lvp(nlvl) + nb;
-      nblk = pblk(lvl) + nb;
-      nrem1 = sum(rem);
+      nblk = pblk(lvl) + nb_;
       nz = 0;
 
-      % loop over blocks
+      % loop over stored data
       for i = 1:nb
-        if d == 3
-          j = t.lvp(lvl) + i;
-          blk = t.nodes(j);
-          nbr = [t.nodes(blk.nbor).xi];
-        else
-          blk = blocks(i);
-          nbr = [[t.nodes(blk.nbr1).xi] [blocks(blk.nbr2).xi]];
-        end
-        slf = blk.xi;
+        slf = blocks(i).slf;
+        sk = blocks(i).sk;
+        rd = blocks(i).rd;
+        T = blocks(i).T;
         nslf = length(slf);
         sslf = sort(slf);
 
-        % compute proxy interactions and subselect neighbors
-        Kpxy = zeros(0,nslf);
-        if lvl > 2
-          if isempty(pxyfun)
-            nbr = setdiff(find(rem),slf);
-          else
-            [Kpxy,nbr] = pxyfun(x,slf,nbr,l,blk.ctr);
-          end
-        end
-
-        % add neighbors with modified interactions
-        [mod,~] = find(M(:,slf));
-        mod = unique(mod);
-        mod = mod(~ismembc(mod,sslf));
-        nbr = unique([nbr(:); mod(:)]);
-        nnbr = length(nbr);
-        snbr = sort(nbr);
-
-        % compute interaction matrix
-        K1 = full(A(nbr,slf));
-        if strcmpi(opts.symm,'n')
-          K1 = [K1; full(A(slf,nbr))'];
-        end
-        K2 = spget('nbr','slf');
-        if strcmpi(opts.symm,'n')
-          K2 = [K2; spget('slf','nbr')'];
-        end
-        K = [K1 + K2; Kpxy];
-
-        % skeletonize
-        [sk,rd,T] = id(K,rank_or_tol);
-
-        % restrict to skeletons
-        if d == 3
-          t.nodes(j).xi = slf(sk);
-        else
-          for j = sk
-            t.nodes(blk.prnt(j)).xi = [t.nodes(blk.prnt(j)).xi slf(j)];
-          end
-        end
-
-        % move on if no compression
-        if isempty(rd)
-          continue
-        end
-        rem(slf(rd)) = 0;
-
         % compute factors
-        K = full(A(slf,slf)) + spget('slf','slf');
-        if strcmpi(opts.symm,'s')
-          K(rd,:) = K(rd,:) - T.'*K(sk,:);
-        else
-          K(rd,:) = K(rd,:) - T'*K(sk,:);
+        K = spget('slf','slf');
+        if ~isempty(T)
+          if strcmpi(opts.symm,'s')
+            K(rd,:) = K(rd,:) - T.'*K(sk,:);
+          else
+            K(rd,:) = K(rd,:) - T'*K(sk,:);
+          end
+          K(:,rd) = K(:,rd) - K(:,sk)*T;
         end
-        K(:,rd) = K(:,rd) - K(:,sk)*T;
         E = eye(length(rd));
         if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
           [L,U] = lu(K(rd,rd));
@@ -416,7 +412,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
       F.lvp(nlvl+1) = n;
 
       % update modified entries
-      [I_,J_,S_] = find(M);
+      [I_,J_,S_] = find(A);
       idx = rem(I_) & rem(J_);
       I_ = I_(idx);
       J_ = J_(idx);
@@ -433,11 +429,11 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
       J(nz+1:nz+m) = J_;
       S(nz+1:nz+m) = S_;
       nz = nz + m;
-      M = sparse(I(1:nz),J(1:nz),S(1:nz),N,N);
+      A = sparse(I(1:nz),J(1:nz),S(1:nz),N,N);
 
       % print summary
       if opts.verb
-        nrem2 = sum(rem);
+        nrem2 = sum(rem(:));
         fprintf('%3d-%1d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e (s)\n', ...
                 lvl,d,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,toc)
       end
@@ -457,7 +453,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   end
 
   % sparse matrix access function (native MATLAB is slow for large matrices)
-  function A = spget(Ityp,Jtyp)
+  function X = spget(Ityp,Jtyp)
     if strcmpi(Ityp,'slf')
       I_ = slf;
       m_ = nslf;
@@ -475,12 +471,12 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
       n_ = nnbr;
     end
     P(I_) = 1:m_;
-    A = zeros(m_,n_);
-    [I_,J_,S_] = find(M(:,J_));
+    X = zeros(m_,n_);
+    [I_,J_,S_] = find(A(:,J_));
     idx = ismembc(I_,I_sort);
     I_ = I_(idx);
     J_ = J_(idx);
     S_ = S_(idx);
-    A(P(I_) + (J_ - 1)*m_) = S_;
+    X(P(I_) + (J_ - 1)*m_) = S_;
   end
 end

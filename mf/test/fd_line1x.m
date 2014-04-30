@@ -16,13 +16,11 @@ function fd_line1x(n,occ,symm)
   % initialize
   x = (1:n-1)/n;
   N = size(x,2);
-
-  % set up sparse matrix
   h = 1/n;
+
+  % set up indices
   idx = zeros(n+1,1);
   idx(2:n) = 1:N;
-
-  % initialize indices
   mid = 2:n;
   lft = 1:n-1;
   rgt = 3:n+1;

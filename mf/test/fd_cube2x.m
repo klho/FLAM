@@ -17,67 +17,77 @@ function fd_cube2x(n,occ,symm)
   [x1,x2,x3] = ndgrid((1:n-1)/n);
   x = [x1(:) x2(:) x3(:)]';
   N = size(x,2);
+  h = 1/n;
   clear x1 x2 x3
 
-  % set up sparse matrix
-  h = 1/n;
+  % set up conductivity field
+  a = zeros(n+1,n+1,n+1);
+  A = rand(n-1,n-1,n-1);
+  A = fftn(A,[2*n-3 2*n-3 2*n-3]);
+  [X,Y,Z] = ndgrid(0:n-2);
+  C = normpdf(X,0,4).*normpdf(Y,0,4).*normpdf(Z,0,4);
+  B = zeros(2*n-3,2*n-3,2*n-3);
+  B(1:n-1,1:n-1,1:n-1) = C;
+  B(1:n-1,1:n-1,n:end) = C( :   , :   ,2:n-1);
+  B(1:n-1,n:end,1:n-1) = C( :   ,2:n-1, :   );
+  B(1:n-1,n:end,n:end) = C( :   ,2:n-1,2:n-1);
+  B(n:end,1:n-1,1:n-1) = C(2:n-1, :   , :   );
+  B(n:end,1:n-1,n:end) = C(2:n-1, :   ,2:n-1);
+  B(n:end,n:end,1:n-1) = C(2:n-1,2:n-1, :   );
+  B(n:end,n:end,n:end) = C(2:n-1,2:n-1,2:n-1);
+  B(:,:,n:end) = flipdim(B(:,:,n:end),3);
+  B(:,n:end,:) = flipdim(B(:,n:end,:),2);
+  B(n:end,:,:) = flipdim(B(n:end,:,:),1);
+  B = fftn(B);
+  A = ifftn(A.*B);
+  A = A(1:n-1,1:n-1,1:n-1);
+  idx = A > median(A(:));
+  A( idx) = 1e+2;
+  A(~idx) = 1e-2;
+  a(2:n,2:n,2:n) = A;
+  clear X Y Z A B C
+
+  % set up indices
   idx = zeros(n+1,n+1,n+1);
   idx(2:n,2:n,2:n) = reshape(1:N,n-1,n-1,n-1);
-
-  % set up potentials
-  a = rand(n,n,n);
-  a(a > 0.5) = 100;
-  a(a < 0.5) = 0.01;
-  V = zeros(n+1,n+1,n+1);
-  V(2:n,2:n,2:n) = randn(n-1,n-1,n-1);
-
-  % initialize indices
   mid = 2:n;
   lft = 1:n-1;
   rgt = 3:n+1;
-  slft = 1:n-1;
-  srgt = 2:n;
 
   % interactions with left node
   Il = idx(mid,mid,mid);
   Jl = idx(lft,mid,mid);
-  Sl = -0.25/h^2*(a(slft,slft,slft) + a(slft,slft,srgt) + ...
-                  a(slft,srgt,slft) + a(slft,srgt,srgt));
+  Sl = -0.5/h^2*(a(lft,mid,mid) + a(mid,mid,mid));
 
   % interactions with right node
   Ir = idx(mid,mid,mid);
   Jr = idx(rgt,mid,mid);
-  Sr = -0.25/h^2*(a(srgt,slft,slft) + a(srgt,slft,srgt) + ...
-                  a(srgt,srgt,slft) + a(srgt,srgt,srgt));
+  Sr = -0.5/h^2*(a(rgt,mid,mid) + a(mid,mid,mid));
 
   % interactions with bottom node
   Id = idx(mid,mid,mid);
   Jd = idx(mid,lft,mid);
-  Sd = -0.25/h^2*(a(slft,slft,slft) + a(slft,slft,srgt) + ...
-                  a(srgt,slft,slft) + a(srgt,slft,srgt));
+  Sd = -0.5/h^2*(a(mid,lft,mid) + a(mid,mid,mid));
 
   % interactions with top node
   Iu = idx(mid,mid,mid);
   Ju = idx(mid,rgt,mid);
-  Su = -0.25/h^2*(a(slft,srgt,slft) + a(slft,srgt,srgt) + ...
-                  a(srgt,srgt,slft) + a(srgt,srgt,srgt));
+  Su = -0.5/h^2*(a(mid,rgt,mid) + a(mid,mid,mid));
 
   % interactions with back node
   Ib = idx(mid,mid,mid);
   Jb = idx(mid,mid,lft);
-  Sb = -0.25/h^2*(a(slft,slft,slft) + a(slft,srgt,slft) + ...
-                  a(srgt,slft,slft) + a(srgt,srgt,slft));
+  Sb = -0.5/h^2*(a(mid,mid,lft) + a(mid,mid,mid));
 
   % interactions with front node
   If = idx(mid,mid,mid);
   Jf = idx(mid,mid,rgt);
-  Sf = -0.25/h^2*(a(slft,slft,srgt) + a(slft,srgt,srgt) + ...
-                  a(srgt,slft,srgt) + a(srgt,srgt,srgt));
+  Sf = -0.5/h^2*(a(mid,mid,rgt) + a(mid,mid,mid));
 
   % interactions with self
   Im = idx(mid,mid,mid);
   Jm = idx(mid,mid,mid);
-  Sm = -(Sl + Sr + Sd + Su + Sb + Sf) + V(mid,mid,mid);
+  Sm = -(Sl + Sr + Sd + Su + Sb + Sf);
 
   % form sparse matrix
   I = [Il(:); Ir(:); Id(:); Iu(:); Ib(:); If(:); Im(:)];

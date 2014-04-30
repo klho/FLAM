@@ -20,54 +20,62 @@ function fd_square2(n,occ,rank_or_tol,skip,symm)
   end
 
   % initialize
-  [x1,x2] = ndgrid((1:n-1)/n);
-  x = [x1(:) x2(:)]';
-  N = size(x,2);
-  clear x1 x2
-
-  % set up sparse matrix
+  N = (n - 1)^2;
   h = 1/n;
+
+  % set up conductivity field
+  a = zeros(n+1,n+1);
+  A = rand(n-1,n-1);
+  A = fft2(A,2*n-3,2*n-3);
+  [X,Y] = ndgrid(0:n-2);
+  C = normpdf(X,0,4).*normpdf(Y,0,4);
+  B = zeros(2*n-3,2*n-3);
+  B(1:n-1,1:n-1) = C;
+  B(1:n-1,n:end) = C( :   ,2:n-1);
+  B(n:end,1:n-1) = C(2:n-1, :   );
+  B(n:end,n:end) = C(2:n-1,2:n-1);
+  B(:,n:end) = flipdim(B(:,n:end),2);
+  B(n:end,:) = flipdim(B(n:end,:),1);
+  B = fft2(B);
+  A = ifft2(A.*B);
+  A = A(1:n-1,1:n-1);
+  idx = A > median(A(:));
+  A( idx) = 1e+2;
+  A(~idx) = 1e-2;
+  a(2:n,2:n) = A;
+  clear X Y A B C
+
+  % set up indices
   idx = zeros(n+1,n+1);
   idx(2:n,2:n) = reshape(1:N,n-1,n-1);
-
-  % set up potentials
-  a = rand(n,n);
-  a(a > 0.5) = 100;
-  a(a < 0.5) = 0.01;
-  V = zeros(n+1,n+1);
-  V(2:n,2:n) = randn(n-1,n-1);
-
-  % initialize indices
   mid = 2:n;
   lft = 1:n-1;
   rgt = 3:n+1;
-  slft = 1:n-1;
-  srgt = 2:n;
 
   % interactions with left node
   Il = idx(mid,mid);
   Jl = idx(lft,mid);
-  Sl = -0.5/h^2*(a(slft,slft) + a(slft,srgt));
+  Sl = -0.5/h^2*(a(lft,mid) + a(mid,mid));
 
   % interactions with right node
   Ir = idx(mid,mid);
   Jr = idx(rgt,mid);
-  Sr = -0.5/h^2*(a(srgt,slft) + a(srgt,srgt));
+  Sr = -0.5/h^2*(a(rgt,mid) + a(mid,mid));
 
   % interactions with bottom node
   Id = idx(mid,mid);
   Jd = idx(mid,lft);
-  Sd = -0.5/h^2*(a(slft,slft) + a(srgt,slft));
+  Sd = -0.5/h^2*(a(mid,lft) + a(mid,mid));
 
   % interactions with top node
   Iu = idx(mid,mid);
   Ju = idx(mid,rgt);
-  Su = -0.5/h^2*(a(slft,srgt) + a(srgt,srgt));
+  Su = -0.5/h^2*(a(mid,rgt) + a(mid,mid));
 
   % interactions with self
   Im = idx(mid,mid);
   Jm = idx(mid,mid);
-  Sm = -(Sl + Sr + Sd + Su) + V(mid,mid);
+  Sm = -(Sl + Sr + Sd + Su);
 
   % form sparse matrix
   I = [Il(:); Ir(:); Id(:); Iu(:); Im(:)];

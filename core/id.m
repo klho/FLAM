@@ -22,9 +22,8 @@
 function [sk,rd,T] = id(A,rank_or_tol)
 
   % check inputs
-  if rank_or_tol < 0
-    error('FLAM:id:negativeRankOrTol','Rank or tolerance must be nonnegative.')
-  end
+  assert(rank_or_tol >= 0,'FLAM:id:negativeRankOrTol', ...
+         'Rank or tolerance must be nonnegative.')
 
   % initialize
   n = size(A,2);

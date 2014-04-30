@@ -5,7 +5,7 @@
 %    F = HIFDE2(A,N,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the interior vertices of a regular N x N finite
 %    element mesh of the unit square with leaf size OCC x OCC using local
-%    precision parameter RANK_OR_TOL.
+%    skeletonization precision parameter RANK_OR_TOL.
 %
 %    F = HIFDE2(A,N,OCC,RANK_OR_TOL,OPTS) also passes various options to the
 %    algorithm. Valid options include:
@@ -68,21 +68,19 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
   end
 
   % check inputs
-  if occ <= 0 && ~isfinite(opts.lvlmax)
-    error('FLAM:hifde2:nonpositiveOcc', ...
-          'Leaf occupancy must be positive if no maximum depth set.')
+  assert(n > 0,'FLAM:hifde2:nonpositiveMeshSize','Mesh size must be positive.')
+  if occ <= 0
+    assert(isfinite(opts.lvlmax),'FLAM:hifde2:invalidLvlmax', ...
+          'Maximum tree depth must be finite if leaf occupancy is zero.')
   end
-  if opts.lvlmax < 1
-    error('FLAM:hifde2:invalidLvlmax','Maximum tree depth must be at least 1.')
-  end
-  if opts.skip < 0
-    error('FLAM:hifde2:negativeSkip','Skip parameter must be nonnegative.')
-  end
-  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
-    error('FLAM:hifde2:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  end
+  assert(opts.lvlmax >= 1,'FLAM:hifde2:invalidLvlmax', ...
+         'Maximum tree depth must be at least 1.')
+  assert(opts.skip >= 0,'FLAM:hifde2:negativeSkip', ...
+         'Skip parameter must be nonnegative.')
+  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
+         'FLAM:hifde2:invalidSymm', ...
+         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % print header
   if opts.verb
@@ -119,7 +117,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
     w = 2*w;
     nb = ceil(n/w);
 
-    % loop over operations
+    % loop over dimensions
     for d = [2 1]
       tic
       nrem1 = sum(rem(:));
@@ -128,7 +126,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
       if d == 2
         nblk = nb^2;
         e = cell(nblk,1);
-        blk = struct('slf',e,'sk',e,'rd',e,'T',e);
+        blocks = struct('slf',e,'sk',e,'rd',e,'T',e);
         nblk_ = nblk;
         nblk = 0;
 
@@ -168,13 +166,13 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
 
             % store data
             nblk = nblk + 1;
-            blk(nblk).slf = slf;
-            blk(nblk).sk = sk;
-            blk(nblk).rd = rd;
+            blocks(nblk).slf = slf;
+            blocks(nblk).sk = sk;
+            blocks(nblk).rd = rd;
           end
         end
 
-      % skeletonization
+      % edge skeletonization
       else
 
         % continue if in skip stage
@@ -185,7 +183,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
         % initialize
         nblk = 2*nb*(nb - 1);
         e = cell(nblk,1);
-        blk = struct('slf',e,'sk',e,'rd',e,'T',e);
+        blocks = struct('slf',e,'sk',e,'rd',e,'T',e);
         nblk_ = nblk;
         nblk = 0;
 
@@ -254,14 +252,14 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
 
             % store data
             nblk = nblk + 1;
-            blk(nblk).slf = slf;
-            blk(nblk).sk = sk;
-            blk(nblk).rd = rd;
-            blk(nblk).T = T;
+            blocks(nblk).slf = slf;
+            blocks(nblk).sk = sk;
+            blocks(nblk).rd = rd;
+            blocks(nblk).T = T;
           end
         end
       end
-      blk = blk(1:nblk);
+      blocks = blocks(1:nblk);
 
       % initialize
       nlvl = nlvl + 1;
@@ -269,10 +267,10 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
 
       % loop over stored data
       for i = 1:nblk
-        slf = blk(i).slf;
-        sk = blk(i).sk;
-        rd = blk(i).rd;
-        T = blk(i).T;
+        slf = blocks(i).slf;
+        sk = blocks(i).sk;
+        rd = blocks(i).rd;
+        T = blocks(i).T;
         nslf = length(slf);
 
         % compute factors

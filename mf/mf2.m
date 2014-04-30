@@ -51,18 +51,17 @@ function F = mf2(A,n,occ,opts)
   end
 
   % check inputs
-  if occ <= 0 && ~isfinite(opts.lvlmax)
-    error('FLAM:mf2:nonpositiveOcc', ...
-          'Leaf occupancy must be positive if no maximum depth set.')
+  assert(n > 0,'FLAM:mf2:nonpositiveMeshSize','Mesh size must be positive.')
+  if occ <= 0
+    assert(isfinite(opts.lvlmax),'FLAM:mf2:invalidLvlmax', ...
+          'Maximum tree depth must be finite if leaf occupancy is zero.')
   end
-  if opts.lvlmax < 1
-    error('FLAM:mf2:invalidLvlmax','Maximum tree depth must be at least 1.')
-  end
-  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
-    error('FLAM:mf2:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  end
+  assert(opts.lvlmax >= 1,'FLAM:mf2:invalidLvlmax', ...
+         'Maximum tree depth must be at least 1.')
+  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
+         'FLAM:mf2:invalidSymm', ...
+         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % print header
   if opts.verb

@@ -1,13 +1,13 @@
 % Seven-point stencil on the unit cube, constant-coefficient Poisson.
 
-function fd_cube1(n,occ,rank_or_tol,skip,symm)
+function fd_cube1x(n,occ,rank_or_tol,skip,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 32;
   end
   if nargin < 2 || isempty(occ)
-    occ = 4;
+    occ = 64;
   end
   if nargin < 3 || isempty(rank_or_tol)
     rank_or_tol = 1e-6;
@@ -20,8 +20,11 @@ function fd_cube1(n,occ,rank_or_tol,skip,symm)
   end
 
   % initialize
-  N = (n - 1)^3;
+  [x1,x2,x3] = ndgrid((1:n-1)/n);
+  x = [x1(:) x2(:) x3(:)]';
+  N = size(x,2);
   h = 1/n;
+  clear x1 x2 x3
 
   % set up indices
   idx = zeros(n+1,n+1,n+1);
@@ -78,7 +81,7 @@ function fd_cube1(n,occ,rank_or_tol,skip,symm)
 
   % factor matrix
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  F = hifde3(A,n,occ,rank_or_tol,opts);
+  F = hifde3x(A,x,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)

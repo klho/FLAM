@@ -78,14 +78,12 @@ function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  if opts.skip < 0
-    error('FLAM:hifie2:negativeSkip','Skip parameter must be nonnegative.')
-  end
-  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
-    error('FLAM:hifie2:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  end
+  assert(opts.skip >= 0,'FLAM:hifie2:negativeSkip', ...
+         'Skip parameter must be nonnegative.')
+  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
+         'FLAM:hifie2:invalidSymm', ...
+         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % build tree
   N = size(x,2);
@@ -159,7 +157,8 @@ function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % find unique shared centers
-        idx = round(2*ctr/l);
+        idx = bsxfun(@minus,ctr,t.nodes(1).ctr);
+        idx = round(2*idx/l);
         [~,i,j] = unique(idx,'rows');
         idx(:) = 0;
         p = find(histc(j,1:max(j)) > 1);
@@ -283,7 +282,7 @@ function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
 
         % add neighbors with modified interactions
         [mod,~] = find(M(:,slf));
-        mod = sort(mod);
+        mod = unique(mod);
         mod = mod(~ismembc(mod,sslf));
         nbr = unique([nbr(:); mod(:)]);
         nnbr = length(nbr);

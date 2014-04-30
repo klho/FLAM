@@ -51,18 +51,17 @@ function F = mf3(A,n,occ,opts)
   end
 
   % check inputs
-  if occ <= 0 && ~isfinite(opts.lvlmax)
-    error('FLAM:mf3:nonpositiveOcc', ...
-          'Leaf occupancy must be positive if no maximum depth set.')
+  assert(n > 0,'FLAM:mf3:nonpositiveMeshSize','Mesh size must be positive.')
+  if occ <= 0
+    assert(isfinite(opts.lvlmax),'FLAM:mf3:invalidLvlmax', ...
+          'Maximum tree depth must be finite if leaf occupancy is zero.')
   end
-  if opts.lvlmax < 1
-    error('FLAM:mf3:invalidLvlmax','Maximum tree depth must be at least 1.')
-  end
-  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-       strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'))
-    error('FLAM:mf3:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  end
+  assert(opts.lvlmax >= 1,'FLAM:mf3:invalidLvlmax', ...
+         'Maximum tree depth must be at least 1.')
+  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
+         'FLAM:mf3:invalidSymm', ...
+         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % print header
   if opts.verb
@@ -75,7 +74,7 @@ function F = mf3(A,n,occ,opts)
   nlvl = min(opts.lvlmax,ceil(max(0,log2(n/occ)))+1);
   nbox = (8^nlvl - 1)/7;
   e = cell(nbox,1);
-  F = struct('sk',e,'rd',e,'E',e,'F',e,'P',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'E',e,'F',e,'L',e,'U',e);
   F = struct('N',N,'nlvl',nlvl,'lvp',zeros(1,nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;

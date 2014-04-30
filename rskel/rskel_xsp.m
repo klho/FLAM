@@ -5,7 +5,7 @@
 %    A = [D U 0; V' 0 -I; 0 -I S], where I is an identity matrix of the
 %    appropriate size; in the multilevel setting, S itself is extended in the
 %    same way. If F.SYMM = 'N', then the entire extended sparsification is
-%    returned; if F.SYMM = 'S' or F.SYMM = 'H', then only the lower triangular
+%    returned; if F.SYMM = 'S', 'H', or 'P', then only the lower triangular part
 %    part of A is returned.
 %
 %    See also RSKEL, RSKEL_MV.
@@ -33,14 +33,14 @@ function A = rskel_xsp(F)
       elseif strcmpi(F.symm,'s')
         crem(F.U(i).rrd) = 0;
         nz = nz + 2*numel(F.U(i).rT);
-      elseif strcmpi(F.symm,'h')
+      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         crem(F.U(i).rrd) = 0;
         nz = nz + numel(F.U(i).rT);
       end
     end
     if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
       nz = nz + 2*(sum(rrem) + sum(crem));
-    elseif strcmpi(F.symm,'h')
+    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
       nz = nz + sum(rrem) + sum(crem);
     end
   end
@@ -61,7 +61,7 @@ function A = rskel_xsp(F)
       rrem(F.U(i).rrd) = 0;
       if strcmpi(F.symm,'n')
         crem(F.U(i).crd) = 0;
-      elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+      else
         crem(F.U(i).rrd) = 0;
       end
     end
@@ -115,7 +115,7 @@ function A = rskel_xsp(F)
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT.';
-      elseif strcmpi(F.symm,'h')
+      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT';

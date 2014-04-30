@@ -33,8 +33,8 @@
 %               STORE = 'N').
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
-%              symmetric if SYMM = 'S', and Hermitian if SYMM = 'H' (default:
-%              SYMM = 'N').
+%              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
+%              positive definite if SYMM = 'P' (default: SYMM = 'N').
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
@@ -75,16 +75,14 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   end
 
   % check inputs
-  if ~(strcmpi(opts.store,'n') || strcmpi(opts.store,'s') || ...
-       strcmpi(opts.store,'d') || strcmpi(opts.store,'a'))
-    error('FLAM:ifmm:invalidStore', ...
-          'Storage parameter must be one of ''N'', ''S'', ''D'', or ''A''.')
-  end
-  if ~(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-       strcmpi(opts.symm,'h'))
-    error('FLAM:ifmm:invalidSymm', ...
-          'Symmetry parameter must be one of ''N'', ''S'', or ''H''.')
-  end
+  assert(strcmpi(opts.store,'n') || strcmpi(opts.store,'s') || ...
+         strcmpi(opts.store,'d') || strcmpi(opts.store,'a'), ...
+         'FLAM:ifmm:invalidStore', ...
+         'Storage parameter must be one of ''N'', ''S'', ''D'', or ''A''.')
+  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
+         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
+         'FLAM:ifmm:invalidSymm', ...
+         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
   % build tree
   M = size(rx,2);

@@ -16,9 +16,8 @@ function [x,w] = glegquad(n,a,b)
   end
 
   % check inputs
-  if n < 1
-    error('FLAM:glegquad:InvalidOrder','Quadrature order must be at least 1.')
-  end
+  assert(n >= 1,'FLAM:glegquad:invalidOrder', ...
+         'Quadrature order must be at least 1.')
 
   % initialize
   alpha = zeros(n,1);

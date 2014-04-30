@@ -16,10 +16,9 @@ function Y = mf_mv(F,X,trans)
   end
 
   % check inputs
-  if ~(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'))
-    error('FLAM:mf_mv:invalidTrans', ...
-          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-  end
+  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
+         'FLAM:mf_mv:invalidTrans', ...
+         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
   if strcmpi(trans,'t')

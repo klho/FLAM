@@ -47,7 +47,7 @@ function ie_square1(n,occ,p,rank_or_tol,symm)
   tic
   if strcmpi(F.symm,'n')
     [L,U] = lu(A);
-  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+  else
     [L,D,P] = ldl(A);
   end
   t = toc;
@@ -56,7 +56,7 @@ function ie_square1(n,occ,p,rank_or_tol,symm)
     spmem = w.bytes;
     w = whos('U');
     spmem = (spmem + w.bytes)/1e6;
-  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+  else
     w = whos('L');
     spmem = w.bytes;
     w = whos('D');
@@ -147,7 +147,7 @@ function ie_square1(n,occ,p,rank_or_tol,symm)
     X = [X; zeros(size(A,1)-N,size(X,2))];
     if strcmpi(F.symm,'n')
       Y = U\(L\X);
-    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+    else
       Y = P*(L'\(D\(L\(P'*X))));
     end
     Y = Y(1:N,:);

@@ -1,13 +1,13 @@
-% Five-point stencil on the unit square, constant-coefficient Helmholtz.
+% Seven-point stencil on the unit cube, constant-coefficient Helmholtz.
 
-function fd_square3x(n,k,occ,symm)
+function fd_cube3x(n,k,occ,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
-    n = 128;
+    n = 32;
   end
   if nargin < 2 || isempty(k)
-    k = 2*pi*8;
+    k = 2*pi*4;
   end
   if nargin < 3 || isempty(occ)
     occ = 64;
@@ -17,54 +17,64 @@ function fd_square3x(n,k,occ,symm)
   end
 
   % initialize
-  [x1,x2] = ndgrid((1:n-1)/n);
-  x = [x1(:) x2(:)]';
+  [x1,x2,x3] = ndgrid((1:n-1)/n);
+  x = [x1(:) x2(:) x3(:)]';
   N = size(x,2);
   h = 1/n;
-  clear x1 x2
+  clear x1 x2 x3
 
   % set up indices
-  idx = zeros(n+1,n+1);
-  idx(2:n,2:n) = reshape(1:N,n-1,n-1);
+  idx = zeros(n+1,n+1,n+1);
+  idx(2:n,2:n,2:n) = reshape(1:N,n-1,n-1,n-1);
   mid = 2:n;
   lft = 1:n-1;
   rgt = 3:n+1;
 
   % interactions with left node
-  Il = idx(mid,mid);
-  Jl = idx(lft,mid);
+  Il = idx(mid,mid,mid);
+  Jl = idx(lft,mid,mid);
   Sl = -1/h^2*ones(size(Il));
 
   % interactions with right node
-  Ir = idx(mid,mid);
-  Jr = idx(rgt,mid);
+  Ir = idx(mid,mid,mid);
+  Jr = idx(rgt,mid,mid);
   Sr = -1/h^2*ones(size(Ir));
 
   % interactions with bottom node
-  Id = idx(mid,mid);
-  Jd = idx(mid,lft);
+  Id = idx(mid,mid,mid);
+  Jd = idx(mid,lft,mid);
   Sd = -1/h^2*ones(size(Id));
 
   % interactions with top node
-  Iu = idx(mid,mid);
-  Ju = idx(mid,rgt);
+  Iu = idx(mid,mid,mid);
+  Ju = idx(mid,rgt,mid);
   Su = -1/h^2*ones(size(Iu));
 
+  % interactions with back node
+  Ib = idx(mid,mid,mid);
+  Jb = idx(mid,mid,lft);
+  Sb = -1/h^2*ones(size(Ib));
+
+  % interactions with front node
+  If = idx(mid,mid,mid);
+  Jf = idx(mid,mid,rgt);
+  Sf = -1/h^2*ones(size(If));
+
   % interactions with self
-  Im = idx(mid,mid);
-  Jm = idx(mid,mid);
-  Sm = -(Sl + Sr + Sd + Su) - k^2*ones(size(Im));
+  Im = idx(mid,mid,mid);
+  Jm = idx(mid,mid,mid);
+  Sm = -(Sl + Sr + Sd + Su + Sb + Sf) - k^2*ones(size(Im));
 
   % form sparse matrix
-  I = [Il(:); Ir(:); Id(:); Iu(:); Im(:)];
-  J = [Jl(:); Jr(:); Jd(:); Ju(:); Jm(:)];
-  S = [Sl(:); Sr(:); Sd(:); Su(:); Sm(:)];
+  I = [Il(:); Ir(:); Id(:); Iu(:); Ib(:); If(:); Im(:)];
+  J = [Jl(:); Jr(:); Jd(:); Ju(:); Jb(:); Jf(:); Jm(:)];
+  S = [Sl(:); Sr(:); Sd(:); Su(:); Sb(:); Sf(:); Sm(:)];
   idx = find(I > 0 & J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);
   A = sparse(I,J,S,N,N);
-  clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Im Jm Sm I J S
+  clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Ib Jb Sb If Jf Sf Im Jm Sm I J S
 
   % factor matrix
   opts = struct('symm',symm,'verb',1);

@@ -23,10 +23,9 @@ function Y = ifmm_mv(F,X,A,trans)
   end
 
   % check inputs
-  if ~(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'))
-    error('FLAM:ifmm_mv:invalidTrans', ...
-          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-  end
+  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
+         'FLAM:ifmm_mv:invalidTrans', ...
+         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
   if strcmpi(trans,'t')
@@ -84,7 +83,7 @@ function Y = ifmm_mv(F,X,A,trans)
         else
           T = F.U(i).rT';
         end
-      elseif strcmpi(F.symm,'h')
+      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         rd = pcrem1(F.U(i).rrd);
         sk = pcrem2(F.U(i).rsk);
         T = F.U(i).rT';
@@ -148,7 +147,7 @@ function Y = ifmm_mv(F,X,A,trans)
         else
           T = conj(F.U(i).rT);
         end
-      elseif strcmpi(F.symm,'h')
+      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         rd  = prrem1(F.U(i).rrd);
         sk1 = prrem1(F.U(i).rsk);
         sk2 = prrem2(F.U(i).rsk);
@@ -193,7 +192,7 @@ function Y = ifmm_mv(F,X,A,trans)
         end
       elseif strcmpi(F.symm,'s')
         Di = Do.';
-      elseif strcmpi(F.symm,'h')
+      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         Di = Do';
       end
 

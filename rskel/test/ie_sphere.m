@@ -120,23 +120,12 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   w = whos('A');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
   tic
-  if strcmpi(F.symm,'n')
-    [L,U] = lu(A);
-  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
-    [L,D,P] = ldl(A);
-  end
+  [L,U] = lu(A);
   t = toc;
-  if strcmpi(F.symm,'n')
-    w = whos('L');
-    spmem = w.bytes;
-    w = whos('U');
-    spmem = (spmem + w.bytes)/1e6;
-  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
-    w = whos('L');
-    spmem = w.bytes;
-    w = whos('D');
-    spmem = (spmem + w.bytes)/1e6;
-  end
+  w = whos('L');
+  spmem = w.bytes;
+  w = whos('U');
+  spmem = (spmem + w.bytes)/1e6;
   fprintf('lu/ldl: %10.4e (s) / %6.2f (MB)\n',t,spmem)
 
   % test accuracy using randomized power method
@@ -257,18 +246,10 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
       trans = 'n';
     end
     X = [X; zeros(size(A,1)-N,size(X,2))];
-    if strcmpi(F.symm,'n')
-      if strcmpi(trans,'n')
-        Y = U\(L\X);
-      elseif strcmpi(trans,'c')
-        Y = L'\(U'\X);
-      end
-    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
-      if strcmpi(trans,'n')
-        Y = P*(L'\(D\(L\(P'*X))));
-      elseif strcmpi(trans,'c')
-        Y = P*(L'\(D'\(L\(P'*X))));
-      end
+    if strcmpi(trans,'n')
+      Y = U\(L\X);
+    elseif strcmpi(trans,'c')
+      Y = L'\(U'\X);
     end
     Y = Y(1:N,:);
   end

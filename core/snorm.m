@@ -43,14 +43,10 @@ function [s,niter] = snorm(n,mv,mva,niter_or_tol,herm,niter_max)
   end
 
   % check inputs
-  if niter_or_tol < 0
-    error('FLAM:snorm:negativeIterOrTol', ...
-          'Number of iterations or tolerance must be nonnegative.')
-  end
-  if niter_max <= 0
-    error('FLAM:snorm:nonpositiveMaxIter', ...
-          'Maximum number of iterations must be positive.')
-  end
+  assert(niter_or_tol >= 0,'FLAM:snorm:negativeIterOrTol', ...
+         'Number of iterations or tolerance must be nonnegative.')
+  assert(niter_max > 0,'FLAM:snorm:nonpositiveMaxIter', ...
+         'Maximum number of iterations must be positive.')
 
   % initialize
   x = rand(n,1);

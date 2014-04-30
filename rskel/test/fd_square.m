@@ -13,7 +13,7 @@ function fd_square(n,occ,rank_or_tol,symm)
     rank_or_tol = 1e-9;
   end
   if nargin < 4 || isempty(symm)
-    symm = 's';
+    symm = 'p';
   end
 
   % initialize
@@ -63,7 +63,7 @@ function fd_square(n,occ,rank_or_tol,symm)
   tic
   if strcmpi(F.symm,'n')
     [L,U] = lu(S);
-  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+  else
     [L,D,P] = ldl(S);
   end
   t = toc;
@@ -72,7 +72,7 @@ function fd_square(n,occ,rank_or_tol,symm)
     spmem = w.bytes;
     w = whos('U');
     spmem = (spmem + w.bytes)/1e6;
-  elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+  else
     w = whos('L');
     spmem = w.bytes;
     w = whos('D');
@@ -127,7 +127,7 @@ function fd_square(n,occ,rank_or_tol,symm)
     X = [X; zeros(size(S,1)-N,size(X,2))];
     if strcmpi(F.symm,'n')
       Y = U\(L\X);
-    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h')
+    else
       Y = P*(L'\(D\(L\(P'*X))));
     end
     Y = Y(1:N,:);

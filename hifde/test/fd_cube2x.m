@@ -1,13 +1,13 @@
-% Seven-point stencil on the unit cube, constant-coefficient Poisson.
+% Seven-point stencil on the unit cube, variable-coefficient Poisson.
 
-function fd_cube1(n,occ,rank_or_tol,skip,symm)
+function fd_cube2x(n,occ,rank_or_tol,skip,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 32;
   end
   if nargin < 2 || isempty(occ)
-    occ = 4;
+    occ = 64;
   end
   if nargin < 3 || isempty(rank_or_tol)
     rank_or_tol = 1e-6;
@@ -20,8 +20,38 @@ function fd_cube1(n,occ,rank_or_tol,skip,symm)
   end
 
   % initialize
-  N = (n - 1)^3;
+  [x1,x2,x3] = ndgrid((1:n-1)/n);
+  x = [x1(:) x2(:) x3(:)]';
+  N = size(x,2);
   h = 1/n;
+  clear x1 x2 x3
+
+  % set up conductivity field
+  a = zeros(n+1,n+1,n+1);
+  A = rand(n-1,n-1,n-1);
+  A = fftn(A,[2*n-3 2*n-3 2*n-3]);
+  [X,Y,Z] = ndgrid(0:n-2);
+  C = normpdf(X,0,4).*normpdf(Y,0,4).*normpdf(Z,0,4);
+  B = zeros(2*n-3,2*n-3,2*n-3);
+  B(1:n-1,1:n-1,1:n-1) = C;
+  B(1:n-1,1:n-1,n:end) = C( :   , :   ,2:n-1);
+  B(1:n-1,n:end,1:n-1) = C( :   ,2:n-1, :   );
+  B(1:n-1,n:end,n:end) = C( :   ,2:n-1,2:n-1);
+  B(n:end,1:n-1,1:n-1) = C(2:n-1, :   , :   );
+  B(n:end,1:n-1,n:end) = C(2:n-1, :   ,2:n-1);
+  B(n:end,n:end,1:n-1) = C(2:n-1,2:n-1, :   );
+  B(n:end,n:end,n:end) = C(2:n-1,2:n-1,2:n-1);
+  B(:,:,n:end) = flipdim(B(:,:,n:end),3);
+  B(:,n:end,:) = flipdim(B(:,n:end,:),2);
+  B(n:end,:,:) = flipdim(B(n:end,:,:),1);
+  B = fftn(B);
+  A = ifftn(A.*B);
+  A = A(1:n-1,1:n-1,1:n-1);
+  idx = A > median(A(:));
+  A( idx) = 1e+2;
+  A(~idx) = 1e-2;
+  a(2:n,2:n,2:n) = A;
+  clear X Y Z A B C
 
   % set up indices
   idx = zeros(n+1,n+1,n+1);
@@ -33,32 +63,32 @@ function fd_cube1(n,occ,rank_or_tol,skip,symm)
   % interactions with left node
   Il = idx(mid,mid,mid);
   Jl = idx(lft,mid,mid);
-  Sl = -1/h^2*ones(size(Il));
+  Sl = -0.5/h^2*(a(lft,mid,mid) + a(mid,mid,mid));
 
   % interactions with right node
   Ir = idx(mid,mid,mid);
   Jr = idx(rgt,mid,mid);
-  Sr = -1/h^2*ones(size(Ir));
+  Sr = -0.5/h^2*(a(rgt,mid,mid) + a(mid,mid,mid));
 
   % interactions with bottom node
   Id = idx(mid,mid,mid);
   Jd = idx(mid,lft,mid);
-  Sd = -1/h^2*ones(size(Id));
+  Sd = -0.5/h^2*(a(mid,lft,mid) + a(mid,mid,mid));
 
   % interactions with top node
   Iu = idx(mid,mid,mid);
   Ju = idx(mid,rgt,mid);
-  Su = -1/h^2*ones(size(Iu));
+  Su = -0.5/h^2*(a(mid,rgt,mid) + a(mid,mid,mid));
 
   % interactions with back node
   Ib = idx(mid,mid,mid);
   Jb = idx(mid,mid,lft);
-  Sb = -1/h^2*ones(size(Ib));
+  Sb = -0.5/h^2*(a(mid,mid,lft) + a(mid,mid,mid));
 
   % interactions with front node
   If = idx(mid,mid,mid);
   Jf = idx(mid,mid,rgt);
-  Sf = -1/h^2*ones(size(If));
+  Sf = -0.5/h^2*(a(mid,mid,rgt) + a(mid,mid,mid));
 
   % interactions with self
   Im = idx(mid,mid,mid);
@@ -78,7 +108,7 @@ function fd_cube1(n,occ,rank_or_tol,skip,symm)
 
   % factor matrix
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  F = hifde3(A,n,occ,rank_or_tol,opts);
+  F = hifde3x(A,x,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)

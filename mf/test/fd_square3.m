@@ -1,16 +1,19 @@
-% Five-point stencil on the unit square, constant-coefficient Poisson.
+% Five-point stencil on the unit square, constant-coefficient Helmholtz.
 
-function fd_square1(n,occ,symm)
+function fd_square3(n,k,occ,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 128;
   end
-  if nargin < 2 || isempty(occ)
+  if nargin < 2 || isempty(k)
+    k = 2*pi*8;
+  end
+  if nargin < 3 || isempty(occ)
     occ = 8;
   end
-  if nargin < 3 || isempty(symm)
-    symm = 'p';
+  if nargin < 4 || isempty(symm)
+    symm = 's';
   end
 
   % initialize
@@ -47,7 +50,7 @@ function fd_square1(n,occ,symm)
   % interactions with self
   Im = idx(mid,mid);
   Jm = idx(mid,mid);
-  Sm = -(Sl + Sr + Sd + Su);
+  Sm = -(Sl + Sr + Sd + Su) - k^2*ones(size(Im));
 
   % form sparse matrix
   I = [Il(:); Ir(:); Id(:); Iu(:); Im(:)];
@@ -86,15 +89,15 @@ function fd_square1(n,occ,symm)
   [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
-  % run CG
-  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  % run unpreconditioned GMRES
+  [~,~,~,iter] = gmres(@(x)(A*x),X,[],1e-12,128);
 
-  % run PCG
+  % run preconditioned GMRES
   tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(mf_sv(F,x)));
+  [Z,~,~,piter] = gmres(@(x)(A*x),X,[],1e-12,32,@(x)(mf_sv(F,x)));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);
-  fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter,iter,t)
+  fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
+          piter(2),iter(2),t)
 end

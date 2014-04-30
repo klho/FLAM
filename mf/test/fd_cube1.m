@@ -14,17 +14,12 @@ function fd_cube1(n,occ,symm)
   end
 
   % initialize
-  [x1,x2,x3] = ndgrid((1:n-1)/n);
-  x = [x1(:) x2(:) x3(:)]';
-  N = size(x,2);
-  clear x1 x2 x3
-
-  % set up sparse matrix
+  N = (n - 1)^3;
   h = 1/n;
+
+  % set up indices
   idx = zeros(n+1,n+1,n+1);
   idx(2:n,2:n,2:n) = reshape(1:N,n-1,n-1,n-1);
-
-  % initialize indices
   mid = 2:n;
   lft = 1:n-1;
   rgt = 3:n+1;

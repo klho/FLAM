@@ -17,10 +17,9 @@ function Y = hifie_sv(F,X,trans)
   end
 
   % check inputs
-  if ~(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'))
-    error('FLAM:hifie_sv:invalidTrans', ...
-          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-  end
+  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
+         'FLAM:hifie_sv:invalidTrans', ...
+         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
   if strcmpi(trans,'t')
@@ -36,8 +35,8 @@ function Y = hifie_sv(F,X,trans)
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
+    T = F.factors(i).T';
     if strcmpi(F.symm,'n')
-      T = F.factors(i).T';
       if strcmpi(trans,'n')
         E = F.factors(i).E;
       else
@@ -45,14 +44,12 @@ function Y = hifie_sv(F,X,trans)
       end
     elseif strcmpi(F.symm,'s')
       if strcmpi(trans,'n')
-        T = F.factors(i).T.';
+        T = conj(T);
         E = F.factors(i).E;
       else
-        T = F.factors(i).T';
         E = conj(F.factors(i).E);
       end
     elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      T = F.factors(i).T';
       E = F.factors(i).E;
     end
     Y(rd,:) = Y(rd,:) - T*Y(sk,:);
@@ -83,8 +80,8 @@ function Y = hifie_sv(F,X,trans)
   for i = n:-1:1
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
+    T = F.factors(i).T;
     if strcmpi(F.symm,'n')
-      T = F.factors(i).T;
       if strcmpi(trans,'n')
         G = F.factors(i).F;
       else
@@ -92,14 +89,12 @@ function Y = hifie_sv(F,X,trans)
       end
     elseif strcmpi(F.symm,'s')
       if strcmpi(trans,'n')
-        T = F.factors(i).T;
         G = F.factors(i).E.';
       else
-        T = conj(F.factors(i).T);
+        T = conj(T);
         G = F.factors(i).E';
       end
     elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      T = F.factors(i).T;
       G = F.factors(i).E';
     end
     Y(rd,:) = Y(rd,:) - G*Y(sk,:);

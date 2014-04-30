@@ -51,7 +51,7 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   A = rskel_xsp(F);
   if strcmpi(symm,'s')
     A = A + tril(A,-1).';
-  elseif strcmpi(symm,'h')
+  elseif strcmpi(symm,'h') || strcmpi(symm,'p')
     A = A + tril(A,-1)';
   end
   t = toc;

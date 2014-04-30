@@ -1,21 +1,33 @@
-% Five-point stencil on the unit square, constant-coefficient Poisson.
+% Five-point stencil on the unit square, constant-coefficient Helmholtz.
 
-function fd_square1(n,occ,symm)
+function fd_square3x(n,k,occ,rank_or_tol,skip,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 128;
   end
-  if nargin < 2 || isempty(occ)
-    occ = 8;
+  if nargin < 2 || isempty(k)
+    k = 2*pi*8;
   end
-  if nargin < 3 || isempty(symm)
-    symm = 'p';
+  if nargin < 3 || isempty(occ)
+    occ = 64;
+  end
+  if nargin < 4 || isempty(rank_or_tol)
+    rank_or_tol = 1e-9;
+  end
+  if nargin < 5 || isempty(skip)
+    skip = 2;
+  end
+  if nargin < 6 || isempty(symm)
+    symm = 's';
   end
 
   % initialize
-  N = (n - 1)^2;
+  [x1,x2] = ndgrid((1:n-1)/n);
+  x = [x1(:) x2(:)]';
+  N = size(x,2);
   h = 1/n;
+  clear x1 x2
 
   % set up indices
   idx = zeros(n+1,n+1);
@@ -47,7 +59,7 @@ function fd_square1(n,occ,symm)
   % interactions with self
   Im = idx(mid,mid);
   Jm = idx(mid,mid);
-  Sm = -(Sl + Sr + Sd + Su);
+  Sm = -(Sl + Sr + Sd + Su) - k^2*ones(size(Im));
 
   % form sparse matrix
   I = [Il(:); Ir(:); Id(:); Iu(:); Im(:)];
@@ -61,8 +73,8 @@ function fd_square1(n,occ,symm)
   clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Im Jm Sm I J S
 
   % factor matrix
-  opts = struct('symm',symm,'verb',1);
-  F = mf2(A,n,occ,opts);
+  opts = struct('skip',skip,'symm',symm,'verb',1);
+  F = hifde2x(A,x,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -73,28 +85,28 @@ function fd_square1(n,occ,symm)
 
   % NORM(A - F)/NORM(A)
   tic
-  mf_mv(F,X);
+  hifde_mv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(A*x - mf_mv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(A*x - hifde_mv(F,x)),[],[],1);
   e = e/snorm(N,@(x)(A*x),[],[],1);
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
   tic
-  Y = mf_sv(F,X);
+  Y = hifde_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - A*hifde_sv(F,x)),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
-  % run CG
-  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  % run unpreconditioned GMRES
+  [~,~,~,iter] = gmres(@(x)(A*x),X,[],1e-12,128);
 
-  % run PCG
+  % run preconditioned GMRES
   tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(mf_sv(F,x)));
+  [Z,~,~,piter] = gmres(@(x)(A*x),X,[],1e-12,32,@(x)(hifde_sv(F,x)));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);
-  fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter,iter,t)
+  fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
+          piter(2),iter(2),t)
 end

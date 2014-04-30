@@ -45,13 +45,9 @@ function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
   end
 
   % check inputs
-  if tol < 0
-    error('FLAM:lsedc:negativeTol','Tolerance must be nonnegative.')
-  end
-  if niter_max <= 0
-    error('FLAM:lsedc:nonpositiveMaxIter', ...
-          'Maximum number of iterations must be positive.')
-  end
+  assert(tol >= 0,'FLAM:lsedc:negativeTol','Tolerance must be nonnegative.')
+  assert(niter_max > 0,'FLAM:lsedc:nonpositiveMaxIter', ...
+         'Maximum number of iterations must be positive.')
 
   % initial solve
   x = lsfun([D; B]);

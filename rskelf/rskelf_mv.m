@@ -16,10 +16,9 @@ function Y = rskelf_mv(F,X,trans)
   end
 
   % check inputs
-  if ~(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'))
-    error('FLAM:rskelf_mv:invalidTrans', ...
-          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-  end
+  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
+         'FLAM:rskelf_mv:invalidTrans', ...
+         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
   if strcmpi(trans,'t')
@@ -35,8 +34,8 @@ function Y = rskelf_mv(F,X,trans)
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
+    T = F.factors(i).T;
     if strcmpi(F.symm,'n')
-      T = F.factors(i).T;
       if strcmpi(trans,'n')
         G = F.factors(i).F;
       else
@@ -44,14 +43,12 @@ function Y = rskelf_mv(F,X,trans)
       end
     elseif strcmpi(F.symm,'s')
       if strcmpi(trans,'n')
-        T = F.factors(i).T;
         G = F.factors(i).E.';
       else
-        T = conj(F.factors(i).T);
+        T = conj(T);
         G = F.factors(i).E';
       end
     elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      T = F.factors(i).T;
       G = F.factors(i).E';
     end
     Y(sk,:) = Y(sk,:) + T*Y(rd,:);
@@ -82,8 +79,8 @@ function Y = rskelf_mv(F,X,trans)
   for i = n:-1:1
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
+    T = F.factors(i).T';
     if strcmpi(F.symm,'n')
-      T = F.factors(i).T';
       if strcmpi(trans,'n')
         E = F.factors(i).E;
       else
@@ -91,14 +88,12 @@ function Y = rskelf_mv(F,X,trans)
       end
     elseif strcmpi(F.symm,'s')
       if strcmpi(trans,'n')
-        T = F.factors(i).T.';
+        T = conj(T);
         E = F.factors(i).E;
       else
-        T = F.factors(i).T';
         E = conj(F.factors(i).E);
       end
     elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      T = F.factors(i).T';
       E = F.factors(i).E;
     end
     Y(sk,:) = Y(sk,:) + E*Y(rd,:);

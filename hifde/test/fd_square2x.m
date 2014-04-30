@@ -1,21 +1,52 @@
-% Five-point stencil on the unit square, constant-coefficient Poisson.
+% Five-point stencil on the unit square, variable-coefficient Poisson.
 
-function fd_square1(n,occ,symm)
+function fd_square2x(n,occ,rank_or_tol,skip,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 128;
   end
   if nargin < 2 || isempty(occ)
-    occ = 8;
+    occ = 64;
   end
-  if nargin < 3 || isempty(symm)
+  if nargin < 3 || isempty(rank_or_tol)
+    rank_or_tol = 1e-9;
+  end
+  if nargin < 4 || isempty(skip)
+    skip = 2;
+  end
+  if nargin < 5 || isempty(symm)
     symm = 'p';
   end
 
   % initialize
-  N = (n - 1)^2;
+  [x1,x2] = ndgrid((1:n-1)/n);
+  x = [x1(:) x2(:)]';
+  N = size(x,2);
   h = 1/n;
+  clear x1 x2
+
+  % set up conductivity field
+  a = zeros(n+1,n+1);
+  A = rand(n-1,n-1);
+  A = fft2(A,2*n-3,2*n-3);
+  [X,Y] = ndgrid(0:n-2);
+  C = normpdf(X,0,4).*normpdf(Y,0,4);
+  B = zeros(2*n-3,2*n-3);
+  B(1:n-1,1:n-1) = C;
+  B(1:n-1,n:end) = C( :   ,2:n-1);
+  B(n:end,1:n-1) = C(2:n-1, :   );
+  B(n:end,n:end) = C(2:n-1,2:n-1);
+  B(:,n:end) = flipdim(B(:,n:end),2);
+  B(n:end,:) = flipdim(B(n:end,:),1);
+  B = fft2(B);
+  A = ifft2(A.*B);
+  A = A(1:n-1,1:n-1);
+  idx = A > median(A(:));
+  A( idx) = 1e+2;
+  A(~idx) = 1e-2;
+  a(2:n,2:n) = A;
+  clear X Y A B C
 
   % set up indices
   idx = zeros(n+1,n+1);
@@ -27,22 +58,22 @@ function fd_square1(n,occ,symm)
   % interactions with left node
   Il = idx(mid,mid);
   Jl = idx(lft,mid);
-  Sl = -1/h^2*ones(size(Il));
+  Sl = -0.5/h^2*(a(lft,mid) + a(mid,mid));
 
   % interactions with right node
   Ir = idx(mid,mid);
   Jr = idx(rgt,mid);
-  Sr = -1/h^2*ones(size(Ir));
+  Sr = -0.5/h^2*(a(rgt,mid) + a(mid,mid));
 
   % interactions with bottom node
   Id = idx(mid,mid);
   Jd = idx(mid,lft);
-  Sd = -1/h^2*ones(size(Id));
+  Sd = -0.5/h^2*(a(mid,lft) + a(mid,mid));
 
   % interactions with top node
   Iu = idx(mid,mid);
   Ju = idx(mid,rgt);
-  Su = -1/h^2*ones(size(Iu));
+  Su = -0.5/h^2*(a(mid,rgt) + a(mid,mid));
 
   % interactions with self
   Im = idx(mid,mid);
@@ -61,8 +92,8 @@ function fd_square1(n,occ,symm)
   clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Im Jm Sm I J S
 
   % factor matrix
-  opts = struct('symm',symm,'verb',1);
-  F = mf2(A,n,occ,opts);
+  opts = struct('ext',[0 1; 0 1],'skip',skip,'symm',symm,'verb',1);
+  F = hifde2x(A,x,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -73,17 +104,17 @@ function fd_square1(n,occ,symm)
 
   % NORM(A - F)/NORM(A)
   tic
-  mf_mv(F,X);
+  hifde_mv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(A*x - mf_mv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(A*x - hifde_mv(F,x)),[],[],1);
   e = e/snorm(N,@(x)(A*x),[],[],1);
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
   tic
-  Y = mf_sv(F,X);
+  Y = hifde_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - A*hifde_sv(F,x)),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % run CG
@@ -91,7 +122,7 @@ function fd_square1(n,occ,symm)
 
   % run PCG
   tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(mf_sv(F,x)));
+  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(hifde_sv(F,x)));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);
