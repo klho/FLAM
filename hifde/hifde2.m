@@ -152,7 +152,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
             slf = slf(:)';
 
             % skeletonize (eliminate interior nodes)
-            in = ii ~= ia & ii ~= ib & jj ~= ja & jj ~= jb;
+            in = ii > ia & ii < ib & jj > ja & jj < jb;
             sk = idx(rem_ & ~in);
             rd = idx(rem_ &  in);
             sk = sk(:)';
@@ -172,7 +172,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
           end
         end
 
-      % edge skeletonization
+      % skeletonization (dimension reduction)
       else
 
         % continue if in skip stage

@@ -92,7 +92,7 @@ function fd_square2x(n,occ,rank_or_tol,skip,symm)
   clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Im Jm Sm I J S
 
   % factor matrix
-  opts = struct('ext',[0 1; 0 1],'skip',skip,'symm',symm,'verb',1);
+  opts = struct('skip',skip,'symm',symm,'verb',1);
   F = hifde2x(A,x,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])

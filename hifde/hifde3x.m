@@ -192,7 +192,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
           blocks(nb).rd = rd;
         end
 
-      % face skeletonization
+      % skeletonization (dimension reduction)
       else
 
         % continue if in skip stage
@@ -223,6 +223,8 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
         for box = 1:nbox
           box2ctr{box} = nonzeros(idx(j(box2ctr{box})))';
         end
+
+        % initialize
         nb = size(ctr,1);
         e = cell(nb,1);
         blk = struct('ctr',e,'xi',e,'prnt',e);

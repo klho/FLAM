@@ -93,7 +93,7 @@ function fd_square4x(n,occ,rank_or_tol,skip,symm)
             Id1 Jd1 Sd1 Id2 Jd2 Sd2 Iu1 Ju1 Su1 Iu2 Ju2 Su2 Im Jm Sm I J S
 
   % factor matrix
-  opts = struct('ext',[0 1; 0 1],'skip',skip,'symm',symm,'verb',1);
+  opts = struct('skip',skip,'symm',symm,'verb',1);
   F = hifde2x(A,x,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
