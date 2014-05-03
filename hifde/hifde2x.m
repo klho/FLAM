@@ -62,6 +62,9 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
   if ~isfield(opts,'ext')
     opts.ext = [];
   end
+  if ~isfield(opts,'skip')
+    opts.skip = 0;
+  end
   if ~isfield(opts,'symm')
     opts.symm = 'n';
   end
@@ -70,6 +73,8 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
   end
 
   % check inputs
+  assert(opts.skip >= 0,'FLAM:hifde2x:negativeSkip', ...
+         'Skip parameter must be nonnegative.')
   assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:hifde2x:invalidSymm', ...

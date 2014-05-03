@@ -1,5 +1,5 @@
 % HIFDE3X       Hierarchical interpolative factorization for differential
-%               operators on general meshes in 3D.
+%               operators on general meshes in 3D with edge skeletonization.
 %
 %    F = HIFDE3X(A,X,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the points X using tree occupancy parameter OCC and
@@ -15,7 +15,9 @@
 %      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SKIP: skip the dimension reductions on the first SKIP levels (default:
-%              SKIP = 0).
+%              SKIP = 0). For fine-grain control, SKIP(D) sets the skip setting
+%              for skeletonization in dimension D (faces for D = 2 and edges for
+%              D = 1).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
@@ -46,14 +48,22 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
   if ~isfield(opts,'ext')
     opts.ext = [];
   end
+  if ~isfield(opts,'skip')
+    opts.skip = 0;
+  end
   if ~isfield(opts,'symm')
     opts.symm = 'n';
   end
   if ~isfield(opts,'verb')
     opts.verb = 0;
   end
+  if length(opts.skip) == 1
+    opts.skip = opts.skip*ones(1,2);
+  end
 
   % check inputs
+  assert(all(opts.skip >= 0),'FLAM:hifde3x:negativeSkip', ...
+         'Skip parameter must be nonnegative.')
   assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:hifde3x:invalidSymm', ...
@@ -107,7 +117,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
     end
 
     % loop over dimensions
-    for d = [3 2]
+    for d = [3 2 1]
       tic
       nrem1 = sum(rem);
 
@@ -196,19 +206,37 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
       else
 
         % continue if in skip stage
-        if lvl > t.nlvl - opts.skip
+        if lvl > t.nlvl - opts.skip(d)
           continue
         end
 
         % generate face centers
-        ctr = zeros(6*nbox,3);
-        box2ctr = cell(nbox,1);
-        for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-          j = i - t.lvp(lvl);
-          idx = 6*(j-1)+1:6*j;
-          off = [0 0 -1; 0 -1 0; -1 0 0; 0 0 1; 0 1 0; 1 0 0];
-          ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
-          box2ctr{j} = idx;
+        if d == 2
+          ctr = zeros(6*nbox,3);
+          box2ctr = cell(nbox,1);
+          for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+            j = i - t.lvp(lvl);
+            idx = 6*(j-1)+1:6*j;
+            off = [0 0 -1; 0 -1 0; -1 0 0; 0 0 1; 0 1 0; 1 0 0];
+            ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
+            box2ctr{j} = idx;
+          end
+
+        % generate edge centers
+        elseif d == 1
+          ctr = zeros(12*nbox,3);
+          box2ctr = cell(nbox,1);
+          ctr2box = zeros(12*nbox,1);
+          for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+            j = i - t.lvp(lvl);
+            idx = 12*(j-1)+1:12*j;
+            off = [ 0 -1 -1;  0 -1 1; 0  1 -1; 0 1 1;
+                   -1  0 -1; -1  0 1; 1  0 -1; 1 0 1;
+                   -1 -1  0; -1  1 0; 1 -1  0; 1 1 0];
+            ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
+            box2ctr{j} = idx;
+            ctr2box(idx) = i;
+          end
         end
 
         % find unique shared centers
@@ -217,6 +245,24 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
         [~,i,j] = unique(idx,'rows');
         idx(:) = 0;
         p = find(histc(j,1:max(j)) > 1);
+
+        % for D = 1 means shared across a diagonal
+        if d == 1
+          for k = 1:length(p)
+            c = i(p(k));
+            box = ctr2box(c);
+            nbr = t.nodes(box).nbor;
+            nbr = nbr(nbr > t.lvp(lvl));
+            box_ctr = t.nodes(box).ctr;
+            nbr_ctr = reshape([t.nodes(nbr).ctr],3,[])';
+            dist_ctr = round(2*(box_ctr - ctr(c,:))/l);
+            dist_nbr = round(bsxfun(@minus,box_ctr,nbr_ctr)/l);
+            if ~any(all(bsxfun(@eq,dist_nbr,dist_ctr),2))
+              p(k) = 0;
+            end
+          end
+          p = nonzeros(p);
+        end
         i = i(p);
         idx(p) = 1:length(p);
         ctr = ctr(i,:);

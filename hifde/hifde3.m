@@ -129,7 +129,6 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               ka = (k - 1)*w;
               kb =  k     *w;
               ks = max(1,ka):min(nd,kb);
-              [ii,jj,kk] = ndgrid(is,js,ks);
 
               % initialize local arrays
               grd_ = grd(is,js,ks);
@@ -139,10 +138,20 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               slf = grd_(rem_);
               slf = slf(:)';
 
+              % find self indices
+              idx = slf - 1;
+              kk = floor(idx/nd^2);
+              idx = idx - nd^2*kk;
+              jj = floor(idx/nd);
+              ii = idx - nd*jj;
+              ii = ii + 1;
+              jj = jj + 1;
+              kk = kk + 1;
+
               % skeletonize (eliminate interior nodes)
               in = ii > ia & ii < ib & jj > ja & jj < jb & kk > ka & kk < kb;
-              sk = idx(rem_ & ~in);
-              rd = idx(rem_ &  in);
+              sk = find(~in);
+              rd = find( in);
               sk = sk(:)';
               rd = rd(:)';
 
@@ -235,11 +244,20 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               slf = slf(:)';
               grd_ = grd(in,jn,kn);
               rem_ = rem(in,jn,kn);
-              [ii,jj,kk] = ndgrid(in,jn,kn);
-              nbr = grd_(rem_ & (ii == imin | ii == imax | ...
-                                 jj == jmin | jj == jmax | ...
-                                 kk == kmin | kk == kmax));
+              nbr = grd_(rem_);
               nbr = nbr(:)';
+
+              % find neighbor indices
+              idx = nbr - 1;
+              kk = floor(idx/nd^2);
+              idx = idx - nd^2*kk;
+              jj = floor(idx/nd);
+              ii = idx - nd*jj;
+              ii = ii + 1;
+              jj = jj + 1;
+              kk = kk + 1;
+              nbr = nbr(ii == imin | ii == imax | jj == jmin | jj == jmax | ...
+                        kk == kmin | kk == kmax);
 
               % compute interaction matrix
               nslf = length(slf);
