@@ -15,8 +15,8 @@
 %      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SKIP: skip the dimension reductions on the first SKIP levels (default:
-%              SKIP = 0). For fine-grain control, SKIP(D) sets the skip setting
-%              for skeletonization in dimension D (faces for D = 2 and edges for
+%              SKIP = 0). For further control, SKIP(D) sets the skip setting for
+%              skeletonization in dimension D (faces for D = 2 and edges for
 %              D = 1).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)

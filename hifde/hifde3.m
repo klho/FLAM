@@ -1,6 +1,6 @@
 % HIFDE3        Hierarchical interpolative factorization for differential
 %               operators with nearest neighbor interactions on a regular mesh
-%               in 3D.
+%               in 3D (no edge skeletonization).
 %
 %    F = HIFDE3(A,N,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the interior vertices of a regular N x N x N finite
@@ -102,7 +102,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
     nb = ceil(n/w);
 
     % loop over dimensions
-    for d = [3 2]
+    for d = [3 2 1]
       tic
       nrem1 = sum(rem(:));
 
@@ -224,12 +224,6 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               end
 
               % restrict to domain
-              imin = min(in);
-              imax = max(in);
-              jmin = min(jn);
-              jmax = max(jn);
-              kmin = min(kn);
-              kmax = max(kn);
               is = is(is > 0 & is < n);
               in = in(in > 0 & in < n);
               js = js(js > 0 & js < n);
@@ -256,8 +250,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               ii = ii + 1;
               jj = jj + 1;
               kk = kk + 1;
-              nbr = nbr(ii == imin | ii == imax | jj == jmin | jj == jmax | ...
-                        kk == kmin | kk == kmax);
+              nbr = nbr(~ismembc(nbr,slf));
 
               % compute interaction matrix
               nslf = length(slf);

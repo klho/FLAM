@@ -216,10 +216,6 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
             end
 
             % restrict to domain
-            imin = min(in);
-            imax = max(in);
-            jmin = min(jn);
-            jmax = max(jn);
             is = is(is > 0 & is < n);
             in = in(in > 0 & in < n);
             js = js(js > 0 & js < n);
@@ -241,7 +237,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
             ii = idx - nd*jj;
             ii = ii + 1;
             jj = jj + 1;
-            nbr = nbr(ii == imin | ii == imax | jj == jmin | jj == jmax);
+            nbr = nbr(~ismembc(nbr,slf));
 
             % compute interaction matrix
             nslf = length(slf);
