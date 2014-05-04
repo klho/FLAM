@@ -102,7 +102,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
     nb = ceil(n/w);
 
     % loop over dimensions
-    for d = [3 2 1]
+    for d = [3 2]
       tic
       nrem1 = sum(rem(:));
 

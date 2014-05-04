@@ -217,7 +217,7 @@ function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % find neighbors for each center
-        proc = zeros(nb,1);
+        proc = false(nb,1);
         for box = 1:nbox
           j = t.nodes(t.lvp(lvl)+box).nbor;
           j = j(j <= t.lvp(lvl));
