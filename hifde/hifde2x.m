@@ -223,14 +223,12 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
         % generate edge centers
         ctr = zeros(4*nbox,2);
-        edg = zeros(4*nbox,2);
         box2ctr = cell(nbox,1);
         for i = t.lvp(lvl)+1:t.lvp(lvl+1)
           j = i - t.lvp(lvl);
           idx = 4*(j-1)+1:4*j;
           off = [0 -1; -1  0; 0 1; 1 0];
           ctr(idx,:) = bsxfun(@plus,t.nodes(i).ctr,0.5*l*off);
-          edg(idx,:) = abs(off);
           box2ctr{j} = idx;
         end
 
@@ -243,7 +241,6 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         i = i(p);
         idx(p) = 1:length(p);
         ctr = ctr(i,:);
-        edg = edg(i,:);
         for box = 1:nbox
           box2ctr{box} = nonzeros(idx(j(box2ctr{box})))';
         end
@@ -251,7 +248,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         % initialize
         nb = size(ctr,1);
         e = cell(nb,1);
-        blk = struct('xi',e,'prnt',e,'nbr',e);
+        blk = struct('ctr',e,'xi',e,'prnt',e);
 
         % sort points by centers
         for box = 1:nbox
@@ -284,7 +281,6 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         m = histc(P(rem),1:nb);
         idx = m > 0;
         ctr = ctr(idx,:);
-        edg = edg(idx,:);
         blk = blk(idx);
         nb = length(blk);
         p = cumsum(m == 0);
@@ -295,30 +291,9 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
         % remove duplicate points
         for i = 1:nb
+          blk(i).ctr = ctr(i,:);
           [blk(i).xi,idx] = unique(blk(i).xi,'first');
           blk(i).prnt = blk(i).prnt(idx);
-        end
-
-        % find neighbors for each center
-        proc = false(nb,1);
-        for box = 1:nbox
-          slf = box2ctr{box};
-          nbr = t.nodes(t.lvp(lvl)+box).nbor;
-          nbr = nbr(nbr > t.lvp(lvl)) - t.lvp(lvl);
-          nbr = unique([box2ctr{[box nbr]}]);
-          dx = abs(round(2*bsxfun(@minus,ctr(slf,1),ctr(nbr,1)')/l));
-          dy = abs(round(2*bsxfun(@minus,ctr(slf,2),ctr(nbr,2)')/l));
-          nrx = bsxfun(@le,dx,edg(slf,1)+1);
-          nry = bsxfun(@le,dy,edg(slf,2)+1);
-          near = nrx & nry;
-          for i = 1:length(slf)
-            j = slf(i);
-            if ~proc(j)
-              k = nbr(near(i,:));
-              blk(j).nbr = k(k ~= j);
-              proc(j) = 1;
-            end
-          end
         end
 
         % initialize storage
@@ -338,36 +313,19 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
           nslf = length(slf);
           sslf = sort(slf);
 
-          % find outgoing interactions
-          [I_,J_] = find(A(:,slf));
-          idx = ~ismembc(I_,sslf);
-          I_ = I_(idx);
-          J_ = J_(idx);
+          % find neighbors
+          [nbr,~] = find(A(:,slf));
+          nbr = unique(nbr);
+          idx = ~ismembc(nbr,sslf);
+          nbr = nbr(idx);
           if strcmpi(opts.symm,'n')
-            [I__,J__] = find(B(:,slf));
-            idx = ~ismembc(I__,sslf);
-            I__ = I__(idx);
-            J__ = J__(idx);
-            I_ = [I_(:); I__(:)];
-            J_ = [J_(:); J__(:)];
-            [J_,idx] = sort(J_);
-            I_ = I_(idx);
+            [nbr_,~] = find(B(:,slf));
+            idx = ~ismembc(nbr_,sslf);
+            nbr_ = nbr_(idx);
+            nbr = [nbr(:); nbr_(:)]';
           end
-
-          % act only on points interacting with specified neighbors
-          nbr = sort([blk(blk(i).nbr).xi]);
-          p = cumsum(histc(J_,1:nslf));
-          p = [0; p(:)];
-          idx = ismembc(I_,nbr);
-          keep = false(nslf,1);
-          for j = 1:nslf
-            keep(j) = all(idx(p(j)+1:p(j+1)));
-          end
-          slf = slf(keep);
-          nslf = length(slf);
-          sslf = sort(slf);
           nnbr = length(nbr);
-          snbr = nbr;
+          snbr = sort(nbr);
 
           % compute interaction matrix
           K = spget('nbr','slf');
@@ -377,15 +335,6 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
           % skeletonize
           [sk,rd,T] = id(K,rank_or_tol);
-
-          % reassemble skeletonization
-          slf = blk(i).xi;
-          idx = find(keep)';
-          sk = idx(sk);
-          rd = idx(rd);
-          idx = find(~keep)';
-          sk = [sk idx];
-          T = [T; zeros(length(idx),length(rd))];
 
           % restrict to skeletons
           for j = sk
