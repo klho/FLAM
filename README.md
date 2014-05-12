@@ -1,11 +1,11 @@
 FLAM (Fast Linear Algebra in MATLAB)
 ====================================
 
-This MATLAB library implements various fast algorithms for certain classes of matrices with hierarchical low-rank block structure. Such matrices commonly arise in physical problems, including many classical integral and differential equations, and have appeared in the literature under an assortment of related names (e.g., H-, H2-, FMM, HODLR, HSS, HBS). Other application domains include data analysis and uncertainty quantification (covariance matrices).
+This MATLAB library implements various fast algorithms for certain classes of matrices with hierarchical low-rank block structure. Such matrices commonly arise in physical problems, including many classical integral and differential equations, and have appeared in the literature under an assortment of related names (e.g., H-, H2-, FMM, HODLR, HSS, HBS). Other application domains include multivariate statistics and uncertainty quantification (covariance matrices).
 
 The primary purpose of this library is for personal prototyping, though it has been recognized that others may find it useful as well. Consequently, the algorithms do not contain all the latest features, but they can be considered reasonably complete; for example, most codes support full adaptivity.
 
-It is also worth noting that we mainly use the interpolative decomposition (ID) for low-rank approximation. This is by no means the only choice, but we find it convenient due to its structure-preserving and numerical compression properties. Since the ID is such a core component of this library, we would be remiss if we did not properly alert the user to its use.
+It is also worth noting that we mainly use the interpolative decomposition (ID) for low-rank approximation. This is by no means the only choice, but we find it especially convenient due to its structure-preserving and numerical compression properties.
 
 Currently implemented algorithms include:
 
@@ -23,7 +23,7 @@ Currently implemented algorithms include:
 
  - recursive skeletonization factorization (multiply, solve)
 
- - hierarchical interpolative factorization (multiply, solve)
+ - hierarchical interpolative factorization for integral equatinos (multiply, solve)
 
  - interpolative fast multipole method (multiply)
 
@@ -31,7 +31,7 @@ Currently implemented algorithms include:
 
  - multifrontal factorization (multiply, solve)
 
- - hierarchical interpolative factorization (multiply, solve)
+ - hierarchical interpolative factorization for differential equations (multiply, solve)
 
 Still to come (hopefully):
 

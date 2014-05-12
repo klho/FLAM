@@ -1,4 +1,4 @@
-% HIFIE2X       Hierarchical interpolative factorization for integral operators
+% HIFIE2X       Hierarchical interpolative factorization for integral equations
 %               in 2D with accuracy optimizations for second-kind integral
 %               equations.
 %

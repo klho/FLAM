@@ -1,5 +1,5 @@
 % HIFIE_MV      Multiply using hierarchical interpolative factorization for
-%               integral operators.
+%               integral equations.
 %
 %    Y = HIFIE_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.

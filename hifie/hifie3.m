@@ -1,4 +1,4 @@
-% HIFIE3        Hierarchical interpolative factorization for integral operators
+% HIFIE3        Hierarchical interpolative factorization for integral equations
 %               in 3D.
 %
 %    F = HIFIE3(A,X,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of the

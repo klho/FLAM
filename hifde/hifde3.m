@@ -1,5 +1,5 @@
 % HIFDE3        Hierarchical interpolative factorization for differential
-%               operators with nearest neighbor interactions on a regular mesh
+%               equations with nearest neighbor interactions on a regular mesh
 %               in 3D (no edge skeletonization).
 %
 %    F = HIFDE3(A,N,OCC,RANK_OR_TOL) produces a factorization F of the sparse

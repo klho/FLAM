@@ -1,5 +1,5 @@
 % HIFDE_MV      Multiply using hierarchical interpolative factorization for
-%               differential operators.
+%               differential equations.
 %
 %    Y = HIFDE_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.
