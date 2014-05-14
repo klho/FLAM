@@ -44,7 +44,7 @@ function fd_line1x(n,occ,symm)
   I = [Il(:); Ir(:); Im(:)];
   J = [Jl(:); Jr(:); Jm(:)];
   S = [Sl(:); Sr(:); Sm(:)];
-  idx = find(I > 0 & J > 0);
+  idx = find(J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);

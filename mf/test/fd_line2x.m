@@ -56,7 +56,7 @@ function fd_line2x(n,occ,symm)
   I = [Il1(:); Il2(:); Ir1(:); Ir2(:); Im(:)];
   J = [Jl1(:); Jl2(:); Jr1(:); Jr2(:); Jm(:)];
   S = [Sl1(:); Sl2(:); Sr1(:); Sr2(:); Sm(:)];
-  idx = find(I > 0 & J > 0);
+  idx = find(J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);

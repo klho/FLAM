@@ -90,7 +90,7 @@ function fd_cube2(n,occ,symm)
   I = [Il(:); Ir(:); Id(:); Iu(:); Ib(:); If(:); Im(:)];
   J = [Jl(:); Jr(:); Jd(:); Ju(:); Jb(:); Jf(:); Jm(:)];
   S = [Sl(:); Sr(:); Sd(:); Su(:); Sb(:); Sf(:); Sm(:)];
-  idx = find(I > 0 & J > 0);
+  idx = find(J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);

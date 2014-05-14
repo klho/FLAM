@@ -65,7 +65,7 @@ function fd_square3x(n,k,occ,rank_or_tol,skip,symm)
   I = [Il(:); Ir(:); Id(:); Iu(:); Im(:)];
   J = [Jl(:); Jr(:); Jd(:); Ju(:); Jm(:)];
   S = [Sl(:); Sr(:); Sd(:); Su(:); Sm(:)];
-  idx = find(I > 0 & J > 0);
+  idx = find(J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);

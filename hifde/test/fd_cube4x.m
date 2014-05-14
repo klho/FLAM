@@ -107,7 +107,7 @@ function fd_cube4x(n,occ,rank_or_tol,skip,symm)
        Jb1(:); Jb2(:); Jf1(:); Jf2(:); Jm(:)];
   S = [Sl1(:); Sl2(:); Sr1(:); Sr2(:); Sd1(:); Sd2(:); Su1(:); Su2(:); ...
        Sb1(:); Sb2(:); Sf1(:); Sf2(:); Sm(:)];
-  idx = find(I > 0 & J > 0);
+  idx = find(J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);

@@ -84,7 +84,7 @@ function fd_square4x(n,occ,rank_or_tol,skip,symm)
   I = [Il1(:); Il2(:); Ir1(:); Ir2(:); Id1(:); Id2(:); Iu1(:); Iu2(:); Im(:)];
   J = [Jl1(:); Jl2(:); Jr1(:); Jr2(:); Jd1(:); Jd2(:); Ju1(:); Ju2(:); Jm(:)];
   S = [Sl1(:); Sl2(:); Sr1(:); Sr2(:); Sd1(:); Sd2(:); Su1(:); Su2(:); Sm(:)];
-  idx = find(I > 0 & J > 0);
+  idx = find(J > 0);
   I = I(idx);
   J = J(idx);
   S = S(idx);

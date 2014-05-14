@@ -1,7 +1,7 @@
 % Overdetermined least squares on the unit line, thin-plate splines with
 % Tikhonov regularization.
 
-function ols_line(m,n,occ,p,rank_or_tol,store,lambda)
+function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
 
   % set default parameters
   if nargin < 1 || isempty(m)
@@ -10,20 +10,20 @@ function ols_line(m,n,occ,p,rank_or_tol,store,lambda)
   if nargin < 2 || isempty(n)
     n = 8192;
   end
-  if nargin < 3 || isempty(occ)
+  if nargin < 3 || isempty(lambda)
+    lambda = 0.01;
+  end
+  if nargin < 4 || isempty(occ)
     occ = 128;
   end
-  if nargin < 4 || isempty(p)
+  if nargin < 5 || isempty(p)
     p = 8;
   end
-  if nargin < 5 || isempty(rank_or_tol)
+  if nargin < 6 || isempty(rank_or_tol)
     rank_or_tol = 1e-12;
   end
-  if nargin < 6 || isempty(store)
+  if nargin < 7 || isempty(store)
     store = 'a';
-  end
-  if nargin < 7 || isempty(lambda)
-    lambda = 0.01;
   end
 
   % initialize
