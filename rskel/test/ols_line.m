@@ -31,7 +31,7 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
   cx = (1:n)/n;
   M = size(rx,2);
   N = size(cx,2);
-  proxy = 1.5 + ((1:p) - 1)/p;
+  proxy = 1.5*(1 + ((1:p) - 1)/p);
   proxy = [-proxy proxy];
 
   % compress matrix using RSKEL

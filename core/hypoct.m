@@ -162,7 +162,9 @@ function T = hypoct(x,occ,lvlmax,ext)
       c = reshape([T.nodes(idx).ctr],d,[])';
       dist = round(abs(bsxfun(@minus,T.nodes(i).ctr,c))/l);
       j = idx(max(dist,[],2) <= 1);
-      T.nodes(i).nbor = [T.nodes(i).nbor j];
+      if ~isempty(j)
+        T.nodes(i).nbor = [T.nodes(i).nbor j];
+      end
     end
   end
 end
