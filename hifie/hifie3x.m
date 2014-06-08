@@ -353,21 +353,21 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % partition by sparsity structure of modified interactions
-        K2 = K2(logical(sum(abs(K2),2)),:);
-        if nnz(K2) == 0
+        K2 = double(K2 ~= 0);
+        K2 = K2(logical(sum(K2,2)),:);
+        s = sum(K2);
+        if sum(s) == 0
           grp = {1:nslf};
           ngrp = 1;
         else
-          Kmod = K2 ~= 0;
-          Kmod = bsxfun(@rdivide,Kmod,sqrt(sum(Kmod.^2)));
-          R = Kmod'*Kmod;
-          Krem = ones(nslf,1);
+          R = K2'*K2;
+          s = bsxfun(@max,s',s);
+          Krem = true(nslf,1);
           grp = cell(nslf,1);
           ngrp = 0;
-          s = 0.5*(1 + sqrt(1 - 1/size(K2,1)));
           for k = 1:nslf
             if Krem(k)
-              idx = find(R(:,k) > s);
+              idx = find(R(:,k) == s(:,k) & Krem);
               if any(idx)
                 ngrp = ngrp + 1;
                 grp{ngrp} = idx;
@@ -375,12 +375,8 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
               end
             end
           end
-          if any(Krem)
-            ngrp = ngrp + 1;
-            grp{ngrp} = find(Krem);
-          end
-          grp = grp(1:ngrp);
         end
+        grp = grp(1:ngrp);
 
         % skeletonize by partition
         sk_ = cell(ngrp,1);
