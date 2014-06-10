@@ -51,8 +51,9 @@
 %        by recursive skeletonization. SIAM J. Sci. Comput. 34 (5): A2507-A2532,
 %        2012.
 %
-%      K.L. Ho, L. Greengard. A fast semi-direct least squares algorithm for
-%        hierarchically block separable matrices. arXiv:1212.3521, 2012.
+%      K.L. Ho, L. Greengard. A fast semidirect least squares algorithm for
+%        hierarchically block separable matrices. SIAM J. Matrix Anal. Appl. 35
+%        (2): 725--748, 2014.
 %
 %      P.G. Martinsson, V. Rokhlin. A fast direct solver for boundary integral
 %        equations in two dimensions. J. Comput. Phys. 205: 1-23, 2005.
