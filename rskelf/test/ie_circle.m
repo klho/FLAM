@@ -80,7 +80,7 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
     dy = bsxfun(@minus,x(2,:)',y(2,:));
     dr = sqrt(dx.^2 + dy.^2);
     if strcmpi(lp,'s')
-      K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
+      K = -1/(2*pi)*log(dr);
     elseif strcmpi(lp,'d')
       rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
       K = 1/(2*pi).*rdotn./dr.^2;
