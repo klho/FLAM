@@ -131,7 +131,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
         nb = t.lvp(lvl+1) - t.lvp(lvl);
         e = cell(nb,1);
         blocks = struct('slf',e,'sk',e,'rd',e,'T',e);
-        nb_ = nb;
+        nblk = nb;
         nb = 0;
 
         % loop over nodes
@@ -325,7 +325,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
         % initialize storage
         e = cell(nb,1);
         blocks = struct('slf',e,'sk',e,'rd',e,'T',e);
-        nb_ = nb;
+        nblk = nb;
         nb = 0;
 
         % clear current level
@@ -334,7 +334,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
         end
 
         % loop over centers
-        for i = 1:nb_
+        for i = 1:nblk
           slf = blk(i).xi;
           nslf = length(slf);
           sslf = sort(slf);
@@ -384,7 +384,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
 
       % initialize
       nlvl = nlvl + 1;
-      nblk = pblk(lvl) + nb_;
+      nblk = pblk(lvl) + nblk;
       nz = 0;
 
       % loop over stored data
