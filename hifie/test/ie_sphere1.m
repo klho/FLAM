@@ -214,13 +214,19 @@ function ie_sphere1(n,nquad,occ,p,rank_or_tol,skip,store)
   end
 
   % proxy function for IFMM
-  function K = pxyfun_ifmm(rc,rx,cx,slf,nbr,l,ctr)
+  function [Kpxy,nbr] = pxyfun_ifmm(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
-      K = Kfun(rx(:,slf),pxy,'s');
+      Kpxy = Kfun(rx(:,slf),pxy,'s')*(4*pi/N);
+      dx = cx(1,nbr) - ctr(1);
+      dy = cx(2,nbr) - ctr(2);
     elseif strcmpi(rc,'c')
-      K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
+      Kpxy = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
+      dx = rx(1,nbr) - ctr(1);
+      dy = rx(2,nbr) - ctr(2);
     end
+    dist = sqrt(dx.^2 + dy.^2);
+    nbr = nbr(dist/l < 1.5);
   end
 
   % sparse matrix access

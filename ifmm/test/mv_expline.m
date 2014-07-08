@@ -1,6 +1,6 @@
 % Exponentially graded line, Laplace sources.
 
-function mv_expline(n,occ,p,rank_or_tol,store,symm)
+function mv_expline(n,occ,p,rank_or_tol,near,store,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -15,10 +15,13 @@ function mv_expline(n,occ,p,rank_or_tol,store,symm)
   if nargin < 4 || isempty(rank_or_tol)
     rank_or_tol = 1e-12;
   end
-  if nargin < 5 || isempty(store)
+  if nargin < 5 || isempty(near)
+    near = 0;
+  end
+  if nargin < 6 || isempty(store)
     store = 'n';
   end
-  if nargin < 6 || isempty(symm)
+  if nargin < 7 || isempty(symm)
     symm = 's';
   end
 
@@ -29,7 +32,7 @@ function mv_expline(n,occ,p,rank_or_tol,store,symm)
   proxy = [proxy -proxy];
 
   % compress matrix
-  opts = struct('store',store,'symm',symm,'verb',1);
+  opts = struct('near',near,'store',store,'symm',symm,'verb',1);
   F = ifmm(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
@@ -76,12 +79,15 @@ function mv_expline(n,occ,p,rank_or_tol,store,symm)
   end
 
   % proxy function
-  function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
+  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
-      K = Kfun(rx(:,slf),pxy);
+      Kpxy = Kfun(rx(:,slf),pxy);
+      dist = cx(:,nbr) - ctr;
     elseif strcmpi(rc,'c')
-      K = Kfun(pxy,cx(:,slf));
+      Kpxy = Kfun(pxy,cx(:,slf));
+      dist = rx(:,nbr) - ctr;
     end
+    nbr = nbr(dist/l < 1.5);
   end
 end

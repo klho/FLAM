@@ -6,18 +6,18 @@
 %    precision parameter RANK_OR_TOL, and proxy function PXYFUN to capture the
 %    far field. This is a function of the form
 %
-%      K = PXYFUN(RC,RX,CX,SLF,NBR,L,CTR)
+%      [KPXY,NBR] = PXYFUN(RC,RX,CX,SLF,NBR,L,CTR)
 %
 %    that is called for every block, where
 %
-%      - K:   interaction matrix against artificial proxy points
-%      - RC:  flag to specify row or column compression ('R' or 'C')
-%      - RX:  input row points
-%      - CX:  input column points
-%      - SLF: block indices
-%      - NBR: block neighbor indices
-%      - L:   block size
-%      - CTR: block center
+%      - KPXY: interaction matrix against artificial proxy points
+%      - NBR:  block neighbor indices (can be modified)
+%      - RC:   flag to specify row or column compression ('R' or 'C')
+%      - RX:   input row points
+%      - CX:   input column points
+%      - SLF:  block indices
+%      - L:    block size
+%      - CTR:  block center
 %
 %    See the examples for further details. If PXYFUN is not provided or empty
 %    (default), then the code uses the naive global compression scheme.
@@ -27,9 +27,11 @@
 %
 %      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
+%      - NEAR: compress near field if NEAR = 1 (default: NEAR = 0).
+%
 %      - STORE: store no interactions if STORE = 'N', only self-interactions if
-%               if STORE = 'S', only direct (uncompressed) interactions if
-%               STORE = 'D', and all interactions if STORE = 'A' (default:
+%               if STORE = 'S', only near-field (including self-) interactions
+%               if STORE = 'R', and all interactions if STORE = 'A' (default:
 %               STORE = 'N').
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
@@ -64,6 +66,9 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
   end
+  if ~isfield(opts,'near')
+    opts.near = 0;
+  end
   if ~isfield(opts,'store')
     opts.store = 'n';
   end
@@ -76,9 +81,9 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
   % check inputs
   assert(strcmpi(opts.store,'n') || strcmpi(opts.store,'s') || ...
-         strcmpi(opts.store,'d') || strcmpi(opts.store,'a'), ...
+         strcmpi(opts.store,'r') || strcmpi(opts.store,'a'), ...
          'FLAM:ifmm:invalidStore', ...
-         'Storage parameter must be one of ''N'', ''S'', ''D'', or ''A''.')
+         'Storage parameter must be one of ''N'', ''S'', ''R'', or ''A''.')
   assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:ifmm:invalidSymm', ...
@@ -107,7 +112,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     for lvl = 1:t.nlvl
       pblk(lvl+1) = pblk(lvl);
       for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-        if ~isempty(t.nodes(i).xi)
+        if ~isempty([t.nodes(i).rxi t.nodes(i).cxi])
           pblk(lvl+1) = pblk(lvl+1) + 1;
         end
       end
@@ -127,9 +132,8 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         if isempty([t.nodes(j).rxi t.nodes(j).cxi])
           continue
         end
-        if j > i
           t.nodes(i).dir = [t.nodes(i).dir j];
-        elseif j <= t.lvp(lvl)
+        if j <= t.lvp(lvl)
           t.nodes(j).dir = [t.nodes(j).dir i];
         end
       end
@@ -137,21 +141,26 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   end
 
   % initialize
+  nlvl = t.nlvl + 1;
   nbox = t.lvp(end);
+  mnb = nbox;
+  mnu = nbox;
   e = cell(nbox,1);
-  D = struct('is',e,'ie',e,'js',e,'je',e,'Ds',e,'Do',e,'Di',e);
+  B = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
   U = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);
-  F = struct('M',M,'N',N,'nlvl',t.nlvl,'lvpd',zeros(1,t.nlvl+1),'lvpu', ...
-             zeros(1,t.nlvl+1),'D',D,'U',U,'store',opts.store,'symm',opts.symm);
-  nlvl = 0;
-  nd = 0;
+  F = struct('M',M,'N',N,'nlvl',nlvl,'lvpb',zeros(1,nlvl+1),'lvpu', ...
+             zeros(1,nlvl+1),'B',B,'U',U,'store',opts.store,'symm',opts.symm);
+  nb = 0;
   nu = 0;
   rrem = ones(M,1);
   crem = ones(N,1);
 
   % process direct interactions
   tic
+  nrrem1 = sum(rrem);
+  ncrem1 = sum(crem);
   for lvl = 1:t.nlvl
+    l = t.lrt/2^(lvl - 1);
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
       rslf = t.nodes(i).rxi;
       cslf = t.nodes(i).cxi;
@@ -159,37 +168,149 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       rdir = [t.nodes(dir).rxi];
       cdir = [t.nodes(dir).cxi];
 
-      % move on if no interactions
-      if (isempty(rslf) || isempty(cslf)) && ...
-         (isempty(rdir) || isempty(cslf)) && ...
-         (isempty(rslf) || isempty(cdir))
+      % move on if empty
+      if isempty(rslf) || isempty(cslf)
+        continue
+      end
+
+      % store self-interactions
+      nb = nb + 1;
+      while mnb < nb
+        e = cell(mnb,1);
+        s = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
+        F.B = [F.B; s];
+        mnb = 2*mnb;
+      end
+      F.B(nb).is = rslf;
+      if strcmpi(opts.symm,'n')
+        F.B(nb).js = cslf;
+      end
+      if strcmpi(opts.store,'s') || strcmpi(opts.store,'r') || ...
+         strcmpi(opts.store,'a')
+        F.B(nb).D = A(rslf,cslf);
+      end
+
+      % move on if no (a priori) near-field compression
+      if ~opts.near || (isempty(rdir) || isempty(cslf)) && ...
+                       (isempty(rslf) || isempty(cdir))
+        continue
+      end
+
+      % compress row space
+      Kpxy = zeros(length(rslf),0);
+      if isempty(pxyfun)
+        cnbr = setdiff(find(crem),cslf);
+      else
+        [Kpxy,cnbr] = pxyfun('r',rx,cx,rslf,cdir,l,t.nodes(i).ctr);
+      end
+      K = full(A(rslf,cnbr));
+      K = [K Kpxy]';
+      [rsk,rrd,rT] = id(K,rank_or_tol);
+
+      % compress column space
+      if strcmpi(opts.symm,'n')
+        Kpxy = zeros(0,length(cslf));
+        if isempty(pxyfun)
+          rnbr = setdiff(find(rrem),rslf);
+        else
+          [Kpxy,rnbr] = pxyfun('c',rx,cx,cslf,rdir,l,t.nodes(i).ctr);
+        end
+        K = full(A(rnbr,cslf));
+        K = [K; Kpxy];
+        [csk,crd,cT] = id(K,rank_or_tol);
+      else
+        csk = [];
+        crd = [];
+        cT  = [];
+      end
+
+      % move on if no (a posteriori) compression
+      if isempty(rrd) && isempty(crd)
         continue
       end
 
       % store matrix factors
-      nd = nd + 1;
-      F.D(nd).is = rslf;
-      F.D(nd).ie = rdir;
-      if strcmpi(opts.symm,'n')
-        F.D(nd).js = cslf;
-        F.D(nd).je = cdir;
+      nu = nu + 1;
+      while mnu < nu
+        e = cell(mnu,1);
+        s = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);
+        F.U = [F.U; s];
+        mnu = 2*mnu;
       end
-      if strcmpi(opts.store,'s') || strcmpi(opts.store,'d') || ...
-         strcmpi(opts.store,'a')
-        F.D(nd).Ds = A(rslf,cslf);
-        if strcmpi(opts.store,'d') || strcmpi(opts.store,'a')
-          F.D(nd).Do = A(rdir,cslf);
-          if strcmpi(opts.symm,'n')
-            F.D(nd).Di = A(rslf,cdir);
-          end
+      F.U(nu).rsk = rslf(rsk);
+      F.U(nu).rrd = rslf(rrd);
+      F.U(nu).csk = cslf(csk);
+      F.U(nu).crd = cslf(crd);
+      F.U(nu).rT = rT';
+      F.U(nu).cT = cT;
+
+      % restrict to skeletons
+      t.nodes(i).rxi = rslf(rsk);
+      rrem(rslf(rrd)) = 0;
+      if strcmpi(opts.symm,'n')
+        t.nodes(i).cxi = cslf(csk);
+        crem(cslf(crd)) = 0;
+      else
+        t.nodes(i).cxi = t.nodes(i).rxi;
+        crem(cslf(rrd)) = 0;
+      end
+    end
+  end
+  F.lvpb(2) = nb;
+  F.lvpu(2) = nu;
+
+  % store near-field interactions
+  for lvl = 1:t.nlvl
+    for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+      rslf = t.nodes(i).rxi;
+      cslf = t.nodes(i).cxi;
+      dir = t.nodes(i).dir;
+      dir = dir(dir > i);
+      rdir = [t.nodes(dir).rxi];
+      cdir = [t.nodes(dir).cxi];
+
+      % move on if empty
+      if (isempty(rdir) || isempty(cslf)) && (isempty(rslf) || isempty(cdir))
+        continue
+      end
+
+      % store matrix factors
+      nb = nb + 1;
+      while mnb < nb
+        e = cell(mnb,1);
+        s = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
+        F.B = [F.B; s];
+        mnb = 2*mnb;
+      end
+      F.B(nb).is = rslf;
+      F.B(nb).ie = rdir;
+      if strcmpi(opts.symm,'n')
+        F.B(nb).js = cslf;
+        F.B(nb).je = cdir;
+      end
+      if strcmpi(opts.store,'r') || strcmpi(opts.store,'a')
+        F.B(nb).Bo = A(rdir,cslf);
+        if strcmpi(opts.symm,'n')
+          F.B(nb).Bi = A(rslf,cdir);
         end
       end
     end
   end
-  F.lvpd(2) = nd;
-  fprintf('%3s | %63.2e (s)\n','-',toc)
+  F.lvpb(3) = nb;
+
+  % print summary
+  if opts.verb
+    nrrem2 = sum(rrem);
+    ncrem2 = sum(crem);
+    nblk = pblk(t.nlvl+1);
+    fprintf('%3s | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e (s)\n', ...
+            '*',nblk,nrrem1,nrrem2,nrrem1/nblk,nrrem2/nblk,toc)
+    fprintf('%3s | %6s | %8d | %8d | %8.2f | %8.2f | %10s (s)\n', ...
+            ' ',' ',ncrem1,ncrem2,ncrem1/nblk,ncrem2/nblk,'')
+  end
 
   % loop over tree levels
+  nlvl = 1;
   for lvl = t.nlvl:-1:1
     tic
     nlvl = nlvl + 1;
@@ -241,6 +362,12 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
       % store matrix factors
       nu = nu + 1;
+      while mnu < nu
+        e = cell(mnu,1);
+        s = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);
+        F.U = [F.U; s];
+        mnu = 2*mnu;
+      end
       F.U(nu).rsk = rslf(rsk);
       F.U(nu).rrd = rslf(rrd);
       F.U(nu).csk = cslf(csk);
@@ -261,7 +388,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     end
     F.lvpu(nlvl+1) = nu;
 
-    % process interactions
+    % process far-field interactions
     if lvl > 2
       for i = t.lvp(lvl)+1:t.lvp(lvl+1)
         rslf = t.nodes(i).rxi;
@@ -284,29 +411,35 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         rint = [t.nodes(ilst).rxi];
         cint = [t.nodes(ilst).cxi];
 
-        % move on if no interactions
+        % move on if empty
         if (isempty(rint) || isempty(cslf)) && (isempty(cint) || isempty(rslf))
           continue
         end
 
         % store matrix factors
-        nd = nd + 1;
-        F.D(nd).is = rslf;
-        F.D(nd).ie = rint;
+        nb = nb + 1;
+        while mnb < nb
+          e = cell(mnb,1);
+          s = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
+          F.B = [F.B; s];
+          mnb = 2*mnb;
+        end
+        F.B(nb).is = rslf;
+        F.B(nb).ie = rint;
         if strcmpi(opts.symm,'n')
-          F.D(nd).js = cslf;
-          F.D(nd).je = cint;
+          F.B(nb).js = cslf;
+          F.B(nb).je = cint;
         end
         if strcmpi(opts.store,'a')
-          F.D(nd).Do = A(rint,cslf);
+          F.B(nb).Bo = A(rint,cslf);
           if strcmpi(opts.symm,'n')
-            F.D(nd).Di = A(rslf,cint);
+            F.B(nb).Bi = A(rslf,cint);
           end
         end
       end
-      F.lvpd(nlvl+2) = nd;
+      F.lvpb(nlvl+2) = nb;
     else
-      F.lvpd(nlvl+1) = nd;
+      F.lvpb(nlvl+1) = nb;
     end
 
     % print summary
@@ -322,7 +455,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   end
 
   % finish
-  F.D = F.D(1:nd);
+  F.B = F.B(1:nb);
   F.U = F.U(1:nu);
   if opts.verb
     fprintf(['-'*ones(1,80) '\n'])

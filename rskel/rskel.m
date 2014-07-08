@@ -112,7 +112,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     for lvl = 1:t.nlvl
       pblk(lvl+1) = pblk(lvl);
       for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-        if ~isempty(t.nodes(i).xi)
+        if ~isempty([t.nodes(i).rxi t.nodes(i).cxi])
           pblk(lvl+1) = pblk(lvl+1) + 1;
         end
       end

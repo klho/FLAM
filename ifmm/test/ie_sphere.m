@@ -1,6 +1,6 @@
 % Second-kind integral equation on the unit sphere, Laplace double-layer.
 
-function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
+function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -18,7 +18,10 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   if nargin < 5 || isempty(rank_or_tol)
     rank_or_tol = 1e-6;
   end
-  if nargin < 6 || isempty(store)
+  if nargin < 6 || isempty(near)
+    near = 0;
+  end
+  if nargin < 7 || isempty(store)
     store = 'a';
   end
 
@@ -100,7 +103,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   clear V F trans rot V2 V3 T I J
 
   % compress matrix
-  opts = struct('store',store,'verb',1);
+  opts = struct('near',near,'store',store,'verb',1);
   F = ifmm(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
@@ -208,13 +211,19 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   end
 
   % proxy function
-  function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
+  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
-      K = Kfun(rx(:,slf),pxy,'s');
+      Kpxy = Kfun(rx(:,slf),pxy,'s')*(4*pi/N);
+      dx = cx(1,nbr) - ctr(1);
+      dy = cx(2,nbr) - ctr(2);
     elseif strcmpi(rc,'c')
-      K = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
+      Kpxy = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
+      dx = rx(1,nbr) - ctr(1);
+      dy = rx(2,nbr) - ctr(2);
     end
+    dist = sqrt(dx.^2 + dy.^2);
+    nbr = nbr(dist/l < 1.5);
   end
 
   % sparse matrix access

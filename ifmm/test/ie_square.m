@@ -1,6 +1,6 @@
 % Second-kind integral equation on the unit square, Laplace single-layer.
 
-function ie_square(n,occ,p,rank_or_tol,store,symm)
+function ie_square(n,occ,p,rank_or_tol,near,store,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -15,10 +15,13 @@ function ie_square(n,occ,p,rank_or_tol,store,symm)
   if nargin < 4 || isempty(rank_or_tol)
     rank_or_tol = 1e-9;
   end
-  if nargin < 5 || isempty(store)
+  if nargin < 5 || isempty(near)
+    near = 0;
+  end
+  if nargin < 6 || isempty(store)
     store = 'a';
   end
-  if nargin < 6 || isempty(symm)
+  if nargin < 7 || isempty(symm)
     symm = 's';
   end
 
@@ -35,7 +38,7 @@ function ie_square(n,occ,p,rank_or_tol,store,symm)
   intgrl = 4*dblquad(@(x,y)(-1/(2*pi)*log(sqrt(x.^2 + y.^2))),0,h/2,0,h/2);
 
   % compress matrix
-  opts = struct('store',store,'symm',symm,'verb',1);
+  opts = struct('near',near,'store',store,'symm',symm,'verb',1);
   F = ifmm(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
@@ -86,13 +89,19 @@ function ie_square(n,occ,p,rank_or_tol,store,symm)
   end
 
   % proxy function
-  function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
+  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
-      K = Kfun(rx(:,slf),pxy);
+      Kpxy = Kfun(rx(:,slf),pxy)/N;
+      dx = cx(1,nbr) - ctr(1);
+      dy = cx(2,nbr) - ctr(2);
     elseif strcmpi(rc,'c')
-      K = Kfun(pxy,cx(:,slf));
+      Kpxy = Kfun(pxy,cx(:,slf))/N;
+      dx = rx(1,nbr) - ctr(1);
+      dy = rx(2,nbr) - ctr(2);
     end
+    dist = sqrt(dx.^2 + dy.^2);
+    nbr = nbr(dist/l < 1.5);
   end
 
   % FFT multiplication

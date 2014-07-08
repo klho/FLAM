@@ -1,6 +1,6 @@
 % Unit sphere, Helmholtz sources.
 
-function mv_sphere2(m,n,k,occ,p,rank_or_tol,store)
+function mv_sphere2(m,n,k,occ,p,rank_or_tol,near,store)
 
   % set default parameters
   if nargin < 1 || isempty(m)
@@ -21,7 +21,10 @@ function mv_sphere2(m,n,k,occ,p,rank_or_tol,store)
   if nargin < 6 || isempty(rank_or_tol)
     rank_or_tol = 1e-6;
   end
-  if nargin < 7 || isempty(store)
+  if nargin < 7 || isempty(near)
+    near = 0;
+  end
+  if nargin < 8 || isempty(store)
     store = 'n';
   end
 
@@ -36,7 +39,7 @@ function mv_sphere2(m,n,k,occ,p,rank_or_tol,store)
   proxy = 1.5*bsxfun(@rdivide,proxy,sqrt(sum(proxy.^2)));
 
   % compress matrix
-  opts = struct('store',store,'verb',1);
+  opts = struct('near',near,'store',store,'verb',1);
   F = ifmm(@Afun,rx,cx,occ,rank_or_tol,@pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
@@ -89,12 +92,20 @@ function mv_sphere2(m,n,k,occ,p,rank_or_tol,store)
   end
 
   % proxy function
-  function K = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
+  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
-      K = Kfun(rx(:,slf),pxy);
+      Kpxy = Kfun(rx(:,slf),pxy);
+      dx = cx(1,nbr) - ctr(1);
+      dy = cx(2,nbr) - ctr(2);
+      dz = cx(3,nbr) - ctr(3);
     elseif strcmpi(rc,'c')
-      K = Kfun(pxy,cx(:,slf));
+      Kpxy = Kfun(pxy,cx(:,slf));
+      dx = rx(1,nbr) - ctr(1);
+      dy = rx(2,nbr) - ctr(2);
+      dz = rx(3,nbr) - ctr(3);
     end
+    dist = sqrt(dx.^2 + dy.^2 + dz.^2);
+    nbr = nbr(dist/l < 1.5);
   end
 end

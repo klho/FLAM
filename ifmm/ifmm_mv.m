@@ -158,12 +158,12 @@ function Y = ifmm_mv(F,X,A,trans)
     end
 
     % apply interaction matrices
-    for i = F.lvpd(lvl)+1:F.lvpd(lvl+1)
-      is = F.D(i).is;
-      ie = F.D(i).ie;
+    for i = F.lvpb(lvl)+1:F.lvpb(lvl+1)
+      is = F.B(i).is;
+      ie = F.B(i).ie;
       if strcmpi(F.symm,'n')
-        js = F.D(i).js;
-        je = F.D(i).je;
+        js = F.B(i).js;
+        je = F.B(i).je;
       else
         js = is;
         je = ie;
@@ -171,29 +171,30 @@ function Y = ifmm_mv(F,X,A,trans)
 
       % get self-interactions
       if lvl == 1
-        if strcmpi(F.store,'s') || strcmpi(F.store,'d') || strcmpi(F.store,'a')
-          Ds = F.D(i).Ds;
+        if strcmpi(F.store,'s') || strcmpi(F.store,'r') || strcmpi(F.store,'a')
+          D = F.B(i).D;
         else
-          Ds = A(is,js);
+          D = A(is,js);
         end
-      end
 
       % get external interactions
-      if strcmpi(F.store,'a') || (lvl == 1 && strcmpi(F.store,'d'))
-        Do = F.D(i).Do;
       else
-        Do = A(ie,js);
-      end
-      if strcmpi(F.symm,'n')
-        if strcmpi(F.store,'a') || (lvl == 1 && strcmpi(F.store,'d'))
-          Di = F.D(i).Di;
+        if strcmpi(F.store,'a') || (lvl == 2 && strcmpi(F.store,'r'))
+          Bo = F.B(i).Bo;
         else
-          Di = A(is,je);
+          Bo = A(ie,js);
         end
-      elseif strcmpi(F.symm,'s')
-        Di = Do.';
-      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-        Di = Do';
+        if strcmpi(F.symm,'n')
+          if strcmpi(F.store,'a') || (lvl == 2 && strcmpi(F.store,'r'))
+            Bi = F.B(i).Bi;
+          else
+            Bi = A(is,je);
+          end
+        elseif strcmpi(F.symm,'s')
+          Bi = Bo.';
+        elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+          Bi = Bo';
+        end
       end
 
       % apply matrices
@@ -216,16 +217,17 @@ function Y = ifmm_mv(F,X,A,trans)
         ii = pcrem1(je_);
         ji = prrem1(is_);
         if lvl == 1
-          Ds = Ds';
+          D = D';
         end
-        Do = Do';
-        Di = Di';
+        Bo = Bo';
+        Bi = Bi';
       end
       if lvl == 1
-        Y{lvl}(is,:) = Y{lvl}(is,:) + Ds*Z{lvl}(js,:);
+        Y{lvl}(is,:) = Y{lvl}(is,:) + D*Z{lvl}(js,:);
+      else
+        Y{lvl}(io,:) = Y{lvl}(io,:) + Bo*Z{lvl}(jo,:);
+        Y{lvl}(ii,:) = Y{lvl}(ii,:) + Bi*Z{lvl}(ji,:);
       end
-      Y{lvl}(io,:) = Y{lvl}(io,:) + Do*Z{lvl}(jo,:);
-      Y{lvl}(ii,:) = Y{lvl}(ii,:) + Di*Z{lvl}(ji,:);
     end
   end
 
