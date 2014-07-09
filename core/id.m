@@ -12,6 +12,9 @@
 %    [SK,RD,T] = ID(A,RANK_OR_TOL) sets K = RANK_OR_TOL if RANK_OR_TOL >= 1 and
 %    TOL = RANK_OR_TOL if RANK_OR_TOL < 1.
 %
+%    [SK,RD,T] = ID(A,RANK_OR_TOL,RAND) uses random sampling if RAND = 1
+%    (default: RAND = 1).
+%
 %    References:
 %
 %      H. Cheng, Z. Gimbutas, P.G. Martinsson, V. Rokhlin. On the compression of
@@ -19,14 +22,19 @@
 %
 %    See also QR.
 
-function [sk,rd,T] = id(A,rank_or_tol)
+function [sk,rd,T] = id(A,rank_or_tol,rand)
+
+  % set default parameters
+  if nargin < 3 || isempty(rand)
+    rand = 1;
+  end
 
   % check inputs
   assert(rank_or_tol >= 0,'FLAM:id:negativeRankOrTol', ...
          'Rank or tolerance must be nonnegative.')
 
   % initialize
-  n = size(A,2);
+  [m,n] = size(A);
 
   % return if matrix is empty
   if isempty(A)
@@ -34,6 +42,11 @@ function [sk,rd,T] = id(A,rank_or_tol)
     rd = 1:n;
     T = zeros(0,n);
     return
+  end
+
+  % sample against Gaussian matrix if too rectangular
+  if rand && m > 2*n
+    A = randn(n+16,m)*A;
   end
 
   % compute ID

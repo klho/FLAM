@@ -43,7 +43,7 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
 
   % compress matrix using IFMM
   opts = struct('store',store,'verb',1);
-  G = ifmm(@Afun,rx,cx,2*occ,1e-15,@pxyfun_ifmm,opts);
+  G = ifmm(@Afun,rx,cx,2*occ,1e-15,@pxyfun,opts);
   w = whos('G');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
@@ -124,16 +124,6 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
       dist = rx(:,nbr) - ctr;
     end
     nbr = nbr(dist/l < 1.5);
-  end
-
-  % proxy function for IFMM
-  function K = pxyfun_ifmm(rc,rx,cx,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmpi(rc,'r')
-      K = Kfun(rx(:,slf),pxy);
-    elseif strcmpi(rc,'c')
-      K = Kfun(pxy,cx(:,slf));
-    end
   end
 
   % least squares solve

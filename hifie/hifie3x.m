@@ -387,7 +387,7 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
         for k = 1:ngrp
           K_ = K(:,grp{k});
           Kpxy_ = Kpxy(:,grp{k});
-          [sk_{k},rd_{k},T_{k}] = id([K_; Kpxy_],ratio*rank_or_tol);
+          [sk_{k},rd_{k},T_{k}] = id([K_; Kpxy_],ratio*rank_or_tol,0);
           psk(k) = length(sk_{k});
           prd(k) = length(rd_{k});
         end

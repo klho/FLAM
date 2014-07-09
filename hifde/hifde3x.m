@@ -360,7 +360,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
           end
 
           % skeletonize
-          [sk,rd,T] = id(K,rank_or_tol);
+          [sk,rd,T] = id(K,rank_or_tol,0);
 
           % restrict to skeletons
           for j = sk
