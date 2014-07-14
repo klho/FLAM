@@ -38,42 +38,35 @@ function Y = rskelf_sv(F,X,trans)
     if strcmpi(F.symm,'n')
       if strcmpi(trans,'n')
         E = F.factors(i).E;
+        L = F.factors(i).L;
       else
         E = F.factors(i).F';
+        L = F.factors(i).U';
       end
     elseif strcmpi(F.symm,'s')
       if strcmpi(trans,'n')
         T = conj(T);
         E = F.factors(i).E;
+        L = F.factors(i).L;
       else
-        T = F.factors(i).T';
-        E = conj(F.factors(i).E);
-      end
-    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      E = F.factors(i).E;
-    end
-    Y(rd,:) = Y(rd,:) - T*Y(sk,:);
-    Y(sk,:) = Y(sk,:) - E*Y(rd,:);
-
-    % apply diagonal blocks
-    L = F.factors(i).L;
-    if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
-      U = F.factors(i).U;
-      if strcmpi(trans,'n')
-        Y(rd,:) = U\(L\Y(rd,:));
-      else
-        Y(rd,:) = L'\(U'\Y(rd,:));
+        E = F.factors(i).F';
+        L = F.factors(i).U';
       end
     elseif strcmpi(F.symm,'h')
       if strcmpi(trans,'n')
-        D = F.factors(i).U;
+        E = F.factors(i).E;
+        L = F.factors(i).L;
       else
-        D = F.factors(i).U';
+        E = F.factors(i).F';
+        L = F.factors(i).L*F.factors(i).U;
       end
-      Y(rd,:) = L'\(D\(L\Y(rd,:)));
     elseif strcmpi(F.symm,'p')
-      Y(rd,:) = L'\(L\Y(rd,:));
+      E = F.factors(i).E;
+      L = F.factors(i).L;
     end
+    Y(rd,:) = Y(rd,:) - T*Y(sk,:);
+    Y(rd,:) = L\Y(rd,:);
+    Y(sk,:) = Y(sk,:) - E*Y(rd,:);
   end
 
   % downward sweep
@@ -84,20 +77,34 @@ function Y = rskelf_sv(F,X,trans)
     if strcmpi(F.symm,'n')
       if strcmpi(trans,'n')
         G = F.factors(i).F;
+        U = F.factors(i).U;
       else
         G = F.factors(i).E';
+        U = F.factors(i).L';
       end
     elseif strcmpi(F.symm,'s')
       if strcmpi(trans,'n')
-        G = F.factors(i).E.';
+        G = F.factors(i).F;
+        U = F.factors(i).U;
       else
         T = conj(T);
         G = F.factors(i).E';
+        U = F.factors(i).L';
       end
-    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+    elseif strcmpi(F.symm,'h')
+      if strcmpi(trans,'n')
+        G = F.factors(i).F;
+        U = F.factors(i).U*F.factors(i).L';
+      else
+        G = F.factors(i).E';
+        U = F.factors(i).L';
+      end
+    elseif strcmpi(F.symm,'p')
       G = F.factors(i).E';
+      U = F.factors(i).L';
     end
     Y(rd,:) = Y(rd,:) - G*Y(sk,:);
+    Y(rd,:) = U\Y(rd,:);
     Y(sk,:) = Y(sk,:) - T*Y(rd,:);
   end
 end

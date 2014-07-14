@@ -45,7 +45,7 @@
 %    References:
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: integral equations. arXiv:1307.2666, 2013.
+%        operators: integral equations. Preprint, arXiv:1307.2666, 2013.
 %
 %    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
 
@@ -427,27 +427,27 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
           K(rd,:) = K(rd,:) - T'*K(sk,:);
         end
         K(:,rd) = K(:,rd) - K(:,sk)*T;
-        E = eye(length(rd));
         if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
           [L,U] = lu(K(rd,rd));
-          X = U\(L\E);
+          E = K(sk,rd)/U;
+          G = L\K(rd,sk);
         elseif strcmpi(opts.symm,'h')
           [L,U] = ldl(K(rd,rd));
-          X = L'\(U\(L\E));
+          E = (K(sk,rd)/L')/U;
+          G = L\K(rd,sk);
         elseif strcmpi(opts.symm,'p')
           L = chol(K(rd,rd),'lower');
-          X = L'\(L\E);
           U = [];
-        end
-        E = K(sk,rd)*X;
-        if strcmpi(opts.symm,'n')
-          G = X*K(rd,sk);
-        else
+          E = K(sk,rd)/L';
           G = [];
         end
 
         % update self-interaction
-        S_ = -K(sk,rd)*X*K(rd,sk);
+        if strcmpi(opts.symm,'p')
+          S_ = -E*E';
+        else
+          S_ = - E*G;
+        end
         [I_,J_] = ndgrid(slf(sk));
         m = length(sk)^2;
         while mnz < nz + m

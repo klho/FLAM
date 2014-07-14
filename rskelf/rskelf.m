@@ -44,7 +44,11 @@
 %        Appl. 28 (3): 603-622, 2006.
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: integral equations. arXiv:1307.2666, 2013.
+%        operators: integral equations. Preprint, arXiv:1307.2666, 2013.
+%
+%      J. Xia, S. Chandrasekaran, M. Gu, X.S. Li. Fast algorithms for
+%        hierarchically semiseparable matrices. Numer. Linear Algebra Appl. 17:
+%        953-976, 2010.
 %
 %    See also HYPOCT, ID, RSKELF_MV, RSKELF_SV.
 
@@ -173,27 +177,27 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
         K(rd,:) = K(rd,:) - T'*K(sk,:);
       end
       K(:,rd) = K(:,rd) - K(:,sk)*T;
-      E = eye(length(rd));
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
         [L,U] = lu(K(rd,rd));
-        X = U\(L\E);
+        E = K(sk,rd)/U;
+        G = L\K(rd,sk);
       elseif strcmpi(opts.symm,'h')
         [L,U] = ldl(K(rd,rd));
-        X = L'\(U\(L\E));
+        E = (K(sk,rd)/L')/U;
+        G = L\K(rd,sk);
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
-        X = L'\(L\E);
         U = [];
-      end
-      E = K(sk,rd)*X;
-      if strcmpi(opts.symm,'n')
-        G = X*K(rd,sk);
-      else
+        E = K(sk,rd)/L';
         G = [];
       end
 
       % update self-interaction
-      M{i} = M{i}(sk,sk) - K(sk,rd)*X*K(rd,sk);
+      if strcmpi(opts.symm,'p')
+        M{i} = M{i}(sk,sk) - E*E';
+      else
+        M{i} = M{i}(sk,sk) - E*G;
+      end
 
       % store matrix factors
       n = n + 1;

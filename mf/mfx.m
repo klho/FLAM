@@ -178,27 +178,27 @@ function F = mfx(A,x,occ,opts)
 
       % compute factors
       K = spget_slf;
-      E = eye(length(rd));
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
         [L,U] = lu(K(rd,rd));
-        X = U\(L\E);
+        E = K(sk,rd)/U;
+        G = L\K(rd,sk);
       elseif strcmpi(opts.symm,'h')
         [L,U] = ldl(K(rd,rd));
-        X = L'\(U\(L\E));
+        E = (K(sk,rd)/L')/U;
+        G = L\K(rd,sk);
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
-        X = L'\(L\E);
         U = [];
-      end
-      E = K(sk,rd)*X;
-      if strcmpi(opts.symm,'n')
-        G = X*K(rd,sk);
-      else
+        E = K(sk,rd)/L';
         G = [];
       end
 
       % update self-interaction
-      S_ = -K(sk,rd)*X*K(rd,sk);
+      if strcmpi(opts.symm,'p')
+        S_ = -E*E';
+      else
+        S_ = -E*G;
+      end
       [I_,J_] = ndgrid(slf(sk));
       m = length(sk)^2;
       while mnz < nz + m

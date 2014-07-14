@@ -27,7 +27,14 @@
 %    References:
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: differential equations. arXiv:1307.2895, 2013.
+%        operators: differential equations. Preprint, arXiv:1307.2895, 2013.
+%
+%      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
+%        (1): 197-227, 2013.
+%
+%      J. Xia, S. Chandrasekaran, M. Gu, X.S. Li. Superfast multifrontal method
+%        for large structured linear systems of equations. SIAM J. Matrix Anal.
+%        Appl. 31 (3): 1382-1411, 2009.
 %
 %    See also HIFDE2, HIFDE2X, HIFDE3X, HIFDE_MV, HIFDE_SV, HYPOCT, ID.
 
@@ -303,27 +310,27 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
           end
           K(:,rd) = K(:,rd) - K(:,sk)*T;
         end
-        E = eye(length(rd));
         if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
           [L,U] = lu(K(rd,rd));
-          X = U\(L\E);
+          E = K(sk,rd)/U;
+          G = L\K(rd,sk);
         elseif strcmpi(opts.symm,'h')
           [L,U] = ldl(K(rd,rd));
-          X = L'\(U\(L\E));
+          E = (K(sk,rd)/L')/U;
+          G = L\K(rd,sk);
         elseif strcmpi(opts.symm,'p')
           L = chol(K(rd,rd),'lower');
-          X = L'\(L\E);
           U = [];
-        end
-        E = K(sk,rd)*X;
-        if strcmpi(opts.symm,'n')
-          G = X*K(rd,sk);
-        else
+          E = K(sk,rd)/L';
           G = [];
         end
 
         % update self-interaction
-        S_ = -K(sk,rd)*X*K(rd,sk);
+        if strcmpi(opts.symm,'p')
+          S_ = -E*E';
+        else
+          S_ = -E*G;
+        end
         [I_,J_] = ndgrid(slf(sk));
         m = length(sk)^2;
         while mnz < nz + m
