@@ -397,7 +397,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         elseif strcmpi(opts.symm,'h')
           [L,U] = ldl(K(rd,rd));
           E = (K(sk,rd)/L')/U;
-          G = L\K(rd,sk);
+          G = [];
         elseif strcmpi(opts.symm,'p')
           L = chol(K(rd,rd),'lower');
           U = [];
@@ -406,10 +406,12 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         end
 
         % update self-interaction
-        if strcmpi(opts.symm,'p')
+        if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+          S_ = -E*G;
+        elseif strcmpi(opts.symm,'h')
+          S_ = -E*U*E';
+        elseif strcmpi(opts.symm,'p')
           S_ = -E*E';
-        else
-          S_ = - E*G;
         end
         [I_,J_] = ndgrid(slf(sk));
         m = length(sk)^2;

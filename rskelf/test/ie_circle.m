@@ -16,7 +16,7 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
     rank_or_tol = 1e-12;
   end
   if nargin < 5 || isempty(symm)
-    symm = 's';
+    symm = 'h';
   end
 
   % initialize

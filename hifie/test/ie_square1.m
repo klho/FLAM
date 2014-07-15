@@ -19,7 +19,7 @@ function ie_square1(n,occ,p,rank_or_tol,skip,symm)
     skip = 1;
   end
   if nargin < 6 || isempty(symm)
-    symm = 's';
+    symm = 'h';
   end
 
   % initialize

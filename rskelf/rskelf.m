@@ -184,7 +184,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       elseif strcmpi(opts.symm,'h')
         [L,U] = ldl(K(rd,rd));
         E = (K(sk,rd)/L')/U;
-        G = L\K(rd,sk);
+        G = [];
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
         U = [];
@@ -193,10 +193,12 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       end
 
       % update self-interaction
-      if strcmpi(opts.symm,'p')
-        M{i} = M{i}(sk,sk) - E*E';
-      else
+      if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
         M{i} = M{i}(sk,sk) - E*G;
+      elseif strcmpi(opts.symm,'h')
+        M{i} = M{i}(sk,sk) - E*U*E';
+      elseif strcmpi(opts.symm,'p')
+        M{i} = M{i}(sk,sk) - E*E';
       end
 
       % store matrix factors

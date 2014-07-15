@@ -53,15 +53,7 @@ function Y = hifde_sv(F,X,trans)
         E = F.factors(i).F';
         L = F.factors(i).U';
       end
-    elseif strcmpi(F.symm,'h')
-      if strcmpi(trans,'n')
-        E = F.factors(i).E;
-        L = F.factors(i).L;
-      else
-        E = F.factors(i).F';
-        L = F.factors(i).L*F.factors(i).U;
-      end
-    elseif strcmpi(F.symm,'p')
+    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
       E = F.factors(i).E;
       L = F.factors(i).L;
     end
@@ -70,6 +62,9 @@ function Y = hifde_sv(F,X,trans)
     end
     Y(rd,:) = L\Y(rd,:);
     Y(sk,:) = Y(sk,:) - E*Y(rd,:);
+    if strcmpi(F.symm,'h')
+      Y(rd,:) = F.factors(i).U\Y(rd,:);
+    end
   end
 
   % downward sweep
@@ -94,15 +89,7 @@ function Y = hifde_sv(F,X,trans)
         G = F.factors(i).E';
         U = F.factors(i).L';
       end
-    elseif strcmpi(F.symm,'h')
-      if strcmpi(trans,'n')
-        G = F.factors(i).F;
-        U = F.factors(i).U*F.factors(i).L';
-      else
-        G = F.factors(i).E';
-        U = F.factors(i).L';
-      end
-    elseif strcmpi(F.symm,'p')
+    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
       G = F.factors(i).E';
       U = F.factors(i).L';
     end

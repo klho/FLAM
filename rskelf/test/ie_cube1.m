@@ -16,7 +16,7 @@ function ie_cube1(n,occ,p,rank_or_tol,symm)
     rank_or_tol = 1e-3;
   end
   if nargin < 5 || isempty(symm)
-    symm = 's';
+    symm = 'h';
   end
 
   % initialize
