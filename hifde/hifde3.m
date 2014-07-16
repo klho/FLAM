@@ -1,6 +1,6 @@
 % HIFDE3        Hierarchical interpolative factorization for differential
 %               equations with nearest neighbor interactions on a regular mesh
-%               in 3D (no edge skeletonization).
+%               in 3D (without edge skeletonization).
 %
 %    F = HIFDE3(A,N,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the interior vertices of a regular N x N x N finite
@@ -31,10 +31,6 @@
 %
 %      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
 %        (1): 197-227, 2013.
-%
-%      J. Xia, S. Chandrasekaran, M. Gu, X.S. Li. Superfast multifrontal method
-%        for large structured linear systems of equations. SIAM J. Matrix Anal.
-%        Appl. 31 (3): 1382-1411, 2009.
 %
 %    See also HIFDE2, HIFDE2X, HIFDE3X, HIFDE_MV, HIFDE_SV, HYPOCT, ID.
 

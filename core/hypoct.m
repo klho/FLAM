@@ -31,6 +31,11 @@
 %    T = HYPOCT(X,OCC,LVLMAX,EXT) sets the root node extent to
 %    [EXT(I,1) EXT(I,2)] along dimension I. If EXT is empty (default), then the
 %    root extent is calculated from the data.
+%
+%    References:
+%
+%      H. Samet. The quadtree and related hierarchical data structures. ACM
+%        Comput. Surv. 16 (2): 187-260, 1984.
 
 function T = hypoct(x,occ,lvlmax,ext)
 

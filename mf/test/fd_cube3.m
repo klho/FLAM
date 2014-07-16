@@ -13,7 +13,7 @@ function fd_cube3(n,k,occ,symm)
     occ = 4;
   end
   if nargin < 4 || isempty(symm)
-    symm = 's';
+    symm = 'h';
   end
 
   % initialize

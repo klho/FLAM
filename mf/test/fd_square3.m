@@ -13,7 +13,7 @@ function fd_square3(n,k,occ,symm)
     occ = 8;
   end
   if nargin < 4 || isempty(symm)
-    symm = 's';
+    symm = 'h';
   end
 
   % initialize

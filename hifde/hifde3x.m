@@ -36,10 +36,6 @@
 %      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
 %        (1): 197-227, 2013.
 %
-%      J. Xia, S. Chandrasekaran, M. Gu, X.S. Li. Superfast multifrontal method
-%        for large structured linear systems of equations. SIAM J. Matrix Anal.
-%        Appl. 31 (3): 1382-1411, 2009.
-%
 %    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE_MV, HIFDE_SV, HYPOCT, ID.
 
 function F = hifde3x(A,x,occ,rank_or_tol,opts)
