@@ -23,7 +23,7 @@ Currently implemented algorithms include:
 
  - recursive skeletonization factorization (multiply, solve)
 
- - hierarchical interpolative factorization for integral equatinos (multiply, solve)
+ - hierarchical interpolative factorization for integral equations (multiply, solve)
 
  - interpolative fast multipole method (multiply)
 

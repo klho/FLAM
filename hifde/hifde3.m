@@ -243,16 +243,6 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               rem_ = rem(in,jn,kn);
               nbr = grd_(rem_);
               nbr = nbr(:)';
-
-              % find neighbor indices
-              idx = nbr - 1;
-              kk = floor(idx/nd^2);
-              idx = idx - nd^2*kk;
-              jj = floor(idx/nd);
-              ii = idx - nd*jj;
-              ii = ii + 1;
-              jj = jj + 1;
-              kk = kk + 1;
               nbr = nbr(~ismembc(nbr,slf));
 
               % compute interaction matrix
