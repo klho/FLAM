@@ -142,7 +142,7 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,store)
   function [Y,cres,niter] = ls(X)
     n = size(X,2);
     [Y,cres,niter] = lsedc(@lsfun,A(nC+1:end,:),zeros(N,n),A(1:nC,:),X,tau);
-    Y = Y(1:N);
+    Y = Y(1:N,:);
   end
 
   % matrix multiply for LSQR

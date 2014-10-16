@@ -137,7 +137,7 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
     n = size(X,2);
     X = [X; zeros(N,n)];
     [Y,cres,niter] = lsedc(@lsfun,A(nC+1:end,:),X,A(1:nC,:),zeros(nC,n),tau);
-    Y = Y(1:N);
+    Y = Y(1:N,:);
   end
 
   % matrix multiply for LSQR

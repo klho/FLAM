@@ -11,7 +11,7 @@ function ols_square(m,n,lambda,occ,p,rank_or_tol,store)
     n = 64;
   end
   if nargin < 3 || isempty(lambda)
-    lambda = 0.01;
+    lambda = 0.1;
   end
   if nargin < 4 || isempty(occ)
     occ = 128;
@@ -145,7 +145,7 @@ function ols_square(m,n,lambda,occ,p,rank_or_tol,store)
     n = size(X,2);
     X = [X; zeros(N,n)];
     [Y,cres,niter] = lsedc(@lsfun,A(nC+1:end,:),X,A(1:nC,:),zeros(nC,n),tau);
-    Y = Y(1:N);
+    Y = Y(1:N,:);
   end
 
   % matrix multiply for LSQR
