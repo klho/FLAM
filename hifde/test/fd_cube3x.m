@@ -1,4 +1,5 @@
-% Seven-point stencil on the unit cube, constant-coefficient Helmholtz.
+% Seven-point stencil on the unit cube, constant-coefficient Helmholtz,
+% Dirichlet boundary conditions.
 
 function fd_cube3x(n,k,occ,rank_or_tol,skip,symm)
 

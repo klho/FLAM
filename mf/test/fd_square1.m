@@ -1,4 +1,5 @@
-% Five-point stencil on the unit square, constant-coefficient Poisson.
+% Five-point stencil on the unit square, constant-coefficient Poisson, Dirichlet
+% boundary conditions.
 
 function fd_square1(n,occ,symm)
 

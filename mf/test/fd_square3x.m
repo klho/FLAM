@@ -1,4 +1,5 @@
-% Five-point stencil on the unit square, constant-coefficient Helmholtz.
+% Five-point stencil on the unit square, constant-coefficient Helmholtz,
+% Dirichlet boundary conditions.
 
 function fd_square3x(n,k,occ,symm)
 

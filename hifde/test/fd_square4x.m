@@ -1,4 +1,5 @@
-% Nine-point stencil on the unit square, constant-coefficient Poisson.
+% Nine-point stencil on the unit square, constant-coefficient Poisson, Dirichlet
+% boundary conditions.
 
 function fd_square4x(n,occ,rank_or_tol,skip,symm)
 

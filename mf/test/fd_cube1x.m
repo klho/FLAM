@@ -1,4 +1,5 @@
-% Seven-point stencil on the unit cube, constant-coefficient Poisson.
+% Seven-point stencil on the unit cube, constant-coefficient Poisson, Dirichlet
+% boundary conditions.
 
 function fd_cube1x(n,occ,symm)
 
@@ -74,7 +75,7 @@ function fd_cube1x(n,occ,symm)
   clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Ib Jb Sb If Jf Sf Im Jm Sm I J S
 
   % factor matrix
-  opts = struct('ext',[0 1; 0 1; 0 1],'symm',symm,'verb',1);
+  opts = struct('symm',symm,'verb',1);
   F = mfx(A,x,occ,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])

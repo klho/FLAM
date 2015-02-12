@@ -1,4 +1,5 @@
-% Thirteen-point stencil on the unit cube, constant-coefficient Poisson.
+% Thirteen-point stencil on the unit cube, constant-coefficient Poisson,
+% Dirichlet boundary conditions.
 
 function fd_cube4x(n,occ,rank_or_tol,skip,symm)
 

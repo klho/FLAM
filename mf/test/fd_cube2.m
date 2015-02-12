@@ -1,4 +1,5 @@
-% Seven-point stencil on the unit cube, variable-coefficient Poisson.
+% Seven-point stencil on the unit cube, variable-coefficient Poisson, Dirichlet
+% boundary conditions.
 
 function fd_cube2(n,occ,symm)
 

@@ -1,4 +1,5 @@
-% Seven-point stencil on the unit cube, constant-coefficient Poisson.
+% Seven-point stencil on the unit cube, constant-coefficient Poisson, Dirichlet
+% boundary conditions.
 
 function fd_cube1(n,occ,symm)
 

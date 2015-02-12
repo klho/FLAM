@@ -174,7 +174,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
             p = [0; p(:)];
             idx = ismembc(I_,nbr);
 
-            % keep only skeletons that are not made redundant by neighbor skeletons
+            % remove those made redundant by neighbor skeletons
             keep = true(nsk,1);
             mod = [];
             for j = 1:nsk

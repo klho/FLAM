@@ -1,4 +1,5 @@
-% Five-point stencil on the unit line, constant-coefficient Poisson.
+% Five-point stencil on the unit line, constant-coefficient Poisson, Dirichlet
+% boundary conditions.
 
 function fd_line2x(n,occ,symm)
 
@@ -64,7 +65,7 @@ function fd_line2x(n,occ,symm)
   clear idx Il1 Jl1 Sl1 Il2 Jl2 Sl2 Ir1 Jr1 Sr1 Ir2 Jr2 Sr2 Im Jm Sm I J S
 
   % factor matrix
-  opts = struct('ext',[0 1],'symm',symm,'verb',1);
+  opts = struct('symm',symm,'verb',1);
   F = mfx(A,x,occ,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
