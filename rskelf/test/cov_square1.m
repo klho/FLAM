@@ -1,0 +1,129 @@
+% Squared exponential covariance function on the unit square.
+
+function cov_square1(n,occ,p,rank_or_tol,noise,scale)
+
+  % set default parameters
+  if nargin < 1 || isempty(n)
+    n = 128;
+  end
+  if nargin < 2 || isempty(occ)
+    occ = 64;
+  end
+  if nargin < 3 || isempty(p)
+    p = 16;
+  end
+  if nargin < 4 || isempty(rank_or_tol)
+    rank_or_tol = 1e-6;
+  end
+  if nargin < 5 || isempty(noise)
+    noise = 1e-2;
+  end
+  if nargin < 6 || isempty(scale)
+    scale = 100;
+  end
+
+  % initialize
+  [x1,x2] = ndgrid((1:n)/n);
+  x = [x1(:) x2(:)]';
+  N = size(x,2);
+  theta = (1:p)*2*pi/p;
+  proxy_ = [cos(theta); sin(theta)];
+  proxy = [];
+  for r = linspace(1.5,2.5,p)
+    proxy = [proxy r*proxy_];
+  end
+  clear x1 x2 theta proxy_
+
+  % factor matrix
+  opts = struct('symm','p','verb',1);
+  F = rskelf(@Afun,x,occ,rank_or_tol,@pxyfun,opts);
+  w = whos('F');
+  fprintf([repmat('-',1,80) '\n'])
+  fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
+
+  % set up FFT multiplication
+  a = reshape(Afun(1:N,1),n,n);
+  B = zeros(2*n-1,2*n-1);
+  B(  1:n  ,  1:n  ) = a;
+  B(  1:n  ,n+1:end) = a( : ,2:n);
+  B(n+1:end,  1:n  ) = a(2:n, : );
+  B(n+1:end,n+1:end) = a(2:n,2:n);
+  B(:,n+1:end) = flipdim(B(:,n+1:end),2);
+  B(n+1:end,:) = flipdim(B(n+1:end,:),1);
+  G = fft2(B);
+
+  % test accuracy using randomized power method
+  X = rand(N,1);
+  X = X/norm(X);
+
+  % NORM(A - F)/NORM(A)
+  tic
+  rskelf_mv(F,X);
+  t = toc;
+  [e,niter] = snorm(N,@(x)(mv(x) - rskelf_mv(F,x)),[],[],1);
+  e = e/snorm(N,@mv,[],[],1);
+  fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+
+  % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
+  tic
+  rskelf_sv(F,X);
+  t = toc;
+  [e,niter] = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),[],[],1);
+  fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+
+  % NORM(F - C*C')/NORM(F)
+  tic
+  rskelf_cholmv(F,X);
+  t = toc;
+  [e,niter] = snorm(N,@(x)(rskelf_mv(F,x) ...
+                         - rskelf_cholmv(F,rskelf_cholmv(F,x,'c'))),[],[],1);
+  e = e/snorm(N,@(x)(rskelf_mv(F,x)),[],[],1);
+  fprintf('cholmv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+
+  % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
+  tic
+  rskelf_cholsv(F,X);
+  t = toc;
+  [e,niter] = snorm(N,@(x)(rskelf_sv(F,x) ...
+                         - rskelf_cholsv(F,rskelf_cholsv(F,x),'c')),[],[],1);
+  e = e/snorm(N,@(x)(rskelf_sv(F,x)),[],[],1);
+  fprintf('cholsv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+
+  % compute log-determinant
+  tic
+  ld = rskelf_logdet(F);
+  t = toc;
+  fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
+
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dr = scale*sqrt(dx.^2 + dy.^2);
+    K = exp(-0.5*dr.^2);
+  end
+
+  % matrix entries
+  function A = Afun(i,j)
+    A = Kfun(x(:,i),x(:,j));
+    [I,J] = ndgrid(i,j);
+    idx = I == J;
+    A(idx) = A(idx) + noise^2;
+  end
+
+  % proxy function
+  function [Kpxy,nbr] = pxyfun(x,slf,nbr,l,ctr)
+    pxy = bsxfun(@plus,proxy*l,ctr');
+    Kpxy = Kfun(pxy,x(:,slf));
+    dx = x(1,nbr) - ctr(1);
+    dy = x(2,nbr) - ctr(2);
+    dist = sqrt(dx.^2 + dy.^2);
+    nbr = nbr(dist/l < 1.5);
+  end
+
+  % FFT multiplication
+  function y = mv(x)
+    y = ifft2(G.*fft2(reshape(x,n,n),2*n-1,2*n-1));
+    y = reshape(y(1:n,1:n),N,1);
+  end
+end
