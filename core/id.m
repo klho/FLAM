@@ -12,8 +12,8 @@
 %    [SK,RD,T] = ID(A,RANK_OR_TOL) sets K = RANK_OR_TOL if RANK_OR_TOL >= 1 and
 %    TOL = RANK_OR_TOL if RANK_OR_TOL < 1.
 %
-%    [SK,RD,T] = ID(A,RANK_OR_TOL,RAND) uses random sampling if RAND = 1
-%    (default: RAND = 1).
+%    [SK,RD,T] = ID(A,RANK_OR_TOL,SRAND) uses random sampling if SRAND = 1
+%    (default: SRAND = 1).
 %
 %    References:
 %
@@ -22,11 +22,11 @@
 %
 %    See also QR.
 
-function [sk,rd,T] = id(A,rank_or_tol,rand)
+function [sk,rd,T] = id(A,rank_or_tol,srand)
 
   % set default parameters
-  if nargin < 3 || isempty(rand)
-    rand = 1;
+  if nargin < 3 || isempty(srand)
+    srand = 1;
   end
 
   % check inputs
@@ -45,7 +45,7 @@ function [sk,rd,T] = id(A,rank_or_tol,rand)
   end
 
   % sample against Gaussian matrix if too rectangular
-  if rand && m > 2*n
+  if srand && m > 2*n
     A = randn(n+16,m)*A;
   end
 
