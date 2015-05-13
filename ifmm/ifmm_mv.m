@@ -218,9 +218,10 @@ function Y = ifmm_mv(F,X,A,trans)
         ji = prrem1(is_);
         if lvl == 1
           D = D';
+        else
+          Bo = Bo';
+          Bi = Bi';
         end
-        Bo = Bo';
-        Bi = Bi';
       end
       if lvl == 1
         Y{lvl}(is,:) = Y{lvl}(is,:) + D*Z{lvl}(js,:);

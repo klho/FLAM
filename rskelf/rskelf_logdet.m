@@ -4,7 +4,7 @@
 %    LD = RSKELF_LOGDET(F) produces the log-determinant of the factored matrix
 %    F with 0 <= IMAG(LD) < 2*PI.
 %
-%    See also RSKELF, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_MV, RSKELF_SV.
+%    See also RSKELF.
 
 function ld = rskelf_logdet(F)
 

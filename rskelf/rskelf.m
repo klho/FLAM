@@ -44,13 +44,14 @@
 %        Appl. 28 (3): 603-622, 2006.
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: integral equations. Preprint, arXiv:1307.2666, 2013.
+%        operators: integral equations. Comm. Pure Appl. Math., 2015.
 %
 %      J. Xia, S. Chandrasekaran, M. Gu, X.S. Li. Fast algorithms for
 %        hierarchically semiseparable matrices. Numer. Linear Algebra Appl. 17:
 %        953-976, 2010.
 %
-%    See also HYPOCT, ID, RSKELF_MV, RSKELF_SV.
+%    See also HYPOCT, ID, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_DIAG,
+%    RSKELF_LOGDET, RSKELF_MV, RSKELF_SV.
 
 function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   start = tic;

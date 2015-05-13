@@ -89,24 +89,21 @@ function T = hypoct(x,occ,lvlmax,ext)
         ctr = T.nodes(prnt).ctr;
         idx = bsxfun(@gt,x(:,xi),ctr');
         idx = 2.^((1:d) - 1)*idx + 1;
-        m = histc(idx,1:2^d);
-        for i = 1:2^d
-          if m(i) > 0
-            nbox = nbox + 1;
-            while mbox < nbox
-              e = cell(mbox,1);
-              s = struct('ctr',e,'xi',e,'prnt',e,'chld',e,'nbor',e);
-              T.nodes = [T.nodes; s];
-              mbox = 2*mbox;
-            end
-            s = struct( 'ctr', ctr + l*(bitget(i-1,1:d) - 0.5), ...
-                         'xi', xi(idx == i),                    ...
-                       'prnt', prnt,                            ...
-                       'chld', [],                              ...
-                       'nbor', []);
-            T.nodes(nbox) = s;
-            T.nodes(prnt).chld = [T.nodes(prnt).chld nbox];
+        for i = unique(idx)
+          nbox = nbox + 1;
+          while mbox < nbox
+            e = cell(mbox,1);
+            s = struct('ctr',e,'xi',e,'prnt',e,'chld',e,'nbor',e);
+            T.nodes = [T.nodes; s];
+            mbox = 2*mbox;
           end
+          s = struct( 'ctr', ctr + l*(bitget(i-1,1:d) - 0.5), ...
+                       'xi', xi(idx == i),                    ...
+                     'prnt', prnt,                            ...
+                     'chld', [],                              ...
+                     'nbor', []);
+          T.nodes(nbox) = s;
+          T.nodes(prnt).chld = [T.nodes(prnt).chld nbox];
         end
         T.nodes(prnt).xi = [];
       end

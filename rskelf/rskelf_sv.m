@@ -6,7 +6,7 @@
 %    Y = RSKELF_SV(F,X,TRANS) computes Y = F\X if TRANS = 'N' (default),
 %    Y = F.'\X if TRANS = 'T', and Y = F'\X if TRANS = 'C'.
 %
-%    See also RSKELF, RSKELF_MV.
+%    See also RSKELF, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_MV.
 
 function Y = rskelf_sv(F,X,trans)
 

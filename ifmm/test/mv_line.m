@@ -38,9 +38,6 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
 
-  % set up accuracy tests
-  A = Afun(1:N,1:N);
-
   % test matrix apply accuracy
   X = rand(N,1);
   X = X/norm(X);
@@ -49,9 +46,12 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   t = toc;
   X = rand(N,16);
   X = X/norm(X);
+  r = randperm(N);
+  r = r(1:min(N,128));
+  A = Afun(r,1:N);
   Y = ifmm_mv(F,X,@Afun,'n');
   Z = A*X;
-  e = norm(Z - Y)/norm(Z);
+  e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mv:  %10.4e / %10.4e (s)\n',e,t)
 
   % test matrix adjoint apply accuracy
@@ -62,9 +62,12 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   t = toc;
   X = rand(N,16);
   X = X/norm(X);
+  r = randperm(N);
+  r = r(1:min(N,128));
+  A = Afun(1:N,r);
   Y = ifmm_mv(F,X,@Afun,'c');
   Z = A'*X;
-  e = norm(Z - Y)/norm(Z);
+  e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
 
   % kernel function

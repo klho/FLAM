@@ -4,6 +4,8 @@
 %    of the Gauss-Legendre quadrature rule of order N on [-1,1].
 %
 %    [X,W] = GLEGQUAD(N,A,B) produces the quadrature rule on [A,B].
+%
+%    See also GPGW.
 
 function [x,w] = glegquad(n,a,b)
 

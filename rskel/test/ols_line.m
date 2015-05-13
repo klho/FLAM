@@ -31,7 +31,7 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
   cx = (1:n)/n;
   M = size(rx,2);
   N = size(cx,2);
-  proxy = 1.5*(1 + ((1:p) - 1)/p);
+  proxy = 1.5 + ((1:p) - 1)/p;
   proxy = [-proxy proxy];
 
   % compress matrix using RSKEL
@@ -118,12 +118,9 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy);
-      dist = cx(:,nbr) - ctr;
     elseif strcmpi(rc,'c')
       Kpxy = Kfun(pxy,cx(:,slf));
-      dist = rx(:,nbr) - ctr;
     end
-    nbr = nbr(dist/l < 1.5);
   end
 
   % least squares solve

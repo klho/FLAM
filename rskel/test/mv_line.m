@@ -22,7 +22,7 @@ function mv_line(n,occ,p,rank_or_tol,symm)
   % initialize
   x = rand(1,n);
   N = size(x,2);
-  proxy = 1.5*(1 + ((1:p) - 1)/p);
+  proxy = 1.5 + ((1:p) - 1)/p;
   proxy = [proxy -proxy];
 
   % compress matrix
@@ -32,9 +32,6 @@ function mv_line(n,occ,p,rank_or_tol,symm)
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
 
-  % set up accuracy tests
-  A = Afun(1:N,1:N);
-
   % test matrix apply accuracy
   X = rand(N,1);
   X = X/norm(X);
@@ -43,9 +40,12 @@ function mv_line(n,occ,p,rank_or_tol,symm)
   t = toc;
   X = rand(N,16);
   X = X/norm(X);
+  r = randperm(N);
+  r = r(1:min(N,128));
+  A = Afun(r,1:N);
   Y = rskel_mv(F,X,'n');
   Z = A*X;
-  e = norm(Z - Y)/norm(Z);
+  e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mv:  %10.4e / %10.4e (s)\n',e,t)
 
   % test matrix adjoint apply accuracy
@@ -56,9 +56,12 @@ function mv_line(n,occ,p,rank_or_tol,symm)
   t = toc;
   X = rand(N,16);
   X = X/norm(X);
+  r = randperm(N);
+  r = r(1:min(N,128));
+  A = Afun(1:N,r);
   Y = rskel_mv(F,X,'c');
   Z = A'*X;
-  e = norm(Z - Y)/norm(Z);
+  e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
 
   % kernel function
@@ -77,11 +80,8 @@ function mv_line(n,occ,p,rank_or_tol,symm)
     pxy = bsxfun(@plus,proxy*l,ctr');
     if strcmpi(rc,'r')
       Kpxy = Kfun(rx(:,slf),pxy)/N;
-      dist = cx(:,nbr) - ctr;
     elseif strcmpi(rc,'c')
       Kpxy = Kfun(pxy,cx(:,slf))/N;
-      dist = rx(:,nbr) - ctr;
     end
-    nbr = nbr(dist/l < 1.5);
   end
 end

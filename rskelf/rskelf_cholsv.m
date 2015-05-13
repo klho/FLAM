@@ -8,7 +8,7 @@
 %    Y = RSKELF_CHOLSV(F,X,TRANS) computes Y = C\X if TRANS = 'N' (default),
 %    Y = C.'\X if TRANS = 'T', and Y = C'\X if TRANS = 'C'.
 %
-%    See also RSKELF, RSKELF_CHOLMV, RSKELF_LOGDET, RSKELF_MV, RSKELF_SV.
+%    See also RSKELF, RSKELF_CHOLMV, RSKELF_MV, RSKELF_SV.
 
 function Y = rskelf_cholsv(F,X,trans)
 
@@ -18,6 +18,8 @@ function Y = rskelf_cholsv(F,X,trans)
   end
 
   % check inputs
+  assert(strcmpi(F.symm,'p'),'FLAM:rskelf_cholsv:invalidSymm', ...
+         'Symmetry parameter must be ''P''.')
   assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
          'FLAM:rskelf_cholsv:invalidTrans', ...
          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')

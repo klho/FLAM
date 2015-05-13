@@ -85,6 +85,37 @@ function cov_line1(n,occ,p,rank_or_tol,noise,scale)
   t = toc;
   fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
 
+  % prepare for diagonal extracation
+  opts = struct('verb',1);
+  r = randperm(N);
+  r = r(1:min(N,16));
+  m = length(r);
+  X = zeros(N,m);
+  for i = 1:m
+    X(r(i),i) = 1;
+  end
+  E = zeros(m,1);
+
+  % extract diagonal
+  D = rskelf_diag(F,0,opts);
+  Y = rskelf_mv(F,X);
+  for i = 1:m
+    E(i) = Y(r(i),i);
+  end
+  e1 = norm(D(r) - E)/norm(E);
+
+  % extract diagonal of inverse
+  D = rskelf_diag(F,1,opts);
+  Y = rskelf_sv(F,X);
+  for i = 1:m
+    E(i) = Y(r(i),i);
+  end
+  e2 = norm(D(r) - E)/norm(E);
+
+  % print summary
+  fprintf([repmat('-',1,80) '\n'])
+  fprintf('diag: %10.4e / %10.4e\n',e1,e2)
+
   % kernel function
   function K = Kfun(x,y)
     dr = scale*abs(bsxfun(@minus,x',y));

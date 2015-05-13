@@ -25,7 +25,6 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   N = size(x,2);
   theta = (1:p)*2*pi/p;
   proxy = 1.5*[cos(theta); sin(theta)];
-  clear theta
 
   % compress matrix
   opts = struct('symm',symm,'verb',1);

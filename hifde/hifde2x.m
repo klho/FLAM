@@ -37,7 +37,7 @@
 %        of body loads. Preprint, arXiv:1302.5995, 2013.
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: differential equations. Preprint, arXiv:1307.2895, 2013.
+%        operators: differential equations. Comm. Pure Appl. Math., 2015.
 %
 %      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
 %        (1): 197-227, 2013.
