@@ -89,8 +89,8 @@ function cov_circle1(n,occ,p,rank_or_tol,noise,scale)
   % prepare for diagonal extracation
   opts = struct('verb',1);
   r = randperm(N);
-  r = r(1:min(N,16));
-  m = length(r);
+  m = 16;
+  r = r(1:min(N,m));
   X = zeros(N,m);
   for i = 1:m
     X(r(i),i) = 1;

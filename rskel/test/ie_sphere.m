@@ -126,7 +126,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   spmem = w.bytes;
   w = whos('U');
   spmem = (spmem + w.bytes)/1e6;
-  fprintf('lu/ldl: %10.4e (s) / %6.2f (MB)\n',t,spmem)
+  fprintf('lu: %10.4e (s) / %6.2f (MB)\n',t,spmem)
 
   % test accuracy using randomized power method
   X = rand(N,1);
