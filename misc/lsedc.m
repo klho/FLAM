@@ -65,7 +65,7 @@ function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
     lambda = lambda + tau^2*w;
 
     % return if all converged
-    if all(sqrt(sum(w.^2)) < tol)
+    if all(sqrt(dot(w,w)) < tol)
       cres = norm(w);
       return
     end
