@@ -1,14 +1,14 @@
 % Five-point stencil on the unit square, constant-coefficient Poisson, Dirichlet
 % boundary conditions.
 
-function fd_square1x(n,occ,rank_or_tol,skip,symm)
+function fd_square1_diag(n,occ,rank_or_tol,skip,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 128;
   end
   if nargin < 2 || isempty(occ)
-    occ = 64;
+    occ = 8;
   end
   if nargin < 3 || isempty(rank_or_tol)
     rank_or_tol = 1e-9;
@@ -21,11 +21,8 @@ function fd_square1x(n,occ,rank_or_tol,skip,symm)
   end
 
   % initialize
-  [x1,x2] = ndgrid((1:n-1)/n);
-  x = [x1(:) x2(:)]';
-  N = size(x,2);
+  N = (n - 1)^2;
   h = 1/n;
-  clear x1 x2
 
   % set up indices
   idx = zeros(n+1,n+1);
@@ -72,7 +69,7 @@ function fd_square1x(n,occ,rank_or_tol,skip,symm)
 
   % factor matrix
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  F = hifde2x(A,x,occ,rank_or_tol,opts);
+  F = hifde2(A,n,occ,rank_or_tol,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -96,41 +93,34 @@ function fd_square1x(n,occ,rank_or_tol,skip,symm)
   [e,niter] = snorm(N,@(x)(x - A*hifde_sv(F,x)),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
-  if strcmpi(symm,'p')
-    % NORM(F - C*C')/NORM(F)
-    tic
-    hifde_cholmv(F,X);
-    t = toc;
-    [e,niter] = snorm(N,@(x)(hifde_mv(F,x) ...
-                           - hifde_cholmv(F,hifde_cholmv(F,x,'c'))),[],[],1);
-    e = e/snorm(N,@(x)(hifde_mv(F,x)),[],[],1);
-    fprintf('cholmv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
-
-    % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
-    tic
-    hifde_cholsv(F,X);
-    t = toc;
-    [e,niter] = snorm(N,@(x)(hifde_sv(F,x) ...
-                           - hifde_cholsv(F,hifde_cholsv(F,x),'c')),[],[],1);
-    e = e/snorm(N,@(x)(hifde_sv(F,x)),[],[],1);
-    fprintf('cholsv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  % prepare for diagonal extracation
+  opts = struct('verb',1);
+  r = randperm(N);
+  m = 16;
+  r = r(1:min(N,m));
+  X = zeros(N,m);
+  for i = 1:m
+    X(r(i),i) = 1;
   end
+  E = zeros(m,1);
 
-  % run CG
-  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  % extract diagonal
+  D = hifde_diag(F,0,opts);
+  Y = hifde_mv(F,X);
+  for i = 1:m
+    E(i) = Y(r(i),i);
+  end
+  e1 = norm(D(r) - E)/norm(E);
 
-  % run PCG
-  tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(hifde_sv(F,x)));
-  t = toc;
-  e1 = norm(Z - Y)/norm(Z);
-  e2 = norm(X - A*Z)/norm(X);
-  fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter,iter,t)
+  % extract diagonal of inverse
+  D = hifde_diag(F,1,opts);
+  Y = hifde_sv(F,X);
+  for i = 1:m
+    E(i) = Y(r(i),i);
+  end
+  e2 = norm(D(r) - E)/norm(E);
 
-  % compute log-determinant
-  tic
-  ld = hifde_logdet(F);
-  t = toc;
-  fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
+  % print summary
+  fprintf([repmat('-',1,80) '\n'])
+  fprintf('diag: %10.4e / %10.4e\n',e1,e2)
 end

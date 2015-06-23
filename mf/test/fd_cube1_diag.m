@@ -1,7 +1,7 @@
 % Seven-point stencil on the unit cube, constant-coefficient Poisson, Dirichlet
 % boundary conditions.
 
-function fd_cube1(n,occ,symm)
+function fd_cube1_diag(n,occ,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)

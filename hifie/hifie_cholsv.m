@@ -11,7 +11,7 @@
 %    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE3X, HIFIE_CHOLMV, HIFIE_MV,
 %    HIFIE_SV.
 
-function Y = rskelf_cholsv(F,X,trans)
+function Y = hifie_cholsv(F,X,trans)
 
   % set default parameters
   if nargin < 3 || isempty(trans)

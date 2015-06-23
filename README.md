@@ -21,21 +21,17 @@ Currently implemented algorithms include:
 
  - recursive skeletonization (multiply, sparse extension [solve, least squares])
 
- - recursive skeletonization factorization (multiply, solve)
+ - recursive skeletonization factorization (multiply, solve, Cholesky multipy/solve, determinant, diagonal extraction/inversion)
 
- - hierarchical interpolative factorization for integral equations (multiply, solve)
+ - hierarchical interpolative factorization for integral equations (multiply, solve, Cholesky multiply/solve, determinant, diagonal extraction/inversion)
 
  - interpolative fast multipole method (multiply)
 
 - sparse matrix routines:
 
- - multifrontal factorization (multiply, solve)
+ - multifrontal factorization (multiply, solve, Cholesky multiply/solve, determinant, diagonal extraction/inversion)
 
- - hierarchical interpolative factorization for differential equations (multiply, solve)
-
-Still to come (hopefully):
-
-- Cholesky multiply/solve, determinant, selected inversion
+ - hierarchical interpolative factorization for differential equations (multiply, solve, Cholesky multiply/solve, determinant, diagonal extraction/inversion)
 
 All algorithm directories contain extensive tests. Please refer to the individual source codes for reference information.
 

@@ -176,7 +176,7 @@ function D = mf_diag(F,dinv,opts)
 
     % print summary
     if opts.verb
-      fprintf('%3d | %12d | %12d | %10.2e (s)\n',lvl,nnz(idx),nnz(M),toc)
+      fprintf('%3d | %12d | %12d | %10.2e (s)\n',lvl,sum(idx),nnz(M),toc)
     end
   end
 
