@@ -1,18 +1,18 @@
-% RSKELF_DIAG   Extract diagonal using recursive skeletonization factorization.
+% MF_DIAG       Extract diagonal using multifrontral factorization.
 %
-%    D = RSKELF_DIAG(F) produces the diagonal D of the factored matrix F.
+%    D = MF_DIAG(F) produces the diagonal D of the factored matrix F.
 %
-%    D = RSKELF_DIAG(F,DINV) computes D = DIAG(F) if DINV = 0 (default) and
+%    D = MF_DIAG(F,DINV) computes D = DIAG(F) if DINV = 0 (default) and
 %    D = DIAG(INV(F)) if DINV = 1.
 %
-%    D = RSKEL_DIAG(F,DINV,OPTS) also passes various options to the algorithm.
+%    D = MF_DIAG(F,DINV,OPTS) also passes various options to the algorithm.
 %    Valid options include:
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
-%    See also RSKELF.
+%    See also MF2, MF3, MFX.
 
-function D = rskelf_diag(F,dinv,opts)
+function D = mf_diag(F,dinv,opts)
   start = tic;
 
   % set default parameters
@@ -112,7 +112,6 @@ function D = rskelf_diag(F,dinv,opts)
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
-      T = F.factors(i).T;
       L = F.factors(i).L;
       E = F.factors(i).E;
       if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
@@ -146,21 +145,8 @@ function D = rskelf_diag(F,dinv,opts)
       else
         D(:,isk) = D(:,isk) + D(:,ird)*G;
         D(isk,:) = D(isk,:) + E*D(ird,:);
-      end
-      if dinv
-        if strcmp(F.symm,'s')
-          D(:,isk) = D(:,isk) - D(:,ird)*T.';
-        else
-          D(:,isk) = D(:,isk) - D(:,ird)*T';
-        end
-        D(isk,:) = D(isk,:) - T*D(ird,:);
-      else
-        D(:,ird) = D(:,ird)*U + D(:,isk)*T;
-        if strcmp(F.symm,'s')
-          D(ird,:) = L*D(ird,:) + T.'*D(isk,:);
-        else
-          D(ird,:) = L*D(ird,:) + T'*D(isk,:);
-        end
+        D(:,ird) = D(:,ird)*U;
+        D(ird,:) = L*D(ird,:);
       end
       D(isk,isk) = D(isk,isk) - Dsk;
 
@@ -183,7 +169,7 @@ function D = rskelf_diag(F,dinv,opts)
 
     % keep only remaining entries
     [I_,J_] = find(req{lvl});
-    idx = ismembc(I(1:nz)+N*J(1:nz),sort(I_+N*J_));
+    idx = ismembc(N*I(1:nz)+J(1:nz),sort(N*I_+J_));
 
     % update global sparse matrix
     M = sparse(I(idx),J(idx),S(idx),N,N);

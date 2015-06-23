@@ -33,7 +33,8 @@
 %      B.M. Irons. A frontal solution program for finite element analysis. Int.
 %        J. Numer. Meth. Eng. 2: 5-32, 1970.
 %
-%    See also HYPOCT, MF2, MF3, MF_MV, MF_SV.
+%    See also HYPOCT, MF2, MF3, MF_CHOLMV, MF_CHOLSV, MF_DIAG, MF_LOGDET, MF_MV,
+%    MF_SV.
 
 function F = mfx(A,x,occ,opts)
   start = tic;

@@ -47,7 +47,8 @@
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
 %        operators: integral equations. Comm. Pure Appl. Math., 2015.
 %
-%    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
+%    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE_CHOLMV, HIFIE_CHOLSV, HIFIE_DIAG,
+%    HIFIE_LOGDET, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
 
 function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
   start = tic;

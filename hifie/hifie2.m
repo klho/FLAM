@@ -44,12 +44,14 @@
 %    References:
 %
 %      E. Corona, P.-G. Martinsson, D. Zorin. An O(N) direct solver for
-%        integral equations on the plane. Preprint, arXiv:1303.5466, 2013.
+%        integral equations on the plane. Appl. Comput. Harmon. Anal. 38:
+%        284-317, 2015.
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
 %        operators: integral equations. Comm. Pure Appl. Math., 2015.
 %
-%    See also HIFIE2X, HIFIE3, HIFIE3X, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
+%    See also HIFIE2X, HIFIE3, HIFIE3X, HIFIE_CHOLMV, HIFIE_CHOLSV, HIFIE_DIAG,
+%    HIFIE_LOGDET, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
 
 function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
   start = tic;

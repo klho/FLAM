@@ -7,7 +7,8 @@
 %    Y = HIFIE_MV(F,X,TRANS) computes Y = F*X if TRANS = 'N' (default),
 %    Y = F.'*X if TRANS = 'T', and Y = F'*X if TRANS = 'C'.
 %
-%    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE3X, HIFIE_SV.
+%    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE3X, HIFIE_CHOLMV, HIFIE_CHOLSV,
+%    HIFIE_SV.
 
 function Y = hifie_mv(F,X,trans)
 

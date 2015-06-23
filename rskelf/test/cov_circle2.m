@@ -1,6 +1,6 @@
 % Matern covariance function on the unit circle.
 
-function cov_circle2(n,occ,p,rank_or_tol,noise,scale)
+function cov_circle2(n,occ,p,rank_or_tol,symm,noise,scale)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -15,10 +15,13 @@ function cov_circle2(n,occ,p,rank_or_tol,noise,scale)
   if nargin < 4 || isempty(rank_or_tol)
     rank_or_tol = 1e-12;
   end
-  if nargin < 5 || isempty(noise)
+  if nargin < 5 || isempty(symm)
+    symm = 'p';
+  end
+  if nargin < 6 || isempty(noise)
     noise = 1e-2;
   end
-  if nargin < 6 || isempty(scale)
+  if nargin < 7 || isempty(scale)
     scale = 100;
   end
 
@@ -34,7 +37,7 @@ function cov_circle2(n,occ,p,rank_or_tol,noise,scale)
   end
 
   % factor matrix
-  opts = struct('symm','p','verb',1);
+  opts = struct('symm',symm,'verb',1);
   F = rskelf(@Afun,x,occ,rank_or_tol,@pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
@@ -62,23 +65,25 @@ function cov_circle2(n,occ,p,rank_or_tol,noise,scale)
   [e,niter] = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
-  % NORM(F - C*C')/NORM(F)
-  tic
-  rskelf_cholmv(F,X);
-  t = toc;
-  [e,niter] = snorm(N,@(x)(rskelf_mv(F,x) ...
-                         - rskelf_cholmv(F,rskelf_cholmv(F,x,'c'))),[],[],1);
-  e = e/snorm(N,@(x)(rskelf_mv(F,x)),[],[],1);
-  fprintf('cholmv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  if strcmpi(symm,'p')
+    % NORM(F - C*C')/NORM(F)
+    tic
+    rskelf_cholmv(F,X);
+    t = toc;
+    [e,niter] = snorm(N,@(x)(rskelf_mv(F,x) ...
+                           - rskelf_cholmv(F,rskelf_cholmv(F,x,'c'))),[],[],1);
+    e = e/snorm(N,@(x)(rskelf_mv(F,x)),[],[],1);
+    fprintf('cholmv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
-  % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
-  tic
-  rskelf_cholsv(F,X);
-  t = toc;
-  [e,niter] = snorm(N,@(x)(rskelf_sv(F,x) ...
-                         - rskelf_cholsv(F,rskelf_cholsv(F,x),'c')),[],[],1);
-  e = e/snorm(N,@(x)(rskelf_sv(F,x)),[],[],1);
-  fprintf('cholsv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+    % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
+    tic
+    rskelf_cholsv(F,X);
+    t = toc;
+    [e,niter] = snorm(N,@(x)(rskelf_sv(F,x) ...
+                           - rskelf_cholsv(F,rskelf_cholsv(F,x),'c')),[],[],1);
+    e = e/snorm(N,@(x)(rskelf_sv(F,x)),[],[],1);
+    fprintf('cholsv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  end
 
   % compute log-determinant
   tic

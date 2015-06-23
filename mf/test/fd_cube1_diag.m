@@ -1,25 +1,22 @@
 % Seven-point stencil on the unit cube, constant-coefficient Poisson, Dirichlet
 % boundary conditions.
 
-function fd_cube1x(n,occ,symm)
+function fd_cube1(n,occ,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n)
     n = 32;
   end
   if nargin < 2 || isempty(occ)
-    occ = 64;
+    occ = 4;
   end
   if nargin < 3 || isempty(symm)
     symm = 'p';
   end
 
   % initialize
-  [x1,x2,x3] = ndgrid((1:n-1)/n);
-  x = [x1(:) x2(:) x3(:)]';
-  N = size(x,2);
+  N = (n - 1)^3;
   h = 1/n;
-  clear x1 x2 x3
 
   % set up indices
   idx = zeros(n+1,n+1,n+1);
@@ -76,7 +73,7 @@ function fd_cube1x(n,occ,symm)
 
   % factor matrix
   opts = struct('symm',symm,'verb',1);
-  F = mfx(A,x,occ,opts);
+  F = mf3(A,n,occ,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -100,41 +97,34 @@ function fd_cube1x(n,occ,symm)
   [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
-  if strcmpi(symm,'p')
-    % NORM(F - C*C')/NORM(F)
-    tic
-    mf_cholmv(F,X);
-    t = toc;
-    [e,niter] = snorm(N,@(x)(mf_mv(F,x) ...
-                           - mf_cholmv(F,mf_cholmv(F,x,'c'))),[],[],1);
-    e = e/snorm(N,@(x)(mf_mv(F,x)),[],[],1);
-    fprintf('cholmv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
-
-    % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
-    tic
-    mf_cholsv(F,X);
-    t = toc;
-    [e,niter] = snorm(N,@(x)(mf_sv(F,x) ...
-                           - mf_cholsv(F,mf_cholsv(F,x),'c')),[],[],1);
-    e = e/snorm(N,@(x)(mf_sv(F,x)),[],[],1);
-    fprintf('cholsv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  % prepare for diagonal extracation
+  opts = struct('verb',1);
+  r = randperm(N);
+  m = 16;
+  r = r(1:min(N,m));
+  X = zeros(N,m);
+  for i = 1:m
+    X(r(i),i) = 1;
   end
+  E = zeros(m,1);
 
-  % run CG
-  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  % extract diagonal
+  D = mf_diag(F,0,opts);
+  Y = mf_mv(F,X);
+  for i = 1:m
+    E(i) = Y(r(i),i);
+  end
+  e1 = norm(D(r) - E)/norm(E);
 
-  % run PCG
-  tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(mf_sv(F,x)));
-  t = toc;
-  e1 = norm(Z - Y)/norm(Z);
-  e2 = norm(X - A*Z)/norm(X);
-  fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter,iter,t)
+  % extract diagonal of inverse
+  D = mf_diag(F,1,opts);
+  Y = mf_sv(F,X);
+  for i = 1:m
+    E(i) = Y(r(i),i);
+  end
+  e2 = norm(D(r) - E)/norm(E);
 
-  % compute log-determinant
-  tic
-  ld = mf_logdet(F);
-  t = toc;
-  fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
+  % print summary
+  fprintf([repmat('-',1,80) '\n'])
+  fprintf('diag: %10.4e / %10.4e\n',e1,e2)
 end

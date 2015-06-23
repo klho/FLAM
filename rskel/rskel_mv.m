@@ -6,7 +6,7 @@
 %    Y = RSKEL_MV(F,X,TRANS) computes Y = F*X if TRANS = 'N' (default),
 %    Y = F.'*X if TRANS = 'T', and Y = F'*X if TRANS = 'C'.
 %
-%    See also RSKEL, RSKEL_XSP.
+%    See also RSKEL.
 
 function Y = rskel_mv(F,X,trans)
 

@@ -111,4 +111,10 @@ function fd_cube3(n,k,occ,symm)
   e2 = norm(X - A*Z)/norm(X);
   fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter(2),iter(2),t)
+
+  % compute log-determinant
+  tic
+  ld = mf_logdet(F);
+  t = toc;
+  fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
 end

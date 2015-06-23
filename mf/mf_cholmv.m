@@ -1,16 +1,15 @@
-% RSKELF_CHOLMV Multiply using generalized Cholesky factor from recursive
-%               skeletonization factorization.
+% MF_CHOLMV     Multiply using Cholesky factor from multifrontal factorization.
 %
-%    Y = RSKELF_CHOLMV(F,X) produces the matrix Y by applying the generalized
-%    Cholesky factor C of the factored matrix F = C*C' to the matrix X. Requires
-%    that F be computed with the Hermitian positive-definite option.
+%    Y = MF_CHOLMV(F,X) produces the matrix Y by applying the Cholesky factor C
+%    of the factored matrix F = C*C' to the matrix X. Requires that F be
+%    computed with the Hermitian positive-definite option.
 %
-%    Y = RSKELF_CHOLMV(F,X,TRANS) computes Y = C*X if TRANS = 'N' (default),
+%    Y = MF_CHOLMV(F,X,TRANS) computes Y = C*X if TRANS = 'N' (default),
 %    Y = C.'*X if TRANS = 'T', and Y = C'*X if TRANS = 'C'.
 %
-%    See also RSKELF, RSKELF_CHOLSV, RSKELF_MV, RSKELF_SV.
+%    See also MF2, MF3, MF_CHOLSV, MF_MV, MF_SV, MFX.
 
-function Y = rskelf_cholmv(F,X,trans)
+function Y = mf_cholmv(F,X,trans)
 
   % set default parameters
   if nargin < 3 || isempty(trans)
@@ -18,15 +17,15 @@ function Y = rskelf_cholmv(F,X,trans)
   end
 
   % check inputs
-  assert(strcmpi(F.symm,'p'),'FLAM:rskelf_cholmv:invalidSymm', ...
+  assert(strcmpi(F.symm,'p'),'FLAM:mf_cholmv:invalidSymm', ...
          'Symmetry parameter must be ''P''.')
   assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:rskelf_cholmv:invalidTrans', ...
+         'FLAM:mf_cholmv:invalidTrans', ...
          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
   if strcmpi(trans,'t')
-    Y = conj(rskelf_cholmv(F,conj(X),'c'));
+    Y = conj(mf_cholmv(F,conj(X),'c'));
     return
   end
 
@@ -41,13 +40,11 @@ function Y = rskelf_cholmv(F,X,trans)
       rd = F.factors(i).rd;
       Y(sk,:) = Y(sk,:) + F.factors(i).E*Y(rd,:);
       Y(rd,:) = F.factors(i).L*Y(rd,:);
-      Y(rd,:) = Y(rd,:) + F.factors(i).T'*Y(sk,:);
     end
   else
     for i = 1:n
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
-      Y(sk,:) = Y(sk,:) + F.factors(i).T*Y(rd,:);
       Y(rd,:) = F.factors(i).L'*Y(rd,:);
       Y(rd,:) = Y(rd,:) + F.factors(i).E'*Y(sk,:);
     end

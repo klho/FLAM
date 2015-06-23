@@ -58,7 +58,7 @@
 %      P.G. Martinsson, V. Rokhlin. A fast direct solver for boundary integral
 %        equations in two dimensions. J. Comput. Phys. 205: 1-23, 2005.
 %
-%    See also HYPOCT, ID, RSKEL_MV, RSKEL_XSP.
+%    See also HYPOCT, ID, RSKEL_DIAGS, RSKEL_MV, RSKEL_XSP.
 
 function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   start = tic;
@@ -155,8 +155,8 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
       % generate diagonal block
       if isempty(t.nodes(i).chld)
-        rxi = t.nodes(i).rxi;
-        cxi = t.nodes(i).cxi;
+        rxi = rslf;
+        cxi = cslf;
         if ~isempty(rxi) && ~isempty(cxi)
           nd = nd + 1;
           F.D(nd).i = rxi;

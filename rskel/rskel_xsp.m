@@ -8,7 +8,7 @@
 %    returned; if F.SYMM = 'S', 'H', or 'P', then only the lower triangular part
 %    part of A is returned.
 %
-%    See also RSKEL, RSKEL_MV.
+%    See also RSKEL.
 
 function A = rskel_xsp(F)
 

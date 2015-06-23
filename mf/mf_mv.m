@@ -6,7 +6,7 @@
 %    Y = MF_MV(F,X,TRANS) computes Y = F*X if TRANS = 'N' (default), Y = F.'*X
 %    if TRANS = 'T', and Y = F'*X if TRANS = 'C'.
 %
-%    See also MF2, MF3, MF_SV, MFX.
+%    See also MF2, MF3, MF_CHOLMV, MF_CHOLSV, MF_SV, MFX.
 
 function Y = mf_mv(F,X,trans)
 
