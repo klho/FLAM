@@ -1,4 +1,4 @@
-% RSKEL Recursive skeletonization.
+% RSKEL  Recursive skeletonization.
 %
 %    F = RSKEL(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN) produces a compressed
 %    representation F of the interaction matrix A on the row and column points

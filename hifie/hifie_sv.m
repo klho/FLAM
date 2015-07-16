@@ -1,5 +1,5 @@
-% HIFIE_SV      Solve using hierarchical interpolative factorization for
-%               integral equations.
+% HIFIE_SV   Solve using hierarchical interpolative factorization for integral
+%            equations.
 %
 %    Y = HIFIE_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.

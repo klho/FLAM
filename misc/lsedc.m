@@ -1,4 +1,4 @@
-% LSEDC Equality-constrained linear least squares using deferred correction.
+% LSEDC  Equality-constrained linear least squares using deferred correction.
 %
 %    X = LSEDC(LSFUN,A,B,C,D,TAU) produces the solution X to the equality-
 %    constrained least squares problem

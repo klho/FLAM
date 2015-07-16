@@ -1,5 +1,5 @@
-% HIFIE2        Hierarchical interpolative factorization for integral equations
-%               in 2D.
+% HIFIE2   Hierarchical interpolative factorization for integral equations in
+%          2D.
 %
 %    F = HIFIE2(A,X,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of the
 %    interaction matrix A on the points X using tree occupancy parameter OCC,

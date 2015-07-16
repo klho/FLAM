@@ -1,4 +1,4 @@
-% RSKELF_MV_H Dispatch for RSKELF_MV with F.SYMM = 'H'.
+% RSKELF_MV_H  Dispatch for RSKELF_MV with F.SYMM = 'H'.
 %
 %    See also RSKELF, RSKELF_MV.
 

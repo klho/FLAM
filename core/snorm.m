@@ -1,4 +1,4 @@
-% SNORM Estimate spectral norm using the randomized power method.
+% SNORM  Estimate spectral norm using the randomized power method.
 %
 %    S = SNORM(N,MV,MVA) produces a spectral norm estimate S of a matrix with
 %    column dimension N and functions MV and MVA to apply the matrix and its

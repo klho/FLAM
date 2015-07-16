@@ -1,4 +1,4 @@
-% RSKELF_MV     Multiply using recursive skeletonization factorization.
+% RSKELF_MV  Multiply using recursive skeletonization factorization.
 %
 %    Y = RSKELF_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.

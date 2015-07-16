@@ -1,4 +1,4 @@
-% HYPOCT        Build hyperoctree.
+% HYPOCT   Build hyperoctree.
 %
 %    T = HYPOCT(X,OCC) builds a hyperoctree T over a set of points X such that
 %    each nonempty hypercube node in T is recursively subdivided until it

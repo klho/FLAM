@@ -1,5 +1,5 @@
-% HIFIE_CHOLMV  Multiply using generalized Cholesky factor from hierarchical
-%               interpolative factorization for integral equations.
+% HIFIE_CHOLMV   Multiply using generalized Cholesky factor from hierarchical
+%                interpolative factorization for integral equations.
 %
 %    Y = HIFIE_CHOLMV(F,X) produces the matrix Y by applying the generalized
 %    Cholesky factor C of the factored matrix F = C*C' to the matrix X. Requires

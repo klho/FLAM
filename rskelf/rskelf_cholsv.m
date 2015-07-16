@@ -1,5 +1,5 @@
-% RSKELF_CHOLSV Solve using generalized Cholesky factor from recursive
-%               skeletonization factorization.
+% RSKELF_CHOLSV  Solve using generalized Cholesky factor from recursive
+%                skeletonization factorization.
 %
 %    Y = RSKELF_CHOLSV(F,X) produces the matrix Y by applying the inverse of the
 %    generalized Cholesky factor C of the factored matrix F = C*C' to the matrix

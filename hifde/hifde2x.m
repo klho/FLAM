@@ -1,5 +1,5 @@
-% HIFDE2X       Hierarchical interpolative factorization for differential
-%               equations on general meshes in 2D.
+% HIFDE2X  Hierarchical interpolative factorization for differential equations
+%          on general meshes in 2D.
 %
 %    F = HIFDE2X(A,X,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the points X using tree occupancy parameter OCC and

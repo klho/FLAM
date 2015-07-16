@@ -1,5 +1,5 @@
-% RSKELF_LOGDET Compute log-determinant using recursive skeletonization
-%               factorization.
+% RSKELF_LOGDET  Compute log-determinant using recursive skeletonization
+%                factorization.
 %
 %    LD = RSKELF_LOGDET(F) produces the log-determinant LD of the factored
 %    matrix F with 0 <= IMAG(LD) < 2*PI.

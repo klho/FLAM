@@ -1,6 +1,5 @@
-% HIFDE2        Hierarchical interpolative factorization for differential
-%               equations with nearest neighbor interactions on a regular mesh
-%               in 2D.
+% HIFDE2   Hierarchical interpolative factorization for differential equations
+%          with nearest neighbor interactions on a regular mesh in 2D.
 %
 %    F = HIFDE2(A,N,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the interior vertices of a regular N x N finite

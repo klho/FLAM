@@ -1,5 +1,5 @@
-% MF2   Multifrontal factorization for nearest neighbor interactions on a
-%       regular mesh in 2D.
+% MF2  Multifrontal factorization for nearest neighbor interactions on a
+%      regular mesh in 2D.
 %
 %    F = MF2(A,N,OCC) produces a factorization F of the sparse interaction
 %    matrix A on the interior vertices of a regular N x N finite element mesh of

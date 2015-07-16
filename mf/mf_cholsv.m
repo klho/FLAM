@@ -1,4 +1,4 @@
-% MF_CHOLSV     Solve using Cholesky factor from multifrontal factorization.
+% MF_CHOLSV  Solve using Cholesky factor from multifrontal factorization.
 %
 %    Y = MF_CHOLSV(F,X) produces the matrix Y by applying the inverse of the
 %    Cholesky factor C of the factored matrix F = C*C' to the matrix X. Requires

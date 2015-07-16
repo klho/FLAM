@@ -1,4 +1,4 @@
-% IFMM  Interpolative fast multipole method.
+% IFMM   Interpolative fast multipole method.
 %
 %    F = IFMM(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN) produces a compressed
 %    representation F of the interaction matrix A on the row and column points

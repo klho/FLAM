@@ -1,4 +1,4 @@
-% MF_DIAG       Extract diagonal using multifrontral factorization.
+% MF_DIAG  Extract diagonal using multifrontral factorization.
 %
 %    D = MF_DIAG(F) produces the diagonal D of the factored matrix F.
 %

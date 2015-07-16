@@ -1,4 +1,4 @@
-% IFMM_MV       Multiply using interpolative fast multipole method.
+% IFMM_MV  Multiply using interpolative fast multipole method.
 %
 %    Y = IFMM_MV(F,X) produces the matrix Y by applying the compressed matrix F
 %    to the matrix X. This assumes that all required interactions are stored in

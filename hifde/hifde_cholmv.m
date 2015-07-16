@@ -1,5 +1,5 @@
-% HIFDE_CHOLMV  Multiply using generalized Cholesky factor from hierarchical
-%               interpolative factorization for differential equations.
+% HIFDE_CHOLMV   Multiply using generalized Cholesky factor from hierarchical
+%                interpolative factorization for differential equations.
 %
 %    Y = HIFDE_CHOLMV(F,X) produces the matrix Y by applying the generalized
 %    Cholesky factor C of the factored matrix F = C*C' to the matrix X. Requires

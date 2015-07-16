@@ -1,5 +1,5 @@
-% TRI2TRANSROT  Translate and rotate a triangle in 2D to a reference
-%               configuration.
+% TRI2TRANSROT   Translate and rotate a triangle in 2D to a reference
+%                configuration.
 %
 %    [TRANS,ROT,V2,V3] = TRI2TRANSROT(V) produces a translation vector TRANS
 %    and a rotation matrix ROT such that the transformation

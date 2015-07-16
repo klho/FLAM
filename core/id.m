@@ -1,4 +1,4 @@
-% ID    Interpolative decomposition.
+% ID   Interpolative decomposition.
 %
 %    [SK,RD,T] = ID(A,K) produces a rank-K approximation of A via the skeleton
 %    and redundant indices SK and RD, respectively, and an interpolation matrix

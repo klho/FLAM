@@ -1,4 +1,4 @@
-% RSKEL_MV      Multiply using recursive skeletonization.
+% RSKEL_MV   Multiply using recursive skeletonization.
 %
 %    Y = RSKEL_MV(F,X) produces the matrix Y by applying the compressed matrix F
 %    to the matrix X.

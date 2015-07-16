@@ -1,5 +1,5 @@
-% HIFIE_CHOLSV  Solve using generalized Cholesky factor from hierarchical
-%               interpolative factorization for integral equations.
+% HIFIE_CHOLSV   Solve using generalized Cholesky factor from hierarchical
+%                interpolative factorization for integral equations.
 %
 %    Y = HIFIE_CHOLSV(F,X) produces the matrix Y by applying the inverse of the
 %    generalized Cholesky factor C of the factored matrix F = C*C' to the matrix

@@ -1,5 +1,5 @@
-% MF3   Multifrontal factorization for nearest neighbor interactions on a
-%       regular mesh in 3D.
+% MF3  Multifrontal factorization for nearest neighbor interactions on a
+%      regular mesh in 3D.
 %
 %    F = MF3(A,N,OCC) produces a factorization F of the sparse interaction
 %    matrix A on the interior vertices of a regular N x N x N finite element

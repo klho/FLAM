@@ -1,5 +1,5 @@
-% HIFDE_SV      Solve using hierarchical interpolative factorization for
-%               differential equations.
+% HIFDE_SV   Solve using hierarchical interpolative factorization for
+%            differential equations.
 %
 %    Y = HIFDE_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.

@@ -1,5 +1,5 @@
-% HIFDE_DIAG    Extract diagonal using hierarchical interpolative factorization
-%               for differential equations.
+% HIFDE_DIAG   Extract diagonal using hierarchical interpolative factorization
+%              for differential equations.
 %
 %    D = HIFDE_DIAG(F) produces the diagonal D of the factored matrix F.
 %

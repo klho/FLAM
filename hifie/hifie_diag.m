@@ -1,5 +1,5 @@
-% HIFIE_DIAG    Extract diagonal using hierarchical interpolative factorization
-%               for integral equations.
+% HIFIE_DIAG   Extract diagonal using hierarchical interpolative factorization
+%              for integral equations.
 %
 %    D = HIFIE_DIAG(F) produces the diagonal D of the factored matrix F.
 %

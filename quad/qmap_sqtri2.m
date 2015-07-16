@@ -1,5 +1,5 @@
-% QMAP_SQTRI2   Convert a quadrature on the unit square to one on a triangle in
-%               reference configuration.
+% QMAP_SQTRI2  Convert a quadrature on the unit square to one on a triangle in
+%              reference configuration.
 %
 %    [X,Y,W] = QMAP_SQTRI2(X0,Y0,W0,V2,V3) produces quadrature nodes and weights
 %    [X,Y] and W, respectively, on the triangle with vertices [0; 0], [V2; 0],

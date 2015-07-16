@@ -1,4 +1,4 @@
-% GQGW  Gaussian quadratures using the Golub-Welsch algorithm.
+% GQGW   Gaussian quadratures using the Golub-Welsch algorithm.
 %
 %    [X,W] = GQGW(ALPHA,BETA,MU) produces the nodes and weights X and W,
 %    respectively, of the Gaussian quadrature rule corresponding to the

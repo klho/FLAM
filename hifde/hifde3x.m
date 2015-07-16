@@ -1,5 +1,5 @@
-% HIFDE3X       Hierarchical interpolative factorization for differential
-%               equations on general meshes in 3D (with edge skeletonization).
+% HIFDE3X  Hierarchical interpolative factorization for differential equations
+%          on general meshes in 3D (with edge skeletonization).
 %
 %    F = HIFDE3X(A,X,OCC,RANK_OR_TOL) produces a factorization F of the sparse
 %    interaction matrix A on the points X using tree occupancy parameter OCC and

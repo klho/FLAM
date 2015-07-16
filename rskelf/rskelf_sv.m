@@ -1,4 +1,4 @@
-% RSKELF_SV     Solve using recursive skeletonization factorization.
+% RSKELF_SV  Solve using recursive skeletonization factorization.
 %
 %    Y = RSKELF_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.

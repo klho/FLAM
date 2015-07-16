@@ -1,4 +1,4 @@
-% RSKELF_DIAG   Extract diagonal using recursive skeletonization factorization.
+% RSKELF_DIAG  Extract diagonal using recursive skeletonization factorization.
 %
 %    D = RSKELF_DIAG(F) produces the diagonal D of the factored matrix F.
 %

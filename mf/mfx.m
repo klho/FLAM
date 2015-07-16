@@ -1,4 +1,4 @@
-% MFX   Multifrontal factorization on general meshes.
+% MFX  Multifrontal factorization on general meshes.
 %
 %    F = MFX(A,X,OCC) produces a factorization F of the sparse interaction
 %    matrix A on the points X using tree occupancy parameter OCC.

@@ -1,5 +1,5 @@
-% HIFIE_LOGDET  Compute log-determinant using hierarchical interpolative
-%               factorization for integral equations.
+% HIFIE_LOGDET   Compute log-determinant using hierarchical interpolative
+%                factorization for integral equations.
 %
 %    LD = HIFIE_LOGDET(F) produces the log-determinant LD of the factored matrix
 %    F with 0 <= IMAG(LD) < 2*PI.

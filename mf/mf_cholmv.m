@@ -1,4 +1,4 @@
-% MF_CHOLMV     Multiply using Cholesky factor from multifrontal factorization.
+% MF_CHOLMV  Multiply using Cholesky factor from multifrontal factorization.
 %
 %    Y = MF_CHOLMV(F,X) produces the matrix Y by applying the Cholesky factor C
 %    of the factored matrix F = C*C' to the matrix X. Requires that F be

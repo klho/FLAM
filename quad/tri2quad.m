@@ -1,5 +1,4 @@
-% TRI2QUAD      Double integral over a triangle in 2D in reference
-%               configuration.
+% TRI2QUAD   Double integral over a triangle in 2D in reference configuration.
 %
 %    Q = TRI2QUAD(FUN,V2,V3) approximates the integral of FUN over the triangle
 %    with vertices [0; 0], [V2; 0], and V3.

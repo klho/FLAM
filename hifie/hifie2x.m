@@ -1,6 +1,5 @@
-% HIFIE2X       Hierarchical interpolative factorization for integral equations
-%               in 2D with accuracy optimizations for second-kind integral
-%               equations.
+% HIFIE2X  Hierarchical interpolative factorization for integral equations in 2D
+%          with accuracy optimizations for second-kind integral equations.
 %
 %    F = HIFIE2X(A,X,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of the
 %    interaction matrix A on the points X using tree occupancy parameter OCC,

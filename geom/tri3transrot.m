@@ -1,5 +1,5 @@
-% TRI3TRANSROT  Translate and rotate a triangle in 3D to a reference
-%               configuration in 2D.
+% TRI3TRANSROT   Translate and rotate a triangle in 3D to a reference
+%                configuration in 2D.
 %
 %    [TRANS,ROT,V2,V3] = TRI3TRANSROT(V) produces a translation vector TRANS
 %    and a rotation matrix ROT such that the transformation
@@ -9,6 +9,8 @@
 %
 %    [TRANS,ROT,V2,V3] = TRI3TRANSROT(V,F) computes this transformation for
 %    each triangle I with vertices V(:,F(:,I)).
+%
+%    See also TRI2TRANSROT.
 
 function [trans,rot,V2,V3] = tri3transrot(V,F)
 

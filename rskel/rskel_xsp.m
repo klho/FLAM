@@ -1,4 +1,4 @@
-% RSKEL_XSP     Extended sparsification for recursive skeletonization.
+% RSKEL_XSP  Extended sparsification for recursive skeletonization.
 %
 %    A = RSKEL_XSP(F) produces the extended sparsification A of the compressed
 %    matrix F. If F has the single-level representation D + U*S*V', then

@@ -1,4 +1,4 @@
-% MF_SV Solve using multifrontal factorization.
+% MF_SV  Solve using multifrontal factorization.
 %
 %    Y = MF_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.
