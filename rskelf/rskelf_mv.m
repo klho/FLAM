@@ -26,72 +26,22 @@ function Y = rskelf_mv(F,X,trans)
     return
   end
 
-  % initialize
-  n = F.lvp(end);
-  Y = X;
-
-  % upward sweep
-  for i = 1:n
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    T = F.factors(i).T;
-    if strcmpi(F.symm,'n')
-      if strcmpi(trans,'n')
-        G = F.factors(i).F;
-        U = F.factors(i).U;
-      else
-        G = F.factors(i).E';
-        U = F.factors(i).L';
-      end
-    elseif strcmpi(F.symm,'s')
-      if strcmpi(trans,'n')
-        G = F.factors(i).F;
-        U = F.factors(i).U;
-      else
-        T = conj(T);
-        G = F.factors(i).E';
-        U = F.factors(i).L';
-      end
-    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      G = F.factors(i).E';
-      U = F.factors(i).L';
+  % dispatch
+  if strcmpi(F.symm,'n')
+    if strcmpi(trans,'n')
+      Y = rskelf_mv_nn(F,X);
+    else
+      Y = rskelf_mv_nc(F,X);
     end
-    Y(sk,:) = Y(sk,:) + T*Y(rd,:);
-    Y(rd,:) = U*Y(rd,:);
-    Y(rd,:) = Y(rd,:) + G*Y(sk,:);
-    if strcmpi(F.symm,'h')
-      Y(rd,:) = F.factors(i).U*Y(rd,:);
+  elseif strcmpi(F.symm,'s')
+    if strcmpi(trans,'n')
+      Y = rskelf_mv_sn(F,X);
+    else
+      Y = rskelf_mv_sc(F,X);
     end
-  end
-
-  % downward sweep
-  for i = n:-1:1
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    T = F.factors(i).T';
-    if strcmpi(F.symm,'n')
-      if strcmpi(trans,'n')
-        E = F.factors(i).E;
-        L = F.factors(i).L;
-      else
-        E = F.factors(i).F';
-        L = F.factors(i).U';
-      end
-    elseif strcmpi(F.symm,'s')
-      if strcmpi(trans,'n')
-        T = conj(T);
-        E = F.factors(i).E;
-        L = F.factors(i).L;
-      else
-        E = F.factors(i).F';
-        L = F.factors(i).U';
-      end
-    elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      E = F.factors(i).E;
-      L = F.factors(i).L;
-    end
-    Y(sk,:) = Y(sk,:) + E*Y(rd,:);
-    Y(rd,:) = L*Y(rd,:);
-    Y(rd,:) = Y(rd,:) + T*Y(sk,:);
+  elseif strcmpi(F.symm,'h')
+    Y = rskelf_mv_h(F,X);
+  elseif strcmpi(F.symm,'p')
+    Y = rskelf_mv_p(F,X);
   end
 end
