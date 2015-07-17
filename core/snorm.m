@@ -50,7 +50,7 @@ function [s,niter] = snorm(n,mv,mva,niter_or_tol,herm,niter_max)
 
   % initialize
   x = rand(n,1);
-  nrm = sqrt(sum(x.^2));
+  nrm = sqrt(dot(x,x));
   s = nrm;
   niter = 0;
 
@@ -66,7 +66,7 @@ function [s,niter] = snorm(n,mv,mva,niter_or_tol,herm,niter_max)
     else
       x = mva(mv(x));
     end
-    nrm = sqrt(sum(x.^2));
+    nrm = sqrt(dot(x,x));
 
     % estimate spectral norm
     if herm

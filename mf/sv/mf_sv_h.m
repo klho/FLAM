@@ -21,8 +21,8 @@ function Y = mf_sv_h(F,X)
   for i = n:-1:1
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
     U = F.factors(i).L';
+    Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
     Y(rd,:) = U\Y(rd,:);
   end
 end

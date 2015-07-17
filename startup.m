@@ -7,7 +7,7 @@ for s = dirs
 end
 
 % add auxiliary paths
-dirs = {'mf','rskelf'};
+dirs = {'hifde','mf','rskelf'};
 for s = dirs
   addpath(sprintf('%s/%s/mv',curpath,s{:}))
   addpath(sprintf('%s/%s/sv',curpath,s{:}))
