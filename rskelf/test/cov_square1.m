@@ -1,6 +1,6 @@
 % Squared exponential covariance function on the unit square.
 
-function cov_square1(n,occ,p,rank_or_tol,symm,noise,scale)
+function cov_square1(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -23,6 +23,9 @@ function cov_square1(n,occ,p,rank_or_tol,symm,noise,scale)
   end
   if nargin < 7 || isempty(scale)
     scale = 100;
+  end
+  if nargin < 8 || isempty(spdiag)
+    spdiag = 0;
   end
 
   % initialize
@@ -112,24 +115,44 @@ function cov_square1(n,occ,p,rank_or_tol,symm,noise,scale)
   E = zeros(m,1);
 
   % extract diagonal
-  D = rskelf_diag(F,0,opts);
+  if spdiag
+    tic
+    D = rskelf_spdiag(F);
+    t1 = toc;
+  else
+    D = rskelf_diag(F,0,opts);
+  end
   Y = rskelf_mv(F,X);
   for i = 1:m
     E(i) = Y(r(i),i);
   end
   e1 = norm(D(r) - E)/norm(E);
+  if spdiag
+    fprintf('spdiag_mv: %10.4e / %10.4e (s)\n',e1,t1)
+  end
 
   % extract diagonal of inverse
-  D = rskelf_diag(F,1,opts);
+  if spdiag
+    tic
+    D = rskelf_spdiag(F,1);
+    t2 = toc;
+  else
+    D = rskelf_diag(F,1,opts);
+  end
   Y = rskelf_sv(F,X);
   for i = 1:m
     E(i) = Y(r(i),i);
   end
   e2 = norm(D(r) - E)/norm(E);
+  if spdiag
+    fprintf('spdiag_sv: %10.4e / %10.4e (s)\n',e2,t2)
+  end
 
   % print summary
-  fprintf([repmat('-',1,80) '\n'])
-  fprintf('diag: %10.4e / %10.4e\n',e1,e2)
+  if ~spdiag
+    fprintf([repmat('-',1,80) '\n'])
+    fprintf('diag: %10.4e / %10.4e\n',e1,e2)
+  end
 
   % kernel function
   function K = Kfun(x,y)

@@ -1,5 +1,5 @@
 % HIFIE_DIAG   Extract diagonal using hierarchical interpolative factorization
-%              for integral equations.
+%              for integral equations via matrix unfolding.
 %
 %    D = HIFIE_DIAG(F) produces the diagonal D of the factored matrix F.
 %
@@ -11,7 +11,7 @@
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
-%    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE3X.
+%    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE3X, HIFIE_SPDIAG.
 
 function D = hifie_diag(F,dinv,opts)
   start = tic;

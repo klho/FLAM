@@ -51,7 +51,7 @@
 %        953-976, 2010.
 %
 %    See also HYPOCT, ID, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_DIAG,
-%    RSKELF_LOGDET, RSKELF_MV, RSKELF_SV.
+%    RSKELF_LOGDET, RSKELF_MV, RSKELF_SPDIAG, RSKELF_SV.
 
 function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   start = tic;
