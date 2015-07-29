@@ -1,4 +1,5 @@
-% MF_DIAG  Extract diagonal using multifrontral factorization.
+% MF_DIAG  Extract diagonal using multifrontral factorization via matrix
+%          unfolding.
 %
 %    D = MF_DIAG(F) produces the diagonal D of the factored matrix F.
 %
@@ -10,7 +11,7 @@
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
-%    See also MF2, MF3, MFX.
+%    See also MF2, MF3, MF_SPDIAG, MFX.
 
 function D = mf_diag(F,dinv,opts)
   start = tic;

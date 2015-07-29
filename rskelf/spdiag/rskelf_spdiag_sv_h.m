@@ -36,23 +36,22 @@ function D = rskelf_spdiag_sv_h(F,spinfo)
         Y(rd,:) = Y(rd,:) - F.factors(j).T'*Y(sk,:);
         Y(rd,:) = F.factors(j).L\Y(rd,:);
         Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
+        %Y(rd,:) = F.factors(j).U\Y(rd,:);
+      end
+    end
+
+    % store matrix at top level
+    Z = Y;
+
+    % apply diagonal factors
+    for j = spinfo.t(i,:)
+      if j > 0
+        rd = P(F.factors(j).rd);
         Y(rd,:) = F.factors(j).U\Y(rd,:);
       end
     end
 
-    % downward sweep
-    for j = spinfo.t(i,end:-1:1)
-      if j > 0
-        sk = P(F.factors(j).sk);
-        rd = P(F.factors(j).rd);
-        U = F.factors(j).L';
-        Y(rd,:) = Y(rd,:) - F.factors(j).E'*Y(sk,:);
-        Y(rd,:) = U\Y(rd,:);
-        Y(sk,:) = Y(sk,:) - F.factors(j).T*Y(rd,:);
-      end
-    end
-
-    % extract diagonal
-    D(slf) = diag(Y(P(slf),:));
+    % extract diagonal from Hermitian downward sweep
+    D(slf) = diag(Z'*Y);
   end
 end

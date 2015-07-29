@@ -43,7 +43,8 @@
 %        for large structured linear systems of equations. SIAM J. Matrix Anal.
 %        Appl. 31 (3): 1382-1411, 2009.
 %
-%    See also HIFDE2X, HIFDE3, HIFDE3X, HIFDE_MV, HIFDE_SV, HYPOCT, ID.
+%    See also HIFDE2X, HIFDE3, HIFDE3X, HIFDE_CHOLMV, HIFDE_CHOLSV, HIFDE_DIAG,
+%    HIFDE_LOGDET, HIFDE_MV, HIFDE_SPDIAG, HIFDE_SV, HYPOCT, ID.
 
 function F = hifde2(A,n,occ,rank_or_tol,opts)
   start = tic;

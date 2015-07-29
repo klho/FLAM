@@ -22,7 +22,7 @@ function D = hifie_spdiag(F,dinv)
   spinfo.t = cell(n,1);
   x = zeros(1,N);
 
-  % build block dependency tree structure
+  % build block dependency tree
   for lvl = 1:nlvl
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
       sk = F.factors(i).sk;
@@ -33,8 +33,8 @@ function D = hifie_spdiag(F,dinv)
       if lvl > 1
         chld = unique(x(slf));
         chld = chld(chld > 0);
-        for c = chld
-          spinfo.t{c} = [spinfo.t{c} i];
+        for j = chld
+          spinfo.t{j} = [spinfo.t{j} i];
         end
       end
 
@@ -57,7 +57,7 @@ function D = hifie_spdiag(F,dinv)
 
   % store leaf blocks and subselect tree
   spinfo.i = unique(x);
-  spinfo.t = spinfo.t(spinfo.i,:);
+  spinfo.t = spinfo.t(spinfo.i);
 
   % dispatch
   if strcmpi(F.symm,'n')

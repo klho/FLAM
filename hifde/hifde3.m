@@ -32,7 +32,8 @@
 %      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
 %        (1): 197-227, 2013.
 %
-%    See also HIFDE2, HIFDE2X, HIFDE3X, HIFDE_MV, HIFDE_SV, HYPOCT, ID.
+%    See also HIFDE2, HIFDE2X, HIFDE3X, HIFDE_CHOLMV, HIFDE_CHOLSV, HIFDE_DIAG,
+%    HIFDE_LOGDET, HIFDE_MV, HIFDE_SPDIAG, HIFDE_SV, HYPOCT, ID.
 
 function F = hifde3(A,n,occ,rank_or_tol,opts)
   start = tic;

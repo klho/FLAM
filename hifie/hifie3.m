@@ -47,7 +47,7 @@
 %        operators: integral equations. Comm. Pure Appl. Math., 2015.
 %
 %    See also HIFIE2, HIFIE2X, HIFIE3X, HIFIE_CHOLMV, HIFIE_CHOLSV, HIFIE_DIAG,
-%    HIFIE_LOGDET, HIFIE_MV, HIFIE_SV, HYPOCT, ID.
+%    HIFIE_LOGDET, HIFIE_MV, HIFIE_SPDIAG, HIFIE_SV, HYPOCT, ID.
 
 function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   start = tic;

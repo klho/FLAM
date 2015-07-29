@@ -1,6 +1,6 @@
-% HIFIE_SPDIAG_MV_N  Dispatch for HIFIE_SPDIAG with DINV = 0 and F.SYMM = 'N'.
+% MF_SPDIAG_MV_N   Dispatch for MF_SPDIAG with DINV = 0 and F.SYMM = 'N'.
 
-function D = hifie_spdiag_mv_n(F,spinfo)
+function D = mf_spdiag_mv_n(F,spinfo)
 
   % initialize
   N = F.N;
@@ -31,7 +31,6 @@ function D = hifie_spdiag_mv_n(F,spinfo)
       if j > 0
         sk = P(F.factors(j).sk);
         rd = P(F.factors(j).rd);
-        Y(sk,:) = Y(sk,:) + F.factors(j).T*Y(rd,:);
         Y(rd,:) = F.factors(j).U*Y(rd,:);
         Y(rd,:) = Y(rd,:) + F.factors(j).F*Y(sk,:);
       end
@@ -44,7 +43,6 @@ function D = hifie_spdiag_mv_n(F,spinfo)
         rd = P(F.factors(j).rd);
         Y(sk,:) = Y(sk,:) + F.factors(j).E*Y(rd,:);
         Y(rd,:) = F.factors(j).L*Y(rd,:);
-        Y(rd,:) = Y(rd,:) + F.factors(j).T'*Y(sk,:);
       end
     end
 

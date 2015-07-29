@@ -1,7 +1,7 @@
 % Five-point stencil on the unit square, constant-coefficient Poisson, Dirichlet
 % boundary conditions.
 
-function fd_square1x_diag(n,occ,symm)
+function fd_square1x_diag(n,occ,symm,spdiag)
 
   % set default parameters
   if nargin < 1 || isempty(n)
@@ -12,6 +12,9 @@ function fd_square1x_diag(n,occ,symm)
   end
   if nargin < 3 || isempty(symm)
     symm = 'p';
+  end
+  if nargin < 4 || isempty(spdiag)
+    spdiag = 0;
   end
 
   % initialize
@@ -93,8 +96,8 @@ function fd_square1x_diag(n,occ,symm)
   % prepare for diagonal extracation
   opts = struct('verb',1);
   r = randperm(N);
-  m = 16;
-  r = r(1:min(N,m));
+  m = min(16,N);
+  r = r(1:m);
   X = zeros(N,m);
   for i = 1:m
     X(r(i),i) = 1;
@@ -102,22 +105,42 @@ function fd_square1x_diag(n,occ,symm)
   E = zeros(m,1);
 
   % extract diagonal
-  D = mf_diag(F,0,opts);
+  if spdiag
+    tic
+    D = mf_spdiag(F);
+    t1 = toc;
+  else
+    D = mf_diag(F,0,opts);
+  end
   Y = mf_mv(F,X);
   for i = 1:m
     E(i) = Y(r(i),i);
   end
   e1 = norm(D(r) - E)/norm(E);
+  if spdiag
+    fprintf('spdiag_mv: %10.4e / %10.4e (s)\n',e1,t1)
+  end
 
   % extract diagonal of inverse
-  D = mf_diag(F,1,opts);
+  if spdiag
+    tic
+    D = mf_spdiag(F,1);
+    t2 = toc;
+  else
+    D = mf_diag(F,1,opts);
+  end
   Y = mf_sv(F,X);
   for i = 1:m
     E(i) = Y(r(i),i);
   end
   e2 = norm(D(r) - E)/norm(E);
+  if spdiag
+    fprintf('spdiag_sv: %10.4e / %10.4e (s)\n',e2,t2)
+  end
 
   % print summary
-  fprintf([repmat('-',1,80) '\n'])
-  fprintf('diag: %10.4e / %10.4e\n',e1,e2)
+  if ~spdiag
+    fprintf([repmat('-',1,80) '\n'])
+    fprintf('diag: %10.4e / %10.4e\n',e1,e2)
+  end
 end

@@ -13,7 +13,6 @@ function D = hifie_spdiag_mv_s(F,spinfo)
 
     % find active indices for current block
     rem = spinfo.t{i};
-    rem = rem(rem > 0);
     rem = unique([[F.factors(rem).sk] [F.factors(rem).rd]]);
     nrem = length(rem);
     P(rem) = 1:nrem;

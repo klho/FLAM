@@ -12,7 +12,7 @@ for s = dirs
   addpath(sprintf('%s/%s/mv',curpath,s{:}))
   addpath(sprintf('%s/%s/sv',curpath,s{:}))
 end
-dirs = {'hifie','rskelf'};
+dirs = {'hifde','hifie','mf','rskelf'};
 for s = dirs
   addpath(sprintf('%s/%s/spdiag',curpath,s{:}))
 end

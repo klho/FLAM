@@ -13,7 +13,6 @@ function D = hifie_spdiag_mv_p(F,spinfo)
 
     % find active indices for current block
     rem = spinfo.t{i};
-    rem = rem(rem > 0);
     rem = unique([[F.factors(rem).sk] [F.factors(rem).rd]]);
     nrem = length(rem);
     P(rem) = 1:nrem;
@@ -38,18 +37,7 @@ function D = hifie_spdiag_mv_p(F,spinfo)
       end
     end
 
-    % downward sweep
-    for j = spinfo.t{i}(end:-1:1)
-      if j > 0
-        sk = P(F.factors(j).sk);
-        rd = P(F.factors(j).rd);
-        Y(sk,:) = Y(sk,:) + F.factors(j).E*Y(rd,:);
-        Y(rd,:) = F.factors(j).L*Y(rd,:);
-        Y(rd,:) = Y(rd,:) + F.factors(j).T'*Y(sk,:);
-      end
-    end
-
-    % extract diagonal
-    D(slf) = diag(Y(P(slf),:));
+    % extract diagonal from Hermitian downward sweep
+    D(slf) = diag(Y'*Y);
   end
 end

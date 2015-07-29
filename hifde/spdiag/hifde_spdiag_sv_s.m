@@ -1,6 +1,6 @@
-% HIFIE_SPDIAG_MV_N  Dispatch for HIFIE_SPDIAG with DINV = 0 and F.SYMM = 'N'.
+% HIFDE_SPDIAG_SV_S  Dispatch for HIFDE_SPDIAG with DINV = 1 and F.SYMM = 'S'.
 
-function D = hifie_spdiag_mv_n(F,spinfo)
+function D = hifde_spdiag_sv_s(F,spinfo)
 
   % initialize
   N = F.N;
@@ -31,9 +31,12 @@ function D = hifie_spdiag_mv_n(F,spinfo)
       if j > 0
         sk = P(F.factors(j).sk);
         rd = P(F.factors(j).rd);
-        Y(sk,:) = Y(sk,:) + F.factors(j).T*Y(rd,:);
-        Y(rd,:) = F.factors(j).U*Y(rd,:);
-        Y(rd,:) = Y(rd,:) + F.factors(j).F*Y(sk,:);
+        T = F.factors(j).T;
+        if ~isempty(T)
+          Y(rd,:) = Y(rd,:) - T.'*Y(sk,:);
+        end
+        Y(rd,:) = F.factors(j).L\Y(rd,:);
+        Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
       end
     end
 
@@ -42,9 +45,12 @@ function D = hifie_spdiag_mv_n(F,spinfo)
       if j > 0
         sk = P(F.factors(j).sk);
         rd = P(F.factors(j).rd);
-        Y(sk,:) = Y(sk,:) + F.factors(j).E*Y(rd,:);
-        Y(rd,:) = F.factors(j).L*Y(rd,:);
-        Y(rd,:) = Y(rd,:) + F.factors(j).T'*Y(sk,:);
+        T = F.factors(j).T;
+        Y(rd,:) = Y(rd,:) - F.factors(j).F*Y(sk,:);
+        Y(rd,:) = F.factors(j).U\Y(rd,:);
+        if ~isempty(T)
+          Y(sk,:) = Y(sk,:) - T*Y(rd,:);
+        end
       end
     end
 
