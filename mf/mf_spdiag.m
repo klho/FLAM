@@ -22,18 +22,16 @@ function D = mf_spdiag(F,dinv)
   spinfo.t = cell(n,1);
   nbor = cell(n,1);
   prnt = cell(n,1);
-  x = cell(N,1);
-  y = cell(N,1);
   rem = true(1,N);
 
   % build block dependency tree
   for lvl = 1:nlvl
 
     % initialize block indices
-    for i = find(rem)
-      y{i} = x{i};
-      x{i} = [];
+    if lvl > 1
+      y = x;
     end
+    x = cell(N,1);
 
     % loop through blocks on current level
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
