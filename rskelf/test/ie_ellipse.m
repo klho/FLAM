@@ -81,7 +81,7 @@ function ie_ellipse(n,occ,p,rank_or_tol,ratio)
   Y = rskelf_sv(F,X,'n');
   Z = Afun(r,1:N)*Y;
   e = norm(X(r,:) - Z)/norm(X(r,:));
-  fprintf('sv: %10.4e / %10.4e (s)\n',e,t)
+  fprintf('sv:  %10.4e / %10.4e (s)\n',e,t)
 
   % test matrix inverse adjoint apply accuracy
   X = rand(N,1);
