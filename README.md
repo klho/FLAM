@@ -10,28 +10,39 @@ It is also worth noting that we mainly use the interpolative decomposition (ID) 
 Currently implemented algorithms include:
 
 - core routines:
-
- - tree construction
-
- - interpolative decomposition
-
- - fast spectral norm estimation
-
+  - tree construction
+  - interpolative decomposition
+  - fast spectral norm estimation
 - dense matrix routines:
-
- - recursive skeletonization (multiply, sparse extension [solve, least squares])
-
- - recursive skeletonization factorization (multiply, solve, Cholesky multipy/solve, determinant, diagonal extraction/inversion [matrix unfolding, sparse multiply/solve])
-
- - hierarchical interpolative factorization for integral equations (multiply, solve, Cholesky multiply/solve, determinant, diagonal extraction/inversion [matrix unfolding, sparse multiply/solve])
-
- - interpolative fast multipole method (multiply)
-
+  - interpolative fast multipole method
+  - recursive skeletonization
+    - multiply
+    - sparse extension (solve, least squares)
+  - recursive skeletonization factorization
+    - multiply
+    - solve
+    - Cholesky multiply/solve
+    - determinant
+    - diagonal extraction/inversion (matrix unfolding, sparse multiply/solve)
+  - hierarchical interpolative factorization for integral equations
+    - multiply
+    - solve
+    - Cholesky multiply/solve
+    - determinant
+    - diagonal extraction/inversion (matrix unfolding, sparse multiply/solve)
 - sparse matrix routines:
-
- - multifrontal factorization (multiply, solve, Cholesky multiply/solve, determinant, diagonal extraction/inversion [matrix unfolding, sparse multiply/solve])
-
- - hierarchical interpolative factorization for differential equations (multiply, solve, Cholesky multiply/solve, determinant, diagonal extraction/inversion [matrix unfolding, sparse multiply/solve])
+  - multifrontal factorization
+    - multiply
+    - solve
+    - Cholesky multiply/solve
+    - determinant
+    - diagonal extraction/inversion (matrix unfolding, sparse multiply/solve)
+  - hierarchical interpolative factorization for differential equations
+    - multiply
+    - solve
+    - Cholesky multiply/solve
+    - determinant
+    - diagonal extraction/inversion (matrix unfolding, sparse multiply/solve)
 
 All algorithm directories contain extensive tests. Please refer to the individual source codes for reference information.
 
