@@ -11,6 +11,12 @@
 %
 %      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
 %
+%    References:
+%
+%      L. Lin, J. Lu, L. Ying, R. Car, W. E. Fast algorithm for extracting the
+%        diagonal of the inverse matrix with application to the electronic
+%        structure analysis of metallic systems.
+%
 %    See also MF2, MF3, MF_SPDIAG, MFX.
 
 function D = mf_diag(F,dinv,opts)
