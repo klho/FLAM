@@ -13,9 +13,14 @@
 %
 %    References:
 %
+%      S. Li, S. Ahmed, G. Klimeck, E. Darve. Computing entries of the inverse
+%        of a sparse matrix using the FIND algorithm. J. Comput Phys. 227:
+%        9408-9427, 2008.
+%
 %      L. Lin, J. Lu, L. Ying, R. Car, W. E. Fast algorithm for extracting the
 %        diagonal of the inverse matrix with application to the electronic
-%        structure analysis of metallic systems.
+%        structure analysis of metallic systems. Commun. Math. Sci. 7 (3):
+%        755-777, 2009.
 %
 %    See also MF2, MF3, MF_SPDIAG, MFX.
 
