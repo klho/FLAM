@@ -155,4 +155,9 @@ function fd_square2x(n,occ,rank_or_tol,skip,symm)
   ld = hifde_logdet(F);
   t = toc;
   fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
+
+  % Gaussian PDF
+  function y = normpdf(x,mu,sigma)
+    y = exp(-0.5*((x - mu)./sigma).^2)./(sqrt(2*pi).*sigma);
+  end
 end
