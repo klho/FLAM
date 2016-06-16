@@ -56,7 +56,7 @@
 %        (2): 725--748, 2014.
 %
 %      P.G. Martinsson, V. Rokhlin. A fast direct solver for boundary integral
-%        equations in two dimensions. J. Comput. Phys. 205: 1-23, 2005.
+%        equations in two dimensions. J. Comput. Phys. 205 (1): 1-23, 2005.
 %
 %    See also HYPOCT, ID, RSKEL_DIAGS, RSKEL_MV, RSKEL_XSP.
 

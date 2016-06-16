@@ -14,7 +14,7 @@
 %    References:
 %
 %      G.H. Golub, J.H. Welsch. Calculation of Gauss quadrature rules. Math.
-%        Comp. 23: 221-230, 1969.
+%        Comp. 23 (106): 221-230, 1969.
 
 function [x,w] = gqgw(alpha,beta,mu)
 

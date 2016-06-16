@@ -28,11 +28,11 @@
 %    References:
 %
 %      J.L. Barlow, U.B. Vemulapati. A note on deferred correction for equality
-%        constrained least squares problems. SIAM J. Numer. Anal. 29(1):
+%        constrained least squares problems. SIAM J. Numer. Anal. 29 (1):
 %        249-256, 1992.
 %
 %      C. Van Loan. On the method of weighting for equality-constrained least-
-%        squares problems. SIAM J. Numer. Anal. 22(5): 851-864, 1985.
+%        squares problems. SIAM J. Numer. Anal. 22 (5): 851-864, 1985.
 
 function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
 

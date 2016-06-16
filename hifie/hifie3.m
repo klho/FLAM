@@ -44,7 +44,8 @@
 %    References:
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: integral equations. Comm. Pure Appl. Math., 2015.
+%        operators: integral equations. Comm. Pure Appl. Math. 69 (7):
+%        1314-1353, 2016.
 %
 %    See also HIFIE2, HIFIE2X, HIFIE3X, HIFIE_CHOLMV, HIFIE_CHOLSV, HIFIE_DIAG,
 %    HIFIE_LOGDET, HIFIE_MV, HIFIE_SPDIAG, HIFIE_SV, HYPOCT, ID.

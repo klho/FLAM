@@ -27,14 +27,16 @@
 %
 %      A. Gillman, P.G. Martinsson. A direct solver with O(N) complexity for
 %        variable coefficient elliptic PDEs discretized via a high-order
-%        composite spectral collocation method. Preprint, arXiv:1307.2665, 2013.
+%        composite spectral collocation method. SIAM J. Sci. Comput. 36 (4):
+%        A2023-A2046, 2014.
 %
 %      A. Gillman, P.G. Martinsson. An O(N) algorithm for constructing the
 %        solution operator to 2D elliptic boundary value problems in the absence
-%        of body loads. Preprint, arXiv:1302.5995, 2013.
+%        of body loads. Adv. Comput. Math. 40 (4): 773-796, 2014.
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: differential equations. Comm. Pure Appl. Math, 2015.
+%        operators: differential equations. Comm. Pure Appl. Math. 69 (8):
+%        1415-1451, 2016.
 %
 %      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
 %        (1): 197-227, 2013.

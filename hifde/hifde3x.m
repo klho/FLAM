@@ -31,7 +31,8 @@
 %    References:
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
-%        operators: differential equations. Comm. Pure Appl. Math., 2015.
+%        operators: differential equations. Comm. Pure Appl. Math. 69 (8):
+%        1415-1451, 2016.
 %
 %      J. Xia. Randomized sparse direct solvers. SIAM J. Matrix Anal. Appl. 34
 %        (1): 197-227, 2013.
