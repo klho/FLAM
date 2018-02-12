@@ -104,7 +104,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf('%3s | %63.2e (s)\n','-',toc)
 
     % count nonempty boxes at each level
@@ -254,7 +254,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   F.D = F.D(1:nd);
   F.U = F.U(1:nu);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
   end
 end

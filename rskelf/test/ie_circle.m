@@ -27,14 +27,17 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   proxy = 1.5*[cos(theta); sin(theta)];
 
   % factor matrix
+  Afun = @(i,j)Afun2(i,j,x);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy);
   opts = struct('symm',symm,'verb',1);
-  F = rskelf(@Afun,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
 
   % set up FFT multiplication
   G = fft(Afun(1:N,1));
+  mv = @(x)mv2(G,x);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -45,7 +48,7 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   rskelf_mv(F,X);
   t = toc;
   [e,niter] = snorm(N,@(x)(mv(x) - rskelf_mv(F,x)),[],[],1);
-  e = e/snorm(N,@mv,[],[],1);
+  e = e/snorm(N,mv,[],[],1);
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
@@ -73,39 +76,41 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
+end
 
-  % kernel function
-  function K = Kfun(x,y,lp)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    dr = sqrt(dx.^2 + dy.^2);
-    if strcmpi(lp,'s')
-      K = -1/(2*pi)*log(dr);
-    elseif strcmpi(lp,'d')
-      rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
-      K = 1/(2*pi).*rdotn./dr.^2;
-    end
+% kernel function
+function K = Kfun(x,y,lp)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dr = sqrt(dx.^2 + dy.^2);
+  if strcmpi(lp,'s')
+    K = -1/(2*pi)*log(dr);
+  elseif strcmpi(lp,'d')
+    rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
+    K = 1/(2*pi).*rdotn./dr.^2;
   end
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = Kfun(x(:,i),x(:,j),'d')*(2*pi/N);
-    [I,J] = ndgrid(i,j);
-    A(I == J) = -0.5*(1 + 1/N);
-  end
+% matrix entries
+function A = Afun2(i,j,x)
+  N = size(x,2);
+  A = Kfun(x(:,i),x(:,j),'d')*(2*pi/N);
+  [I,J] = ndgrid(i,j);
+  A(I == J) = -0.5*(1 + 1/N);
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(x,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    Kpxy = Kfun(pxy,x(:,slf),'s')*(2*pi/N);
-    dx = x(1,nbr) - ctr(1);
-    dy = x(2,nbr) - ctr(2);
-    dist = sqrt(dx.^2 + dy.^2);
-    nbr = nbr(dist/l < 1.5);
-  end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  N = size(x,2);
+  Kpxy = Kfun(pxy,x(:,slf),'s')*(2*pi/N);
+  dx = x(1,nbr) - ctr(1);
+  dy = x(2,nbr) - ctr(2);
+  dist = sqrt(dx.^2 + dy.^2);
+  nbr = nbr(dist/l < 1.5);
+end
 
-  % FFT multiplication
-  function y = mv(x)
-    y = ifft(G.*fft(x));
-  end
+% FFT multiplication
+function y = mv2(F,x)
+  y = ifft(F.*fft(x));
 end

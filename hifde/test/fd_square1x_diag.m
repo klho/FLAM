@@ -1,7 +1,7 @@
 % Five-point stencil on the unit square, constant-coefficient Poisson, Dirichlet
 % boundary conditions.
 
-function fd_square1x(n,occ,rank_or_tol,skip,symm,spdiag)
+function fd_square1x_diag(n,occ,rank_or_tol,skip,symm,spdiag)
 
   % set default parameters
   if nargin < 1 || isempty(n)

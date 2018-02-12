@@ -82,10 +82,14 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:hifde2:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'h') && isoctave()
+    warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
+    opts.symm = 's';
+  end
 
   % print header
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
   end
 
   % initialize
@@ -231,14 +235,12 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
             rem_ = rem(in,jn);
             nbr = grd_(rem_);
             nbr = nbr(:)';
-            nbr = nbr(~ismembc(nbr,slf));
+            nbr = nbr(~ismemb(nbr,slf));
 
             % compute interaction matrix
-            nslf = length(slf);
-            nnbr = length(nbr);
-            K = spget('nbr','slf');
+            K = spget(A,nbr,slf,P);
             if strcmpi(opts.symm,'n')
-              K = [K; spget('slf','nbr')'];
+              K = [K; spget(A,slf,nbr,P)'];
             end
 
             % skeletonize
@@ -271,10 +273,9 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
         sk = blocks(i).sk;
         rd = blocks(i).rd;
         T = blocks(i).T;
-        nslf = length(slf);
 
         % compute factors
-        K = spget('slf','slf');
+        K = spget(A,slf,slf,P);
         if ~isempty(T)
           if strcmpi(opts.symm,'s')
             K(rd,:) = K(rd,:) - T.'*K(sk,:);
@@ -376,34 +377,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
   F.lvp = F.lvp(1:nlvl+1);
   F.factors = F.factors(1:nf);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
-  end
-
-  % sparse matrix access function (native MATLAB is slow for large matrices)
-  function X = spget(Ityp,Jtyp)
-    if strcmpi(Ityp,'slf')
-      I_ = slf;
-      m_ = nslf;
-    elseif strcmpi(Ityp,'nbr')
-      I_ = nbr;
-      m_ = nnbr;
-    end
-    if strcmpi(Jtyp,'slf')
-      J_ = slf;
-      n_ = nslf;
-    elseif strcmpi(Jtyp,'nbr')
-      J_ = nbr;
-      n_ = nnbr;
-    end
-    P(I_) = 1:m_;
-    I_sort = I_;
-    X = zeros(m_,n_);
-    [I_,J_,S_] = find(A(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    X(P(I_) + (J_ - 1)*m_) = S_;
   end
 end

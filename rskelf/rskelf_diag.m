@@ -94,7 +94,7 @@ function D = rskelf_diag(F,dinv,opts)
     for lvl = 1:nlvl-1
       req_ = req_ | req{lvl+1};
     end
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf('%3s | %12d | %25.2e (s)\n','-',nnz(req_),toc)
   end
 
@@ -184,7 +184,7 @@ function D = rskelf_diag(F,dinv,opts)
 
     % keep only remaining entries
     [I_,J_] = find(req{lvl});
-    idx = ismembc(I(1:nz)+N*J(1:nz),sort(I_+N*J_));
+    idx = ismemb(I(1:nz)+N*J(1:nz),sort(I_+N*J_));
 
     % update global sparse matrix
     M = sparse(I(idx),J(idx),S(idx),N,N);
@@ -198,22 +198,14 @@ function D = rskelf_diag(F,dinv,opts)
   % finish
   D = spdiags(M,0);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
   end
 
   % sparse matrix access function (native MATLAB is slow for large matrices)
   function A = spget_sk
-    A = zeros(nsk);
-    [I_,J_,S_] = find(M(:,sk));
-    idx = ismembc(I_,sort(sk));
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    P(sk) = 1:nsk;
-    idx = P(I_) + (J_ - 1)*nsk;
-    A(idx) = A(idx) + S_;
-    if ~strcmpi(F.symm,'n')
+    A = spget(M,sk,sk,P);
+    if nsk && ~strcmpi(F.symm,'n')
       D_ = diag(diag(A));
       L_ = tril(A,-1);
       U_ = triu(A, 1);

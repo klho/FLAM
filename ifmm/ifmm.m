@@ -104,7 +104,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf('%3s | %63.2e (s)\n','-',toc)
 
     % count nonempty boxes at each level
@@ -406,7 +406,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
           end
         end
         ilst_sort = sort(ilst);
-        ilst = ilst_sort(~ismembc(ilst_sort,sort(t.nodes(i).nbor)));
+        ilst = ilst_sort(~ismemb(ilst_sort,sort(t.nodes(i).nbor)));
         ilst = ilst(ilst <= t.lvp(lvl) | (ilst > t.lvp(lvl) & ilst > i));
         rint = [t.nodes(ilst).rxi];
         cint = [t.nodes(ilst).cxi];
@@ -458,7 +458,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   F.B = F.B(1:nb);
   F.U = F.U(1:nu);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
   end
 end

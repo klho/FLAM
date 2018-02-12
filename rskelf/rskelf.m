@@ -82,6 +82,10 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:rskelf:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'h') && isoctave()
+    warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
+    opts.symm = 's';
+  end
 
   % build tree
   N = size(x,2);
@@ -90,7 +94,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf('%3s | %63.2e (s)\n','-',toc)
 
     % count nonempty boxes at each level
@@ -231,7 +235,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   % finish
   F.factors = F.factors(1:n);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
   end
 end

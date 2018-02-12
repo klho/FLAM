@@ -81,6 +81,10 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:hifde2x:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'h') && isoctave()
+    warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
+    opts.symm = 's';
+  end
 
   % build tree
   N = size(x,2);
@@ -89,7 +93,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf(' %3s  | %63.2e (s)\n','-',toc)
   end
 
@@ -154,12 +158,12 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
           % skeletonize (eliminate interior nodes)
           [I_,J_] = find(A(:,slf));
-          idx = ~ismembc(I_,sslf);
+          idx = ~ismemb(I_,sslf);
           I_ = I_(idx);
           J_ = J_(idx);
           if strcmpi(opts.symm,'n')
             [I__,J__] = find(B(:,slf));
-            idx = ~ismembc(I__,sslf);
+            idx = ~ismemb(I__,sslf);
             I__ = I__(idx);
             J__ = J__(idx);
             I_ = [I_(:); I__(:)];
@@ -174,7 +178,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
           nbr = nbr(nbr < i);
           if ~isempty(nbr)
             nbr = sort([t.nodes(nbr).xi]);
-            idx = ismembc(J_,sk);
+            idx = ismemb(J_,sk);
             I_ = I_(idx);
             J_ = J_(idx);
             nsk = length(sk);
@@ -182,14 +186,14 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
             J_ = P(J_);
             p = cumsum(histc(J_,1:nsk));
             p = [0; p(:)];
-            idx = ismembc(I_,nbr);
+            idx = ismemb(I_,nbr);
 
             % remove those made redundant by neighbor skeletons
             keep = true(nsk,1);
             mod = [];
             for j = 1:nsk
               if all(idx(p(j)+1:p(j+1)))
-                keep(j) = 0;
+                keep(j) = false;
                 mod = [mod I_(p(j)+1:p(j+1))'];
               end
             end
@@ -200,7 +204,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
           % restrict to skeletons
           t.nodes(i).xi = slf(sk);
-          rd = find(~ismembc(1:length(slf),sort(sk)));
+          rd = find(~ismemb(1:length(slf),sort(sk)));
 
           % move on if no compression
           if isempty(rd)
@@ -312,17 +316,16 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         % loop over centers
         for i = 1:nblk
           slf = blk(i).xi;
-          nslf = length(slf);
           sslf = sort(slf);
 
           % find neighbors
           [nbr,~] = find(A(:,slf));
           nbr = unique(nbr);
-          idx = ~ismembc(nbr,sslf);
+          idx = ~ismemb(nbr,sslf);
           nbr = nbr(idx);
           if strcmpi(opts.symm,'n')
             [nbr_,~] = find(B(:,slf));
-            idx = ~ismembc(nbr_,sslf);
+            idx = ~ismemb(nbr_,sslf);
             nbr_ = nbr_(idx);
             nbr = [nbr(:); nbr_(:)]';
           end
@@ -330,9 +333,9 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
           snbr = sort(nbr);
 
           % compute interaction matrix
-          K = spget('nbr','slf');
+          K = spget(A,nbr,slf,P);
           if strcmpi(opts.symm,'n')
-            K = [K; spget('slf','nbr')'];
+            K = [K; spget(A,slf,nbr,P)'];
           end
 
           % skeletonize
@@ -369,11 +372,10 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         sk = blocks(i).sk;
         rd = blocks(i).rd;
         T = blocks(i).T;
-        nslf = length(slf);
         sslf = sort(slf);
 
         % compute factors
-        K = spget('slf','slf');
+        K = spget(A,slf,slf,P);
         if ~isempty(T)
           if strcmpi(opts.symm,'s')
             K(rd,:) = K(rd,:) - T.'*K(sk,:);
@@ -474,35 +476,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
   F.lvp = F.lvp(1:nlvl+1);
   F.factors = F.factors(1:n);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
-  end
-
-  % sparse matrix access function (native MATLAB is slow for large matrices)
-  function X = spget(Ityp,Jtyp)
-    if strcmpi(Ityp,'slf')
-      I_ = slf;
-      m_ = nslf;
-      I_sort = sslf;
-    elseif strcmpi(Ityp,'nbr')
-      I_ = nbr;
-      m_ = nnbr;
-      I_sort = snbr;
-    end
-    if strcmpi(Jtyp,'slf')
-      J_ = slf;
-      n_ = nslf;
-    elseif strcmpi(Jtyp,'nbr')
-      J_ = nbr;
-      n_ = nnbr;
-    end
-    P(I_) = 1:m_;
-    X = zeros(m_,n_);
-    [I_,J_,S_] = find(A(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    X(P(I_) + (J_ - 1)*m_) = S_;
   end
 end

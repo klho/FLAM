@@ -35,8 +35,10 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
   proxy = [-proxy proxy];
 
   % factor matrix
+  Afun = @(i,j)Afun2(i,j,x,noise,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,scale);
   opts = struct('symm',symm,'verb',1);
-  F = rskelf(@Afun,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
@@ -47,6 +49,7 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
   B(1:n) = a;
   B(n+1:end) = flipud(a(2:n));
   G = fft(B);
+  mv = @(x)mv2(G,x);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -57,7 +60,7 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
   rskelf_mv(F,X);
   t = toc;
   [e,niter] = snorm(N,@(x)(mv(x) - rskelf_mv(F,x)),[],[],1);
-  e = e/snorm(N,@mv,[],[],1);
+  e = e/snorm(N,mv,[],[],1);
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
@@ -143,30 +146,31 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
     fprintf([repmat('-',1,80) '\n'])
     fprintf('diag: %10.4e / %10.4e\n',e1,e2)
   end
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dr = scale*abs(bsxfun(@minus,x',y));
-    K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
-  end
+% kernel function
+function K = Kfun(x,y,scale)
+  dr = scale*abs(bsxfun(@minus,x',y));
+  K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = Kfun(x(:,i),x(:,j));
-    [I,J] = ndgrid(i,j);
-    idx = I == J;
-    A(idx) = A(idx) + noise^2;
-  end
+% matrix entries
+function A = Afun2(i,j,x,noise,scale)
+  A = Kfun(x(:,i),x(:,j),scale);
+  [I,J] = ndgrid(i,j);
+  idx = I == J;
+  A(idx) = A(idx) + noise^2;
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(x,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    Kpxy = Kfun(pxy,x(slf));
-  end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,scale)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  Kpxy = Kfun(pxy,x(slf),scale);
+end
 
-  % FFT multiplication
-  function y = mv(x)
-    y = ifft(G.*fft(x,2*n-1));
-    y = y(1:n);
-  end
+% FFT multiplication
+function y = mv2(F,x)
+  n = length(x);
+  y = ifft(F.*fft(x,2*n-1));
+  y = y(1:n);
 end

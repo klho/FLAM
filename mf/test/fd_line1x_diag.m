@@ -1,7 +1,7 @@
 % Three-point stencil on the unit line, constant-coefficient Poisson, Dirichlet
 % boundary conditions.
 
-function fd_line1x(n,occ,symm,spdiag)
+function fd_line1x_diag(n,occ,symm,spdiag)
 
   % set default parameters
   if nargin < 1 || isempty(n)

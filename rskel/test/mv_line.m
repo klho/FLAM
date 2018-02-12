@@ -26,8 +26,10 @@ function mv_line(n,occ,p,rank_or_tol,symm)
   proxy = [proxy -proxy];
 
   % compress matrix
+  Afun = @(i,j)Afun2(i,j,x);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('symm',symm,'verb',1);
-  F = rskel(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -63,25 +65,26 @@ function mv_line(n,occ,p,rank_or_tol,symm)
   Z = A'*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dr = abs(bsxfun(@minus,x',y));
-    K = dr;
-  end
+% kernel function
+function K = Kfun(x,y)
+  dr = abs(bsxfun(@minus,x',y));
+  K = dr;
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = Kfun(x(:,i),x(:,j));
-  end
+% matrix entries
+function A = Afun2(i,j,x)
+  A = Kfun(x(:,i),x(:,j));
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmpi(rc,'r')
-      Kpxy = Kfun(rx(:,slf),pxy)/N;
-    elseif strcmpi(rc,'c')
-      Kpxy = Kfun(pxy,cx(:,slf))/N;
-    end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  N = size(rx,2);
+  if strcmpi(rc,'r')
+    Kpxy = Kfun(rx(:,slf),pxy)/N;
+  elseif strcmpi(rc,'c')
+    Kpxy = Kfun(pxy,cx(:,slf))/N;
   end
 end

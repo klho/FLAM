@@ -48,8 +48,10 @@ function fd_square(n,occ,rank_or_tol,symm)
   clear idx Im Jm Sm Il Jl Sl Ir Jr Sr Iu Ju Su Id Jd Sd I J S
 
   % compress matrix
+  Afun = @(i,j)spget(A,i,j,P);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,A);
   opts = struct('symm',symm,'verb',1);
-  F = rskel(@spget,x,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -60,25 +62,32 @@ function fd_square(n,occ,rank_or_tol,symm)
   t = toc;
   w = whos('S');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
+  dolu = strcmpi(F.symm,'n');
+  if ~dolu && isoctave
+    dolu = 1;
+    S = S + tril(S,-1)';
+  end
+  FS = struct('lu',dolu);
   tic
-  if strcmpi(F.symm,'n')
-    [L,U] = lu(S);
+  if dolu
+    [FS.L,FS.U] = lu(S);
   else
-    [L,D,P] = ldl(S);
+    [FS.L,FS.D,FS.P] = ldl(S);
   end
   t = toc;
-  if strcmpi(F.symm,'n')
-    w = whos('L');
+  if dolu
+    w = whos('FS.L');
     spmem = w.bytes;
-    w = whos('U');
+    w = whos('FS.U');
     spmem = (spmem + w.bytes)/1e6;
   else
-    w = whos('L');
+    w = whos('FS.L');
     spmem = w.bytes;
-    w = whos('D');
+    w = whos('FS.D');
     spmem = (spmem + w.bytes)/1e6;
   end
   fprintf('lu/ldl: %10.4e (s) / %6.2f (MB)\n',t,spmem)
+  sv = @(x)sv2(FS,x);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -104,47 +113,33 @@ function fd_square(n,occ,rank_or_tol,symm)
 
   % run PCG
   tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@sv);
+  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,sv);
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);
   fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter,iter,t)
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
-    Kpxy = zeros(0,length(slf));
-    if strcmpi(rc,'r')
-      Kpxy = Kpxy';
-    end
-    snbr = sort(nbr);
-    [nbr,~] = find(A(:,slf));
-    nbr = nbr(ismembc(nbr,snbr));
+% proxy function
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,A)
+  Kpxy = zeros(0,length(slf));
+  if strcmpi(rc,'r')
+    Kpxy = Kpxy';
   end
+  snbr = sort(nbr);
+  [nbr,~] = find(A(:,slf));
+  nbr = nbr(ismemb(nbr,snbr));
+end
 
-  % sparse LU solve
-  function Y = sv(X)
-    X = [X; zeros(size(S,1)-N,size(X,2))];
-    if strcmpi(F.symm,'n')
-      Y = U\(L\X);
-    else
-      Y = P*(L'\(D\(L\(P'*X))));
-    end
-    Y = Y(1:N,:);
+% sparse LU solve
+function Y = sv2(F,X)
+  N = size(X,1);
+  X = [X; zeros(size(F.L,1)-N,size(X,2))];
+  if F.lu
+    Y = F.U\(F.L\X);
+  else
+    Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));
   end
-
-  % sparse matrix access
-  function S = spget(I_,J_)
-    m_ = length(I_);
-    n_ = length(J_);
-    [I_sort,E] = sort(I_);
-    P(I_sort) = E;
-    S = zeros(m_,n_);
-    [I_,J_,S_] = find(A(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    S(P(I_) + (J_ - 1)*m_) = S_;
-  end
+  Y = Y(1:N,:);
 end

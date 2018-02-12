@@ -32,8 +32,10 @@ function ie_ellipse(n,occ,p,rank_or_tol,ratio)
   proxy = 1.5*[cos(theta); sin(theta)];
 
   % factor matrix
+  Afun = @(i,j)Afun2(i,j,x,nu,h,kappa);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,nu,h);
   opts = struct('verb',1);
-  F = rskelf(@Afun,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
@@ -116,41 +118,41 @@ function ie_ellipse(n,occ,p,rank_or_tol,ratio)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
+end
 
-  % kernel function
-  function K = Kfun(x,y,lp,nu)
-    if nargin < 4
-      nu = [];
-    end
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    dr = sqrt(dx.^2 + dy.^2);
-    if strcmpi(lp,'s')
-      K = -1/(2*pi)*log(dr);
-    elseif strcmpi(lp,'d')
-      rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:));
-      K = 1/(2*pi).*rdotn./dr.^2;
-    end
+% kernel function
+function K = Kfun(x,y,lp,nu)
+  if nargin < 4
+    nu = [];
   end
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dr = sqrt(dx.^2 + dy.^2);
+  if strcmpi(lp,'s')
+    K = -1/(2*pi)*log(dr);
+  elseif strcmpi(lp,'d')
+    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:));
+    K = 1/(2*pi).*rdotn./dr.^2;
+  end
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = Kfun(x(:,i),x(:,j),'d',nu(:,j));
-    if any(j)
-      A = bsxfun(@times,A,h(j));
-    end
-    [I,J] = ndgrid(i,j);
-    idx = I == J;
-    A(idx) = -0.5*(1 + 1/(2*pi)*h(J(idx)).*kappa(J(idx)));
+% matrix entries
+function A = Afun2(i,j,x,nu,h,kappa)
+  A = Kfun(x(:,i),x(:,j),'d',nu(:,j));
+  if any(j)
+    A = bsxfun(@times,A,h(j));
   end
+  [I,J] = ndgrid(i,j);
+  idx = I == J;
+  A(idx) = -0.5*(1 + 1/(2*pi)*h(J(idx)).*kappa(J(idx)));
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(x,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    Kpxy = bsxfun(@times,Kfun(pxy,x(:,slf),'d',nu(:,slf)),h(slf));
-    dx = x(1,nbr) - ctr(1);
-    dy = x(2,nbr) - ctr(2);
-    dist = sqrt(dx.^2 + dy.^2);
-    nbr = nbr(dist/l < 1.5);
-  end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,nu,h)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  Kpxy = bsxfun(@times,Kfun(pxy,x(:,slf),'d',nu(:,slf)),h(slf));
+  dx = x(1,nbr) - ctr(1);
+  dy = x(2,nbr) - ctr(2);
+  dist = sqrt(dx.^2 + dy.^2);
+  nbr = nbr(dist/l < 1.5);
 end

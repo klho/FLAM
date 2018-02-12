@@ -103,8 +103,11 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   clear V F trans rot V2 V3 T I J
 
   % compress matrix
+  Afun = @(i,j)Afun2(i,j,x,nu,area,S,P);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,nu, ...
+                                            area);
   opts = struct('near',near,'store',store,'verb',1);
-  F = ifmm(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
+  F = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
@@ -113,14 +116,14 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   X = rand(N,1);
   X = X/norm(X);
   tic
-  ifmm_mv(F,X,@Afun,'n');
+  ifmm_mv(F,X,Afun,'n');
   t = toc;
   X = rand(N,16);
   X = X/norm(X);
   r = randperm(N);
   r = r(1:min(N,128));
   A = Afun(r,1:N);
-  Y = ifmm_mv(F,X,@Afun,'n');
+  Y = ifmm_mv(F,X,Afun,'n');
   Z = A*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mv:  %10.4e / %10.4e (s)\n',e,t)
@@ -129,14 +132,14 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   X = rand(N,1);
   X = X/norm(X);
   tic
-  ifmm_mv(F,X,@Afun,'c');
+  ifmm_mv(F,X,Afun,'c');
   t = toc;
   X = rand(N,16);
   X = X/norm(X);
   r = randperm(N);
   r = r(1:min(N,128));
   A = Afun(1:N,r);
-  Y = ifmm_mv(F,X,@Afun,'c');
+  Y = ifmm_mv(F,X,Afun,'c');
   Z = A'*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
@@ -150,7 +153,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
 
   % solve for surface density
   tic
-  [X,~,~,iter] = gmres(@(x)(ifmm_mv(F,x,@Afun)),B,[],1e-6,32);
+  [X,~,~,iter] = gmres(@(x)(ifmm_mv(F,x,Afun)),B,[],1e-6,32);
   t = toc;
   r = randperm(N);
   r = r(1:min(N,128));
@@ -167,77 +170,63 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
+end
 
-  % quadrature function
-  function f = quadfun(x,y,trg)
-    dx = trg(1) - x;
-    dy = trg(2) - y;
-    dz = trg(3);
-    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-    f = 1/(4*pi).*dz./dr.^3;
-  end
+% quadrature function
+function f = quadfun(x,y,trg)
+  dx = trg(1) - x;
+  dy = trg(2) - y;
+  dz = trg(3);
+  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+  f = 1/(4*pi).*dz./dr.^3;
+end
 
-  % kernel function
-  function K = Kfun(x,y,lp,nu)
-    if nargin < 4
-      nu = [];
-    end
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    dz = bsxfun(@minus,x(3,:)',y(3,:));
-    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-    if strcmpi(lp,'s')
-      K = 1/(4*pi)./dr;
-    elseif strcmpi(lp,'d')
-      rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
-              bsxfun(@times,dz,nu(3,:));
-      K = 1/(4*pi).*rdotn./dr.^3;
-    end
-    K(dr == 0) = 0;
+% kernel function
+function K = Kfun(x,y,lp,nu)
+  if nargin < 4
+    nu = [];
   end
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dz = bsxfun(@minus,x(3,:)',y(3,:));
+  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+  if strcmpi(lp,'s')
+    K = 1/(4*pi)./dr;
+  elseif strcmpi(lp,'d')
+    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
+            bsxfun(@times,dz,nu(3,:));
+    K = 1/(4*pi).*rdotn./dr.^3;
+  end
+  K(dr == 0) = 0;
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    if isempty(i) || isempty(j)
-      A = zeros(length(i),length(j));
-      return
-    end
-    [I,J] = ndgrid(i,j);
-    A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
-    M = spget(i,j);
-    idx = M ~= 0;
-    A(idx) = M(idx);
-    A(I == J) = -0.5;
+% matrix entries
+function A = Afun2(i,j,x,nu,area,S,P)
+  if isempty(i) || isempty(j)
+    A = zeros(length(i),length(j));
+    return
   end
+  [I,J] = ndgrid(i,j);
+  A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
+  M = spget(S,i,j,P);
+  idx = M ~= 0;
+  A(idx) = M(idx);
+  A(I == J) = -0.5;
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmpi(rc,'r')
-      Kpxy = Kfun(rx(:,slf),pxy,'s')*(4*pi/N);
-      dx = cx(1,nbr) - ctr(1);
-      dy = cx(2,nbr) - ctr(2);
-    elseif strcmpi(rc,'c')
-      Kpxy = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
-      dx = rx(1,nbr) - ctr(1);
-      dy = rx(2,nbr) - ctr(2);
-    end
-    dist = sqrt(dx.^2 + dy.^2);
-    nbr = nbr(dist/l < 1.5);
+% proxy function
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,nu,area)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  if strcmpi(rc,'r')
+    N = size(rx,2);
+    Kpxy = Kfun(rx(:,slf),pxy,'s')*(4*pi/N);
+    dx = cx(1,nbr) - ctr(1);
+    dy = cx(2,nbr) - ctr(2);
+  elseif strcmpi(rc,'c')
+    Kpxy = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
+    dx = rx(1,nbr) - ctr(1);
+    dy = rx(2,nbr) - ctr(2);
   end
-
-  % sparse matrix access
-  function A = spget(I_,J_)
-    m_ = length(I_);
-    n_ = length(J_);
-    [I_sort,E] = sort(I_);
-    P(I_sort) = E;
-    A = zeros(m_,n_);
-    [I_,J_,S_] = find(S(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    A(P(I_) + (J_ - 1)*m_) = S_;
-  end
+  dist = sqrt(dx.^2 + dy.^2);
+  nbr = nbr(dist/l < 1.5);
 end

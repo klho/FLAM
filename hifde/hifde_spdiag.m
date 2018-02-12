@@ -72,9 +72,11 @@ function D = hifde_spdiag(F,dinv)
     end
 
     % pull block data from previous level if not touched at this level
-    for i = find(rem)
-      if isempty(x{i})
-        x{i} = y{i};
+    if lvl > 1
+      for i = find(rem)
+        if isempty(x{i})
+          x{i} = y{i};
+        end
       end
     end
   end

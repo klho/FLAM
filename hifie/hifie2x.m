@@ -87,6 +87,10 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:hifie2x:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'h') && isoctave()
+    warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
+    opts.symm = 's';
+  end
 
   % build tree
   N = size(x,2);
@@ -95,7 +99,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf(' %3s  | %63.2e (s)\n','-',toc)
   end
 
@@ -288,7 +292,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         % add neighbors with modified interactions
         [mod,~] = find(M(:,slf));
         mod = unique(mod);
-        mod = mod(~ismembc(mod,sslf));
+        mod = mod(~ismemb(mod,sslf));
         nbr = unique([nbr(:); mod(:)]);
         nnbr = length(nbr);
         snbr = sort(nbr);
@@ -298,23 +302,20 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         if strcmpi(opts.symm,'n')
           K1 = [K1; full(A(slf,nbr))'];
         end
-        K2 = spget('nbr','slf');
+        K2 = spget(M,nbr,slf,P);
         if strcmpi(opts.symm,'n')
-          K2 = [K2; spget('slf','nbr')'];
+          K2 = [K2; spget(M,slf,nbr,P)'];
         end
         K = [K1 + K2; Kpxy];
 
         % scale compression tolerance
+        ratio = 1;
         if rank_or_tol < 1
           nrm1 = snorm(nslf,@(x)(K1*x),@(x)(K1'*x));
           if nnz(K2) > 0
             nrm2 = snorm(nslf,@(x)(K2*x),@(x)(K2'*x));
-          else
-            nrm2 = 0;
+            ratio = min(1,nrm1/nrm2);
           end
-          ratio = min(1,nrm1/nrm2);
-        else
-          ratio = 1;
         end
 
         % partition by sparsity structure of modified interactions
@@ -385,7 +386,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         rem(slf(rd)) = 0;
 
         % compute factors
-        K = full(A(slf,slf)) + spget('slf','slf');
+        K = full(A(slf,slf)) + spget(M,slf,slf,P);
         if strcmpi(opts.symm,'s')
           K(rd,:) = K(rd,:) - T.'*K(sk,:);
         else
@@ -484,35 +485,7 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
   F.lvp = F.lvp(1:nlvl+1);
   F.factors = F.factors(1:n);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
-  end
-
-  % sparse matrix access function (native MATLAB is slow for large matrices)
-  function A = spget(Ityp,Jtyp)
-    if strcmpi(Ityp,'slf')
-      I_ = slf;
-      m_ = nslf;
-      I_sort = sslf;
-    elseif strcmpi(Ityp,'nbr')
-      I_ = nbr;
-      m_ = nnbr;
-      I_sort = snbr;
-    end
-    if strcmpi(Jtyp,'slf')
-      J_ = slf;
-      n_ = nslf;
-    elseif strcmpi(Jtyp,'nbr')
-      J_ = nbr;
-      n_ = nnbr;
-    end
-    P(I_) = 1:m_;
-    A = zeros(m_,n_);
-    [I_,J_,S_] = find(M(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    A(P(I_) + (J_ - 1)*m_) = S_;
   end
 end

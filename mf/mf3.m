@@ -63,10 +63,14 @@ function F = mf3(A,n,occ,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:mf3:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'h') && isoctave()
+    warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
+    opts.symm = 's';
+  end
 
   % print header
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
   end
 
   % initialize
@@ -142,7 +146,7 @@ function F = mf3(A,n,occ,opts)
           rem(slf(rd)) = 0;
 
           % compute factors
-          K = spget_slf;
+          K = spget(A,slf,slf,P);
           if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
             [L,U] = lu(K(rd,rd));
             E = K(sk,rd)/U;
@@ -225,20 +229,7 @@ function F = mf3(A,n,occ,opts)
   % finish
   F.factors = F.factors(1:nf);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
-  end
-
-  % sparse matrix access function (native MATLAB is slow for large matrices)
-  function X = spget_slf
-    nslf = length(slf);
-    P(slf) = 1:nslf;
-    X = zeros(nslf);
-    [I_,J_,S_] = find(A(:,slf));
-    idx = ismembc(I_,slf);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    X(P(I_) + (J_ - 1)*nslf) = S_;
   end
 end

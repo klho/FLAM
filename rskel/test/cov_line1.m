@@ -32,8 +32,10 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   proxy = [-proxy proxy];
 
   % compress matrix
+  Afun = @(i,j)Afun2(i,j,x,noise,scale);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,scale);
   opts = struct('symm',symm,'verb',1);
-  F = rskel(@Afun,x,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
@@ -44,25 +46,32 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   t = toc;
   w = whos('A');
   fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
+  dolu = strcmpi(F.symm,'n');
+  if ~dolu && isoctave
+    dolu = 1;
+    A = A + tril(A,-1)';
+  end
+  FA = struct('lu',dolu);
   tic
-  if strcmpi(F.symm,'n')
-    [L,U] = lu(A);
+  if dolu
+    [FA.L,FA.U] = lu(A);
   else
-    [L,D,P] = ldl(A);
+    [FA.L,FA.D,FA.P] = ldl(A);
   end
   t = toc;
-  if strcmpi(F.symm,'n')
-    w = whos('L');
+  if dolu
+    w = whos('FA.L');
     spmem = w.bytes;
-    w = whos('U');
+    w = whos('FA.U');
     spmem = (spmem + w.bytes)/1e6;
   else
-    w = whos('L');
+    w = whos('FA.L');
     spmem = w.bytes;
-    w = whos('D');
+    w = whos('FA.D');
     spmem = (spmem + w.bytes)/1e6;
   end
   fprintf('lu/ldl: %10.4e (s) / %6.2f (MB)\n',t,spmem)
+  sv = @(x)sv2(FA,x);
 
   % set up FFT multiplication
   a = Afun(1:n,1);
@@ -70,6 +79,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   B(1:n) = a;
   B(n+1:end) = flipud(a(2:n));
   G = fft(B);
+  mv = @(x)mv2(G,x);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -80,7 +90,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   rskel_mv(F,X);
   t = toc;
   [e,niter] = snorm(N,@(x)(mv(x) - rskel_mv(F,x)),[],[],1);
-  e = e/snorm(N,@mv,[],[],1);
+  e = e/snorm(N,mv,[],[],1);
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
@@ -101,19 +111,20 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   ej = sparse([],[],[],size(A,1),1,1);
   S = zeros(m,1);
   T = zeros(m,1);
+  I = speye(size(A));
   tic
-  if strcmp(F.symm,'n')
-    Li  = inv(L);
-    Uic = inv(U)';
+  if dolu
+    Li  =  FA.L\I;
+    Uic = (FA.U\I)';
     nz = 0.5*(nnz(Li(:,1:N)) + nnz(Uic(:,1:N)))/N;
     w = whos('Li');
     spmem = w.bytes;
     w = whos('Uic');
     spmem = (spmem + w.bytes)/1e6;
   else
-    Li = inv(L);
-    Di = inv(D);
-    Pi = inv(P);
+    Li = FA.L\I;
+    Di = FA.D\I;
+    Pi = FA.P\I;
     nz = nnz(Li(:,1:N))/N;
     w = whos('Li');
     spmem = w.bytes;
@@ -128,7 +139,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   % selected inversion
   tic
   for i = 1:m
-    if strcmp(F.symm,'n')
+    if dolu
       S(i) = dot(Uic(:,r(i,1)),Li(:,r(i,2)));
     else
       ei(r(i,1)) = 1;
@@ -149,7 +160,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   % diagonal inversion
   tic
   for i = 1:m
-    if strcmp(F.symm,'n')
+    if dolu
       S(i) = dot(Uic(:,r(i,2)),Li(:,r(i,2)));
     else
       ei(r(i,2)) = 1;
@@ -166,45 +177,47 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   end
   e = norm(S - T)/norm(T);
   fprintf('diaginv: %10.4e / %10.4e (s)\n',e,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dr = scale*abs(bsxfun(@minus,x',y));
-    K = exp(-0.5*dr.^2);
-  end
+% kernel function
+function K = Kfun(x,y,scale)
+  dr = scale*abs(bsxfun(@minus,x',y));
+  K = exp(-0.5*dr.^2);
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = Kfun(x(:,i),x(:,j));
-    [I,J] = ndgrid(i,j);
-    idx = I == J;
-    A(idx) = A(idx) + noise^2;
-  end
+% matrix entries
+function A = Afun2(i,j,x,noise,scale)
+  A = Kfun(x(:,i),x(:,j),scale);
+  [I,J] = ndgrid(i,j);
+  idx = I == J;
+  A(idx) = A(idx) + noise^2;
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(rc,rx,cx,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    if strcmpi(rc,'r')
-      Kpxy = Kfun(rx(:,slf),pxy);
-    elseif strcmpi(rc,'c')
-      Kpxy = Kfun(pxy,cx(:,slf));
-    end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,scale)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  if strcmpi(rc,'r')
+    Kpxy = Kfun(rx(:,slf),pxy,scale);
+  elseif strcmpi(rc,'c')
+    Kpxy = Kfun(pxy,cx(:,slf),scale);
   end
+end
 
-  % FFT multiplication
-  function y = mv(x)
-    y = ifft(G.*fft(x,2*n-1));
-    y = y(1:n);
-  end
+% FFT multiplication
+function y = mv2(F,x)
+  n = length(x);
+  y = ifft(F.*fft(x,2*n-1));
+  y = y(1:n);
+end
 
-  % sparse LU solve
-  function Y = sv(X)
-    X = [X; zeros(size(A,1)-N,size(X,2))];
-    if strcmpi(F.symm,'n')
-      Y = U\(L\X);
-    else
-      Y = P*(L'\(D\(L\(P'*X))));
-    end
-    Y = Y(1:N,:);
+% sparse LU solve
+function Y = sv2(F,X)
+  N = size(X,1);
+  X = [X; zeros(size(F.L,1)-N,size(X,2))];
+  if F.lu
+    Y = F.U\(F.L\X);
+  else
+    Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));
   end
+  Y = Y(1:N,:);
 end

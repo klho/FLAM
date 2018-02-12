@@ -44,8 +44,10 @@ function cov_square1(n,occ,p,rank_or_tol,skip,symm,noise,scale,spdiag)
   clear x1 x2
 
   % factor matrix
+  Afun = @(i,j)Afun2(i,j,x,noise,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,scale);
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  F = hifie2(@Afun,x,occ,rank_or_tol,@pxyfun,opts);
+  F = hifie2(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
@@ -60,6 +62,7 @@ function cov_square1(n,occ,p,rank_or_tol,skip,symm,noise,scale,spdiag)
   B(:,n+1:end) = flipdim(B(:,n+1:end),2);
   B(n+1:end,:) = flipdim(B(n+1:end,:),1);
   G = fft2(B);
+  mv = @(x)mv2(G,x);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -70,7 +73,7 @@ function cov_square1(n,occ,p,rank_or_tol,skip,symm,noise,scale,spdiag)
   hifie_mv(F,X);
   t = toc;
   [e,niter] = snorm(N,@(x)(mv(x) - hifie_mv(F,x)),[],[],1);
-  e = e/snorm(N,@mv,[],[],1);
+  e = e/snorm(N,mv,[],[],1);
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
@@ -156,36 +159,38 @@ function cov_square1(n,occ,p,rank_or_tol,skip,symm,noise,scale,spdiag)
     fprintf([repmat('-',1,80) '\n'])
     fprintf('diag: %10.4e / %10.4e\n',e1,e2)
   end
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    dr = scale*sqrt(dx.^2 + dy.^2);
-    K = exp(-0.5*dr.^2);
-  end
+% kernel function
+function K = Kfun(x,y,scale)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dr = scale*sqrt(dx.^2 + dy.^2);
+  K = exp(-0.5*dr.^2);
+end
 
-  % matrix entries
-  function A = Afun(i,j)
-    A = Kfun(x(:,i),x(:,j));
-    [I,J] = ndgrid(i,j);
-    idx = I == J;
-    A(idx) = A(idx) + noise^2;
-  end
+% matrix entries
+function A = Afun2(i,j,x,noise,scale)
+  A = Kfun(x(:,i),x(:,j),scale);
+  [I,J] = ndgrid(i,j);
+  idx = I == J;
+  A(idx) = A(idx) + noise^2;
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(x,slf,nbr,l,ctr)
-    pxy = bsxfun(@plus,proxy*l,ctr');
-    Kpxy = Kfun(pxy,x(:,slf));
-    dx = x(1,nbr) - ctr(1);
-    dy = x(2,nbr) - ctr(2);
-    dist = sqrt(dx.^2 + dy.^2);
-    nbr = nbr(dist/l < 1.5);
-  end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,scale)
+  pxy = bsxfun(@plus,proxy*l,ctr');
+  Kpxy = Kfun(pxy,x(:,slf),scale);
+  dx = x(1,nbr) - ctr(1);
+  dy = x(2,nbr) - ctr(2);
+  dist = sqrt(dx.^2 + dy.^2);
+  nbr = nbr(dist/l < 1.5);
+end
 
-  % FFT multiplication
-  function y = mv(x)
-    y = ifft2(G.*fft2(reshape(x,n,n),2*n-1,2*n-1));
-    y = reshape(y(1:n,1:n),N,1);
-  end
+% FFT multiplication
+function y = mv2(F,x)
+  N = length(x);
+  n = sqrt(N);
+  y = ifft2(F.*fft2(reshape(x,n,n),2*n-1,2*n-1));
+  y = reshape(y(1:n,1:n),N,1);
 end

@@ -48,8 +48,10 @@ function fd_square(n,occ,rank_or_tol,symm)
   clear idx Im Jm Sm Il Jl Sl Ir Jr Sr Iu Ju Su Id Jd Sd I J S
 
   % factor matrix
+  Afun = @(i,j)spget(A,i,j,P);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,A);
   opts = struct('symm',symm,'verb',1);
-  F = rskelf(@spget,x,occ,rank_or_tol,@pxyfun,opts);
+  F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
   fprintf([repmat('-',1,80) '\n'])
   fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
@@ -74,7 +76,7 @@ function fd_square(n,occ,rank_or_tol,symm)
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % run CG
-  [~,flag,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
 
   % run PCG
   tic
@@ -84,27 +86,12 @@ function fd_square(n,occ,rank_or_tol,symm)
   e2 = norm(X - A*Z)/norm(X);
   fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter,iter,t)
+end
 
-  % proxy function
-  function [Kpxy,nbr] = pxyfun(x,slf,nbr,l,ctr)
-    Kpxy = zeros(0,length(slf));
-    snbr = sort(nbr);
-    [nbr,~] = find(A(:,slf));
-    nbr = nbr(ismembc(nbr,snbr));
-  end
-
-  % sparse matrix access
-  function S = spget(I_,J_)
-    m_ = length(I_);
-    n_ = length(J_);
-    [I_sort,E] = sort(I_);
-    P(I_sort) = E;
-    S = zeros(m_,n_);
-    [I_,J_,S_] = find(A(:,J_));
-    idx = ismembc(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    S(P(I_) + (J_ - 1)*m_) = S_;
-  end
+% proxy function
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,A)
+  Kpxy = zeros(0,length(slf));
+  snbr = sort(nbr);
+  [nbr,~] = find(A(:,slf));
+  nbr = nbr(ismemb(nbr,snbr));
 end

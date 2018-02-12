@@ -88,7 +88,7 @@ function D = hifde_diag(F,dinv,opts)
         [I_,~] = find(req{lvl}(:,sk));
         [J_,~] = find(req_(:,sk));
         I_ = union(I_,J_);
-        ex = I_(~ismembc(I_,sort([rd sk])));
+        ex = I_(~ismemb(I_,sort([rd sk])));
         ex = ex(rem(ex));
         [I_,J_] = ndgrid(ex,sk);
         I__ = I_(:);
@@ -133,7 +133,7 @@ function D = hifde_diag(F,dinv,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf('%3s | %12d | %25.2e (s)\n','-',nnz(req_),toc)
   end
 
@@ -166,7 +166,7 @@ function D = hifde_diag(F,dinv,opts)
       [I_,~] = find(req{lvl}(:,sk));
       [J_,~] = find(req_(:,sk));
       I_ = union(I_,J_);
-      ex = I_(~ismembc(I_,sort([rd sk])))';
+      ex = I_(~ismemb(I_,sort([rd sk])))';
       ex = ex(rem(ex));
 
       % compute local matrix
@@ -224,15 +224,15 @@ function D = hifde_diag(F,dinv,opts)
       if isempty(T)
         srd = sort(rd);
         if dinv
-          idx = ismembc(I,srd) | ismembc(J,srd);
+          idx = ismemb(I,srd) | ismemb(J,srd);
         else
-          idx = ~(ismembc(I,sex) | ismembc(J,sex));
+          idx = ~(ismemb(I,sex) | ismemb(J,sex));
         end
         I = I(idx);
         J = J(idx);
         D = D(idx);
       end
-      idx = ismembc(I+N*J,remidx);
+      idx = ismemb(I+N*J,remidx);
       I = I(idx);
       J = J(idx);
       D = D(idx);
@@ -253,7 +253,7 @@ function D = hifde_diag(F,dinv,opts)
     D(i) = Ax{i}(Ai{i} == i);
   end
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
   end
 
@@ -273,7 +273,7 @@ function D = hifde_diag(F,dinv,opts)
       Bx{i} = S(Bp(i)+1:Bp(i+1));
     end
     for j = 1:n
-      idx = ismembc(Ai{K(j)},Bi{j});
+      idx = ismemb(Ai{K(j)},Bi{j});
       Ax{K(j)}(idx) = Ax{K(j)}(idx) + Bx{j};
       nzadd = nzadd + sum(idx);
     end
@@ -285,7 +285,7 @@ function D = hifde_diag(F,dinv,opts)
     P(ex) = 1:nex;
     for j = 1:nsk
       Ai_ = Ai{sk(j)};
-      idx = ismembc(Ai_,sex);
+      idx = ismemb(Ai_,sex);
       A(P(Ai_(idx)),j) = Ax{sk(j)}(idx);
       nzget = nzget + sum(idx);
     end
@@ -312,7 +312,7 @@ function D = hifde_diag(F,dinv,opts)
     P(sk) = 1:nsk;
     for j = 1:nex
       Ai_ = Ai{ex(j)};
-      idx = ismembc(Ai_,ssk);
+      idx = ismemb(Ai_,ssk);
       A(P(Ai_(idx)),j) = Ax{ex(j)}(idx);
       nzget = nzget + sum(idx);
     end
@@ -324,11 +324,11 @@ function D = hifde_diag(F,dinv,opts)
     P(sk) = 1:nsk;
     for j = 1:nsk
       Ai_ = Ai{sk(j)};
-      idx = ismembc(Ai_,ssk);
+      idx = ismemb(Ai_,ssk);
       A(P(Ai_(idx)),j) = Ax{sk(j)}(idx);
       nzget = nzget + sum(idx);
     end
-    if ~strcmpi(F.symm,'n')
+    if nsk && ~strcmpi(F.symm,'n')
       D_ = diag(diag(A));
       L_ = tril(A,-1);
       U_ = triu(A, 1);

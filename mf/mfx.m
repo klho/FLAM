@@ -61,6 +61,10 @@ function F = mfx(A,x,occ,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:mfx:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'h') && isoctave()
+    warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
+    opts.symm = 's';
+  end
 
   % build tree
   N = size(x,2);
@@ -69,7 +73,7 @@ function F = mfx(A,x,occ,opts)
 
   % print summary
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     fprintf('%3s | %63.2e (s)\n','-',toc)
 
     % count nonempty boxes at each level
@@ -123,12 +127,12 @@ function F = mfx(A,x,occ,opts)
 
       % skeletonize (eliminate interior nodes)
       [I_,J_] = find(A(:,slf));
-      idx = ~ismembc(I_,sslf);
+      idx = ~ismemb(I_,sslf);
       I_ = I_(idx);
       J_ = J_(idx);
       if strcmpi(opts.symm,'n')
         [I__,J__] = find(B(:,slf));
-        idx = ~ismembc(I__,sslf);
+        idx = ~ismemb(I__,sslf);
         I__ = I__(idx);
         J__ = J__(idx);
         I_ = [I_(:); I__(:)];
@@ -143,7 +147,7 @@ function F = mfx(A,x,occ,opts)
       nbr = nbr(nbr < i);
       if ~isempty(nbr)
         nbr = sort([t.nodes(nbr).xi]);
-        idx = ismembc(J_,sk);
+        idx = ismemb(J_,sk);
         I_ = I_(idx);
         J_ = J_(idx);
         nsk = length(sk);
@@ -151,14 +155,14 @@ function F = mfx(A,x,occ,opts)
         J_ = P(J_);
         p = cumsum(histc(J_,1:nsk));
         p = [0; p(:)];
-        idx = ismembc(I_,nbr);
+        idx = ismemb(I_,nbr);
 
         % remove those made redundant by neighbor skeletons
         keep = true(nsk,1);
         mod = [];
         for j = 1:nsk
           if all(idx(p(j)+1:p(j+1)))
-            keep(j) = 0;
+            keep(j) = false;
             mod = [mod I_(p(j)+1:p(j+1))'];
           end
         end
@@ -169,7 +173,7 @@ function F = mfx(A,x,occ,opts)
 
       % restrict to skeletons
       t.nodes(i).xi = slf(sk);
-      rd = find(~ismembc(1:length(slf),sort(sk)));
+      rd = find(~ismemb(1:length(slf),sort(sk)));
 
       % move on if no compression
       if isempty(rd)
@@ -178,7 +182,7 @@ function F = mfx(A,x,occ,opts)
       rem(slf(rd)) = 0;
 
       % compute factors
-      K = spget_slf;
+      K = spget(A,slf,slf,P);
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
         [L,U] = lu(K(rd,rd));
         E = K(sk,rd)/U;
@@ -259,21 +263,7 @@ function F = mfx(A,x,occ,opts)
   % finish
   F.factors = F.factors(1:n);
   if opts.verb
-    fprintf(['-'*ones(1,80) '\n'])
+    fprintf([repmat('-',1,80) '\n'])
     toc(start)
-  end
-
-  % sparse matrix access function (native MATLAB is slow for large matrices)
-  function S = spget_slf
-    nslf = length(slf);
-    sslf = sort(slf);
-    P(slf) = 1:nslf;
-    S = zeros(nslf);
-    [I_,J_,S_] = find(A(:,slf));
-    idx = ismembc(I_,sslf);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    S(P(I_) + (J_ - 1)*nslf) = S_;
   end
 end
