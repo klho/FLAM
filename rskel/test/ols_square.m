@@ -112,14 +112,14 @@ function ols_square(m,n,lambda,occ,p,rank_or_tol,store)
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - ifmm_mv(G,Z,Afun))/norm(X);
   fprintf('lsqr: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2,piter,iter,t)
-end
 
-% kernel function
-function K = Kfun(x,y)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dr = sqrt(dx.^2 + dy.^2);
-  K = dr.^2.*log(dr);
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dr = sqrt(dx.^2 + dy.^2);
+    K = dr.^2.*log(dr);
+  end
 end
 
 % matrix entries

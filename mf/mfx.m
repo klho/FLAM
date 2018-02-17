@@ -182,7 +182,7 @@ function F = mfx(A,x,occ,opts)
       rem(slf(rd)) = 0;
 
       % compute factors
-      K = spget(A,slf,slf,P);
+      [K,P] = spget(A,slf,slf,P);
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
         [L,U] = lu(K(rd,rd));
         E = K(sk,rd)/U;

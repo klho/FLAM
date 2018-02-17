@@ -130,7 +130,6 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   w = whos('U');
   spmem = (spmem + w.bytes)/1e6;
   fprintf('lu: %10.4e (s) / %6.2f (MB)\n',t,spmem)
-  sv = @(x,trans)sv2(L,U,x,trans);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -175,45 +174,69 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
-end
 
-% quadrature function
-function f = quadfun(x,y,trg)
-  dx = trg(1) - x;
-  dy = trg(2) - y;
-  dz = trg(3);
-  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  f = 1/(4*pi).*dz./dr.^3;
-end
+  % quadrature function
+  function f = quadfun(x,y,trg)
+    dx = trg(1) - x;
+    dy = trg(2) - y;
+    dz = trg(3);
+    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+    f = 1/(4*pi).*dz./dr.^3;
+  end
 
-% kernel function
-function K = Kfun(x,y,lp,nu)
-  if nargin < 4
-    nu = [];
+  % quadrature corrections
+  function A = quadcorr(I_,J_)
+    m_ = length(I_);
+    n_ = length(J_);
+    [I_sort,E] = sort(I_);
+    P(I_sort) = E;
+    A = zeros(m_,n_);
+    [I_,J_,S_] = find(S(:,J_));
+    idx = ismemb(I_,I_sort);
+    I_ = I_(idx);
+    J_ = J_(idx);
+    S_ = S_(idx);
+    A(P(I_) + (J_ - 1)*m_) = S_;
   end
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dz = bsxfun(@minus,x(3,:)',y(3,:));
-  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  if strcmpi(lp,'s')
-    K = 1/(4*pi)./dr;
-  elseif strcmpi(lp,'d')
-    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
-            bsxfun(@times,dz,nu(3,:));
-    K = 1/(4*pi).*rdotn./dr.^3;
+
+  % kernel function
+  function K = Kfun(x,y,lp,nu)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dz = bsxfun(@minus,x(3,:)',y(3,:));
+    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+    if strcmpi(lp,'s')
+      K = 1/(4*pi)./dr;
+    elseif strcmpi(lp,'d')
+      rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
+              bsxfun(@times,dz,nu(3,:));
+      K = 1/(4*pi).*rdotn./dr.^3;
+    end
+    K(dr == 0) = 0;
   end
-  K(dr == 0) = 0;
+
+  % sparse LU solve
+  function Y = sv(X,trans)
+    N = size(X,1);
+    X = [X; zeros(size(L,1)-N,size(X,2))];
+    if strcmpi(trans,'n')
+      Y = U\(L\X);
+    elseif strcmpi(trans,'c')
+      Y = L'\(U'\X);
+    end
+    Y = Y(1:N,:);
+  end
 end
 
 % matrix entries
-function A = Afun2(i,j,x,nu,area,S,P)
+function A = Afun2(i,j,x,nu,area)
   if isempty(i) || isempty(j)
     A = zeros(length(i),length(j));
     return
   end
   [I,J] = ndgrid(i,j);
   A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
-  M = spget(S,i,j,P);
+  M = quadcorr(i,j);
   idx = M ~= 0;
   A(idx) = M(idx);
   A(I == J) = -0.5;
@@ -234,16 +257,4 @@ function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,nu,area)
   end
   dist = sqrt(dx.^2 + dy.^2);
   nbr = nbr(dist/l < 1.5);
-end
-
-% sparse LU solve
-function Y = sv2(L,U,X,trans)
-  N = size(X,1);
-  X = [X; zeros(size(L,1)-N,size(X,2))];
-  if strcmpi(trans,'n')
-    Y = U\(L\X);
-  elseif strcmpi(trans,'c')
-    Y = L'\(U'\X);
-  end
-  Y = Y(1:N,:);
 end

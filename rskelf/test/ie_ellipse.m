@@ -118,21 +118,18 @@ function ie_ellipse(n,occ,p,rank_or_tol,ratio)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
-end
 
-% kernel function
-function K = Kfun(x,y,lp,nu)
-  if nargin < 4
-    nu = [];
-  end
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dr = sqrt(dx.^2 + dy.^2);
-  if strcmpi(lp,'s')
-    K = -1/(2*pi)*log(dr);
-  elseif strcmpi(lp,'d')
-    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:));
-    K = 1/(2*pi).*rdotn./dr.^2;
+  % kernel function
+  function K = Kfun(x,y,lp,nu)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dr = sqrt(dx.^2 + dy.^2);
+    if strcmpi(lp,'s')
+      K = -1/(2*pi)*log(dr);
+    elseif strcmpi(lp,'d')
+      rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:));
+      K = 1/(2*pi).*rdotn./dr.^2;
+    end
   end
 end
 

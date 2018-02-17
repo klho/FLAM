@@ -85,13 +85,13 @@ function ie_square1(n,occ,p,rank_or_tol,skip,symm)
   e2 = norm(X - mv(Z))/norm(X);
   fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter(2),iter(2),t)
-end
 
-% kernel function
-function K = Kfun(x,y)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
+  end
 end
 
 % matrix entries

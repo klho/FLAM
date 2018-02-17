@@ -302,9 +302,10 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         if strcmpi(opts.symm,'n')
           K1 = [K1; full(A(slf,nbr))'];
         end
-        K2 = spget(M,nbr,slf,P);
+        [K2,P] = spget(M,nbr,slf,P);
         if strcmpi(opts.symm,'n')
-          K2 = [K2; spget(M,slf,nbr,P)'];
+          [tmp,P] = spget(M,slf,nbr,P);
+          K2 = [K2; tmp'];
         end
         K = [K1 + K2; Kpxy];
 
@@ -386,7 +387,8 @@ function F = hifie2x(A,x,occ,rank_or_tol,pxyfun,opts)
         rem(slf(rd)) = 0;
 
         % compute factors
-        K = full(A(slf,slf)) + spget(M,slf,slf,P);
+        [tmp,P] = spget(M,slf,slf,P);
+        K = full(A(slf,slf)) + tmp;
         if strcmpi(opts.symm,'s')
           K(rd,:) = K(rd,:) - T.'*K(sk,:);
         else

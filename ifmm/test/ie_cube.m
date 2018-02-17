@@ -82,14 +82,14 @@ function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
   t = toc;
   e = norm(X - mv(Y))/norm(X);
   fprintf('gmres: %10.4e / %4d / %10.4e (s)\n',e,iter(2),t)
-end
 
-% kernel function
-function K = Kfun(x,y)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dz = bsxfun(@minus,x(3,:)',y(3,:));
-  K = -1/(4*pi)*log(sqrt(dx.^2 + dy.^2 + dz.^2));
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dz = bsxfun(@minus,x(3,:)',y(3,:));
+    K = -1/(4*pi)*log(sqrt(dx.^2 + dy.^2 + dz.^2));
+  end
 end
 
 % matrix entries

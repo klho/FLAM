@@ -254,9 +254,10 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
               % compute interaction matrix
               nslf = length(slf);
               nnbr = length(nbr);
-              K = spget(A,nbr,slf,P);
+              [K,P] = spget(A,nbr,slf,P);
               if strcmpi(opts.symm,'n')
-                K = [K; spget(A,slf,nbr,P)'];
+                [tmp,P] = spget(A,slf,nbr,P);
+                K = [K; tmp'];
               end
 
               % skeletonize
@@ -293,7 +294,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
         nslf = length(slf);
 
         % compute factors
-        K = spget(A,slf,slf,P);
+        [K,P] = spget(A,slf,slf,P);
         if ~isempty(T)
           if strcmpi(opts.symm,'s')
             K(rd,:) = K(rd,:) - T.'*K(sk,:);

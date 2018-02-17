@@ -75,13 +75,13 @@ function mv_circle1(m,n,occ,p,rank_or_tol,near,store)
   Z = A'*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
-end
 
-% kernel function
-function K = Kfun(x,y)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
+  end
 end
 
 % matrix entries

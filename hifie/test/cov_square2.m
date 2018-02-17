@@ -44,8 +44,8 @@ function cov_square2(n,occ,p,rank_or_tol,skip,symm,noise,scale,spdiag)
   clear x1 x2
 
   % factor matrix
-  Afun = @(i,j)Afun2(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,scale);
+  Afun = @(i,j)Afun2(i,j,x,noise);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy);
   opts = struct('skip',skip,'symm',symm,'verb',1);
   F = hifie2(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
@@ -159,28 +159,28 @@ function cov_square2(n,occ,p,rank_or_tol,skip,symm,noise,scale,spdiag)
     fprintf([repmat('-',1,80) '\n'])
     fprintf('diag: %10.4e / %10.4e\n',e1,e2)
   end
-end
 
-% kernel function
-function K = Kfun(x,y,scale)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dr = scale*sqrt(dx.^2 + dy.^2);
-  K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dr = scale*sqrt(dx.^2 + dy.^2);
+    K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
+  end
 end
 
 % matrix entries
-function A = Afun2(i,j,x,noise,scale)
-  A = Kfun(x(:,i),x(:,j),scale);
+function A = Afun2(i,j,x,noise)
+  A = Kfun(x(:,i),x(:,j));
   [I,J] = ndgrid(i,j);
   idx = I == J;
   A(idx) = A(idx) + noise^2;
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,scale)
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy)
   pxy = bsxfun(@plus,proxy*l,ctr');
-  Kpxy = Kfun(pxy,x(:,slf),scale);
+  Kpxy = Kfun(pxy,x(:,slf));
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);
   dist = sqrt(dx.^2 + dy.^2);

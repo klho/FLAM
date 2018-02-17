@@ -38,8 +38,8 @@ function mv_cube2(m,n,k,occ,p,rank_or_tol,near,store)
   clear x1 x2 x3
 
   % compress matrix
-  Afun = @(i,j)Afun2(i,j,rx,cx,k);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,k);
+  Afun = @(i,j)Afun2(i,j,rx,cx);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('near',near,'store',store,'verb',1);
   F = ifmm(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
@@ -77,32 +77,32 @@ function mv_cube2(m,n,k,occ,p,rank_or_tol,near,store)
   Z = A'*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
-end
 
-% kernel function
-function K = Kfun(x,y,k)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dz = bsxfun(@minus,x(3,:)',y(3,:));
-  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  K = 1/(4*pi).*exp(1i*k*dr)./dr;
+  % kernel function
+  function K = Kfun(x,y)
+    dx = bsxfun(@minus,x(1,:)',y(1,:));
+    dy = bsxfun(@minus,x(2,:)',y(2,:));
+    dz = bsxfun(@minus,x(3,:)',y(3,:));
+    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+    K = 1/(4*pi).*exp(1i*k*dr)./dr;
+  end
 end
 
 % matrix entries
-function A = Afun2(i,j,rx,cx,k)
-  A = Kfun(rx(:,i),cx(:,j),k);
+function A = Afun2(i,j,rx,cx)
+  A = Kfun(rx(:,i),cx(:,j));
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,k)
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy)
   pxy = bsxfun(@plus,proxy*l,ctr');
   if strcmpi(rc,'r')
-    Kpxy = Kfun(rx(:,slf),pxy,k);
+    Kpxy = Kfun(rx(:,slf),pxy);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
     dz = cx(3,nbr) - ctr(3);
   elseif strcmpi(rc,'c')
-    Kpxy = Kfun(pxy,cx(:,slf),k);
+    Kpxy = Kfun(pxy,cx(:,slf));
     dx = rx(1,nbr) - ctr(1);
     dy = rx(2,nbr) - ctr(2);
     dz = rx(3,nbr) - ctr(3);

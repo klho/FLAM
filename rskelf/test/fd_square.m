@@ -44,11 +44,10 @@ function fd_square(n,occ,rank_or_tol,symm)
   J = [Jm(:); Jl(:); Jr(:); Ju(:); Jd(:)];
   S = [Sm(:); Sl(:); Sr(:); Su(:); Sd(:)];
   A = sparse(I,J,S,N,N);
-  P = zeros(N,1);
   clear idx Im Jm Sm Il Jl Sl Ir Jr Sr Iu Ju Su Id Jd Sd I J S
 
   % factor matrix
-  Afun = @(i,j)spget(A,i,j,P);
+  Afun = @(i,j)Afun2(i,j,A,N);
   pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,A);
   opts = struct('symm',symm,'verb',1);
   F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
@@ -86,6 +85,25 @@ function fd_square(n,occ,rank_or_tol,symm)
   e2 = norm(X - A*Z)/norm(X);
   fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter,iter,t)
+end
+
+% matrix entries
+function X = Afun2(i,j,A,N)
+  persistent P
+  if isempty(P)
+    P = zeros(N,1);
+  end
+  m = length(i);
+  n = length(j);
+  [I_sort,E] = sort(i);
+  P(I_sort) = E;
+  X = zeros(m,n);
+  [I,J,S] = find(A(:,j));
+  idx = ismemb(I,I_sort);
+  I = I(idx);
+  J = J(idx);
+  S = S(idx);
+  X(P(I) + (J - 1)*m) = S;
 end
 
 % proxy function

@@ -204,7 +204,7 @@ function D = rskelf_diag(F,dinv,opts)
 
   % sparse matrix access function (native MATLAB is slow for large matrices)
   function A = spget_sk
-    A = spget(M,sk,sk,P);
+    [A,P] = spget(M,sk,sk,P);
     if nsk && ~strcmpi(F.symm,'n')
       D_ = diag(diag(A));
       L_ = tril(A,-1);

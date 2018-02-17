@@ -35,8 +35,8 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
   proxy = [-proxy proxy];
 
   % factor matrix
-  Afun = @(i,j)Afun2(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,scale);
+  Afun = @(i,j)Afun2(i,j,x,noise);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy);
   opts = struct('symm',symm,'verb',1);
   F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
@@ -146,26 +146,26 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
     fprintf([repmat('-',1,80) '\n'])
     fprintf('diag: %10.4e / %10.4e\n',e1,e2)
   end
-end
 
-% kernel function
-function K = Kfun(x,y,scale)
-  dr = scale*abs(bsxfun(@minus,x',y));
-  K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
+  % kernel function
+  function K = Kfun(x,y)
+    dr = scale*abs(bsxfun(@minus,x',y));
+    K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
+  end
 end
 
 % matrix entries
-function A = Afun2(i,j,x,noise,scale)
-  A = Kfun(x(:,i),x(:,j),scale);
+function A = Afun2(i,j,x,noise)
+  A = Kfun(x(:,i),x(:,j));
   [I,J] = ndgrid(i,j);
   idx = I == J;
   A(idx) = A(idx) + noise^2;
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,scale)
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy)
   pxy = bsxfun(@plus,proxy*l,ctr');
-  Kpxy = Kfun(pxy,x(slf),scale);
+  Kpxy = Kfun(pxy,x(slf));
 end
 
 % FFT multiplication

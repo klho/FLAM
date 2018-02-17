@@ -1,9 +1,11 @@
 % SPGET  Sparse matrix access (native MATLAB is slow for large matrices).
 %
-%    S = SPGET(A,I,J,P) returns the submatrix S = A(I,J) in dense form using
-%    workspace array P, which must be of size MAX(I).
+%    [S,P] = SPGET(A,I,J,P) returns the submatrix S = A(I,J) in dense form using
+%    the workspace array P, which must be of size MAX(I). Due to MATLAB
+%    semantics, P should always be returned in order to avoid copying it on
+%    input.
 
-function S = spget(A,I,J,P)
+function [S,P] = spget(A,I,J,P)
   m = length(I);
   n = length(J);
   [I_sort,E] = sort(I);
