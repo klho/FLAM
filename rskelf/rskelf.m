@@ -117,7 +117,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
              opts.symm);
   nlvl = 0;
   n = 0;
-  rem = ones(N,1);
+  rem = true(N,1);
   M = cell(nbox,1);
   I = zeros(N,1);
 

@@ -133,7 +133,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
 
     % pull up skeletons from children
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-        t.nodes(i).xi = [t.nodes(i).xi [t.nodes(t.nodes(i).chld).xi]];
+      t.nodes(i).xi = [t.nodes(i).xi [t.nodes(t.nodes(i).chld).xi]];
     end
 
     % loop over dimensions
@@ -184,9 +184,11 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         idx(:) = 0;
         p = find(histc(j,1:max(j)) > 1);
 
-        % for D = 1 means shared across a diagonal
+        % for edges, keep only if shared "diagonally" across boxes
         if d == 1
-          for k = 1:length(p)
+          np = length(p);
+          keep = false(np,1);
+          for k = 1:np
             c = i(p(k));
             box = ctr2box(c);
             nbr = t.nodes(box).nbor;
@@ -195,11 +197,11 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
             nbr_ctr = reshape([t.nodes(nbr).ctr],3,[])';
             dist_ctr = round(2*(box_ctr - ctr(c,:))/l);
             dist_nbr = round(bsxfun(@minus,box_ctr,nbr_ctr)/l);
-            if ~any(all(bsxfun(@eq,dist_nbr,dist_ctr),2))
-              p(k) = 0;
+            if any(all(bsxfun(@eq,dist_nbr,dist_ctr),2))
+              keep(k) = 1;
             end
           end
-          p = nonzeros(p);
+          p = p(keep);
         end
         i = i(p);
         idx(p) = 1:length(p);

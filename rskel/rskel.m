@@ -129,8 +129,8 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   nlvl = 0;
   nd = 0;
   nu = 0;
-  rrem = ones(M,1);
-  crem = ones(N,1);
+  rrem = true(M,1);
+  crem = true(N,1);
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1

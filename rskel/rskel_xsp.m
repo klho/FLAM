@@ -91,13 +91,13 @@ function A = rskel_xsp(F)
     end
 
     % embed interpolation identity matrices
-    I(nz+1:nz+rk) = M + prrem1(rrem);
-    J(nz+1:nz+rk) = N + cn + prrem2(rrem);
+    I(nz+1:nz+rk) = M + prrem1(find(rrem));
+    J(nz+1:nz+rk) = N + cn + prrem2(find(rrem));
     S(nz+1:nz+rk) = ones(rk,1);
     nz = nz + rk;
     if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
-      I(nz+1:nz+ck) = M + rn + pcrem2(crem);
-      J(nz+1:nz+ck) = N + pcrem1(crem);
+      I(nz+1:nz+ck) = M + rn + pcrem2(find(crem));
+      J(nz+1:nz+ck) = N + pcrem1(find(crem));
       S(nz+1:nz+ck) = ones(ck,1);
       nz = nz + ck;
     end

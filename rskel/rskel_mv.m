@@ -51,9 +51,9 @@ function Y = rskel_mv(F,X,trans)
     prrem2 = cumsum(rrem);
     pcrem2 = cumsum(crem);
     if strcmpi(trans,'n')
-      Z{lvl+1} = Z{lvl}(pcrem1(crem),:);
+      Z{lvl+1} = Z{lvl}(pcrem1(find(crem)),:);
     else
-      Z{lvl+1} = Z{lvl}(prrem1(rrem),:);
+      Z{lvl+1} = Z{lvl}(prrem1(find(rrem)),:);
     end
 
     % apply interpolation operators
@@ -111,10 +111,10 @@ function Y = rskel_mv(F,X,trans)
     pcrem1 = cumsum(crem);
     if strcmpi(trans,'n')
       Y{lvl} = zeros(sum(rrem),size(X,2));
-      Y{lvl}(prrem1(rem_),:) = Y{lvl+1};
+      Y{lvl}(prrem1(find(rem_)),:) = Y{lvl+1};
     else
       Y{lvl} = zeros(sum(crem),size(X,2));
-      Y{lvl}(pcrem1(rem_),:) = Y{lvl+1};
+      Y{lvl}(pcrem1(find(rem_)),:) = Y{lvl+1};
     end
 
     % apply interpolation operators

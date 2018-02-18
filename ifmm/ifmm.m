@@ -152,8 +152,8 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
              zeros(1,nlvl+1),'B',B,'U',U,'store',opts.store,'symm',opts.symm);
   nb = 0;
   nu = 0;
-  rrem = ones(M,1);
-  crem = ones(N,1);
+  rrem = true(M,1);
+  crem = true(N,1);
 
   % process direct interactions
   tic
