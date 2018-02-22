@@ -17,5 +17,11 @@ for s = dirs
   addpath(sprintf('%s/%s/spdiag',curpath,s{:}))
 end
 
+% add experimental paths
+dirs = {'experimental/rskelfr'};
+for s = dirs
+  addpath(sprintf('%s/%s',curpath,s{:}))
+end
+
 % clear
 clear
