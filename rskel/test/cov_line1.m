@@ -32,8 +32,8 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   proxy = [-proxy proxy];
 
   % compress matrix
-  Afun = @(i,j)Afun2(i,j,x,noise);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy);
+  Afun = @(i,j)Afun2(i,j,x,noise,scale);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,scale);
   opts = struct('symm',symm,'verb',1);
   F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
@@ -177,29 +177,29 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   end
   e = norm(S - T)/norm(T);
   fprintf('diaginv: %10.4e / %10.4e (s)\n',e,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dr = scale*abs(bsxfun(@minus,x',y));
-    K = exp(-0.5*dr.^2);
-  end
+% kernel function
+function K = Kfun(x,y,scale)
+  dr = scale*abs(bsxfun(@minus,x',y));
+  K = exp(-0.5*dr.^2);
 end
 
 % matrix entries
-function A = Afun2(i,j,x,noise)
-  A = Kfun(x(:,i),x(:,j));
+function A = Afun2(i,j,x,noise,scale)
+  A = Kfun(x(:,i),x(:,j),scale);
   [I,J] = ndgrid(i,j);
   idx = I == J;
   A(idx) = A(idx) + noise^2;
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy)
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,scale)
   pxy = bsxfun(@plus,proxy*l,ctr');
   if strcmpi(rc,'r')
-    Kpxy = Kfun(rx(:,slf),pxy);
+    Kpxy = Kfun(rx(:,slf),pxy,scale);
   elseif strcmpi(rc,'c')
-    Kpxy = Kfun(pxy,cx(:,slf));
+    Kpxy = Kfun(pxy,cx(:,slf),scale);
   end
 end
 

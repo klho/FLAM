@@ -111,13 +111,13 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,store)
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(B - ifmm_mv(G,Z,Afun))/norm(B);
   fprintf('lsqr: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2,piter,iter,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
-  end
+% kernel function
+function K = Kfun(x,y)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
 end
 
 % matrix entries

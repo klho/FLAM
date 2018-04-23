@@ -71,12 +71,12 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   Z = A'*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dr = abs(bsxfun(@minus,x',y));
-    K = dr;
-  end
+% kernel function
+function K = Kfun(x,y)
+  dr = abs(bsxfun(@minus,x',y));
+  K = dr;
 end
 
 % matrix entries

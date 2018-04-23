@@ -37,8 +37,8 @@ function mv_square2(m,n,k,occ,p,rank_or_tol,near,store)
   proxy = 1.5*[cos(theta); sin(theta)];
 
   % compress matrix
-  Afun = @(i,j)Afun2(i,j,rx,cx);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy);
+  Afun = @(i,j)Afun2(i,j,rx,cx,k);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,k);
   opts = struct('near',near,'store',store,'verb',1);
   F = ifmm(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
@@ -76,29 +76,29 @@ function mv_square2(m,n,k,occ,p,rank_or_tol,near,store)
   Z = A'*X;
   e = norm(Z - Y(r,:))/norm(Z);
   fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
-  end
+% kernel function
+function K = Kfun(x,y,k)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
 end
 
 % matrix entries
-function A = Afun2(i,j,rx,cx)
-  A = Kfun(rx(:,i),cx(:,j));
+function A = Afun2(i,j,rx,cx,k)
+  A = Kfun(rx(:,i),cx(:,j),k);
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy)
+function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,k)
   pxy = bsxfun(@plus,proxy*l,ctr');
   if strcmpi(rc,'r')
-    Kpxy = Kfun(rx(:,slf),pxy);
+    Kpxy = Kfun(rx(:,slf),pxy,k);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
   elseif strcmpi(rc,'c')
-    Kpxy = Kfun(pxy,cx(:,slf));
+    Kpxy = Kfun(pxy,cx(:,slf),k);
     dx = rx(1,nbr) - ctr(1);
     dy = rx(2,nbr) - ctr(2);
   end

@@ -73,13 +73,13 @@ function ie_square2x(n,occ,p,rank_or_tol,skip,symm)
   t = toc;
   [e,niter] = snorm(N,@(x)(x - mv(hifie_sv(F,x))),[],[],1);
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
-  end
+% kernel function
+function K = Kfun(x,y)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
 end
 
 % matrix entries

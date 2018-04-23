@@ -76,18 +76,18 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
+end
 
-  % kernel function
-  function K = Kfun(x,y,lp)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    dr = sqrt(dx.^2 + dy.^2);
-    if strcmpi(lp,'s')
-      K = -1/(2*pi)*log(dr);
-    elseif strcmpi(lp,'d')
-      rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
-      K = 1/(2*pi).*rdotn./dr.^2;
-    end
+% kernel function
+function K = Kfun(x,y,lp)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dr = sqrt(dx.^2 + dy.^2);
+  if strcmpi(lp,'s')
+    K = -1/(2*pi)*log(dr);
+  elseif strcmpi(lp,'d')
+    rdotn = bsxfun(@times,dx,y(1,:)) + bsxfun(@times,dy,y(2,:));
+    K = 1/(2*pi).*rdotn./dr.^2;
   end
 end
 

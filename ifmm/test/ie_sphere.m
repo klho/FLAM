@@ -96,14 +96,13 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
     S = [];
   end
   S = sparse(I,J,S,N,N);
-  P = zeros(N,1);
   t = toc;
   w = whos('S');
   fprintf('quad: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6)
   clear V F trans rot V2 V3 T I J
 
   % compress matrix
-  Afun = @(i,j)Afun2(i,j,x,nu,area,S,P);
+  Afun = @(i,j)Afun2(i,j,x,nu,area,S);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,nu, ...
                                             area);
   opts = struct('near',near,'store',store,'verb',1);
@@ -170,57 +169,62 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   Z = Kfun(trg,src,'s')*q;
   e = norm(Z - Y)/norm(Z);
   fprintf('pde: %10.4e\n',e)
+end
 
-  % quadrature function
-  function f = quadfun(x,y,trg)
-    dx = trg(1) - x;
-    dy = trg(2) - y;
-    dz = trg(3);
-    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-    f = 1/(4*pi).*dz./dr.^3;
-  end
+% quadrature function
+function f = quadfun(x,y,trg)
+  dx = trg(1) - x;
+  dy = trg(2) - y;
+  dz = trg(3);
+  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+  f = 1/(4*pi).*dz./dr.^3;
+end
 
-  % quadrature corrections
-  function A = quadcorr(I_,J_)
-    m_ = length(I_);
-    n_ = length(J_);
-    [I_sort,E] = sort(I_);
-    P(I_sort) = E;
-    A = zeros(m_,n_);
-    [I_,J_,S_] = find(S(:,J_));
-    idx = ismemb(I_,I_sort);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    A(P(I_) + (J_ - 1)*m_) = S_;
+% quadrature corrections
+function X = quadcorr(i,j,A,N)
+  persistent P
+  if isempty(P)
+    P = zeros(N,1);
   end
+  m = length(i);
+  n = length(j);
+  [I_sort,E] = sort(i);
+  P(I_sort) = E;
+  X = zeros(m,n);
+  [I,J,S] = find(A(:,j));
+  idx = ismemb(I,I_sort);
+  I = I(idx);
+  J = J(idx);
+  S = S(idx);
+  X(P(I) + (J - 1)*m) = S;
+end
 
-  % kernel function
-  function K = Kfun(x,y,lp,nu)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    dz = bsxfun(@minus,x(3,:)',y(3,:));
-    dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-    if strcmpi(lp,'s')
-      K = 1/(4*pi)./dr;
-    elseif strcmpi(lp,'d')
-      rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
-              bsxfun(@times,dz,nu(3,:));
-      K = 1/(4*pi).*rdotn./dr.^3;
-    end
-    K(dr == 0) = 0;
+% kernel function
+function K = Kfun(x,y,lp,nu)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dz = bsxfun(@minus,x(3,:)',y(3,:));
+  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
+  if strcmpi(lp,'s')
+    K = 1/(4*pi)./dr;
+  elseif strcmpi(lp,'d')
+    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
+            bsxfun(@times,dz,nu(3,:));
+    K = 1/(4*pi).*rdotn./dr.^3;
   end
+  K(dr == 0) = 0;
 end
 
 % matrix entries
-function A = Afun2(i,j,x,nu,area)
+function A = Afun2(i,j,x,nu,area,S)
   if isempty(i) || isempty(j)
     A = zeros(length(i),length(j));
     return
   end
   [I,J] = ndgrid(i,j);
   A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
-  M = quadcorr(i,j);
+  N = size(x,2);
+  M = quadcorr(i,j,S,N);
   idx = M ~= 0;
   A(idx) = M(idx);
   A(I == J) = -0.5;

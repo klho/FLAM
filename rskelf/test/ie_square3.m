@@ -46,8 +46,8 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   end
 
   % factor matrix
-  Afun = @(i,j)Afun2(i,j,sqrtb);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,sqrtb,symm);
+  Afun = @(i,j)Afun2(i,j,x,k,intgrl,sqrtb);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm);
   opts = struct('symm',symm,'verb',1);
   F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts);
   w = whos('F');
@@ -55,7 +55,7 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
 
   % set up FFT multiplication
-  a = reshape(Afun_ti(1:N,1),n,n);
+  a = reshape(Afun_ti(1:N,1,x,k,intgrl),n,n);
   B = zeros(2*n-1,2*n-1);
   B(  1:n  ,  1:n  ) = a;
   B(  1:n  ,n+1:end) = a( : ,2:n);
@@ -99,26 +99,27 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   e2 = norm(X - mv(Z))/norm(X);
   fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
           piter(2),iter(2),t)
+end
 
-  % kernel function
-  function K = Kfun(x,y)
-    dx = bsxfun(@minus,x(1,:)',y(1,:));
-    dy = bsxfun(@minus,x(2,:)',y(2,:));
-    K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
-  end
+% kernel function
+function K = Kfun(x,y,k)
+  dx = bsxfun(@minus,x(1,:)',y(1,:));
+  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
+end
 
-  % translation-invariant part of matrix
-  function [A,idx] = Afun_ti(i,j)
-    A = Kfun(x(:,i),x(:,j),k)/N;
-    [I,J] = ndgrid(i,j);
-    idx = I == J;
-    A(idx) = intgrl;
-  end
+% translation-invariant part of matrix
+function [A,idx] = Afun_ti(i,j,x,k,intgrl)
+  N = size(x,2);
+  A = Kfun(x(:,i),x(:,j),k)/N;
+  [I,J] = ndgrid(i,j);
+  idx = I == J;
+  A(idx) = intgrl;
 end
 
 % matrix entries
-function A = Afun2(i,j,sqrtb)
-  [A,idx] = Afun_ti(i,j);
+function A = Afun2(i,j,x,k,intgrl,sqrtb)
+  [A,idx] = Afun_ti(i,j,x,k,intgrl);
   if ~isempty(A)
     A = bsxfun(@times,sqrtb(i),bsxfun(@times,A,sqrtb(j)'));
     A(idx) = A(idx) + 1;
@@ -126,10 +127,10 @@ function A = Afun2(i,j,sqrtb)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,sqrtb,symm)
+function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
   pxy = bsxfun(@plus,proxy*l,ctr');
   N = size(x,2);
-  Kpxy = Kfun(pxy,x(:,slf))/N;
+  Kpxy = Kfun(pxy,x(:,slf),k)/N;
   Kpxy = bsxfun(@times,Kpxy,sqrtb(slf)');
   if strcmpi(symm,'n')
     Kpxy = [Kpxy; conj(Kpxy)];
