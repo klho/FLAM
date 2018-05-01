@@ -115,7 +115,7 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
 
   % run preconditioned GMRES
   tic
-  [Z,~,~,piter] = gmres(mv,X,[],1e-12,32,@(x)(sv(x,'n')));
+  [Z,~,~,piter] = gmres(mv,X,[],1e-12,32,@(x)sv(x,'n'));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - mv(Z))/norm(X);

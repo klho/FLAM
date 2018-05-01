@@ -71,7 +71,8 @@ function fd_square(n,occ,rank_or_tol,symm)
   tic
   Y = rskelf_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*rskelf_sv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - A*rskelf_sv(F,x)), ...
+                      @(x)(x - rskelf_sv(F,A*x,'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % run CG
@@ -79,7 +80,7 @@ function fd_square(n,occ,rank_or_tol,symm)
 
   % run PCG
   tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(rskelf_sv(F,x)));
+  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)rskelf_sv(F,x));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);

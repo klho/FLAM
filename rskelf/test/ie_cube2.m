@@ -74,7 +74,8 @@ function ie_cube2(n,occ,p,rank_or_tol,symm)
   tic
   rskelf_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - mv(rskelf_sv(F,x))), ...
+                      @(x)(x - rskelf_sv(F,mv(x),'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 end
 

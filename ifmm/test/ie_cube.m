@@ -78,7 +78,7 @@ function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
 
   % run GMRES
   tic
-  [Y,~,~,iter] = gmres(@(x)(ifmm_mv(F,x,Afun)),X,[],1e-12,32);
+  [Y,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),X,[],1e-12,32);
   t = toc;
   e = norm(X - mv(Y))/norm(X);
   fprintf('gmres: %10.4e / %4d / %10.4e (s)\n',e,iter(2),t)

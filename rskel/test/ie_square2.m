@@ -71,7 +71,7 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
     spmem = (spmem + w.bytes)/1e6;
   end
   fprintf('lu/ldl: %10.4e (s) / %6.2f (MB)\n',t,spmem)
-  sv = @(x)sv2(FA,x);
+  sv = @(x,trans)sv2(FA,x,trans);
 
   % set up FFT multiplication
   a = reshape(Afun(1:N,1),n,n);
@@ -99,9 +99,9 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
   tic
-  sv(X);
+  sv(X,'n');
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - mv(sv(x))),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - mv(sv(x,'n'))),@(x)(x - sv(mv(x),'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 end
 
@@ -146,11 +146,15 @@ function y = mv2(F,x)
 end
 
 % sparse LU solve
-function Y = sv2(F,X)
+function Y = sv2(F,X,trans)
   N = size(X,1);
   X = [X; zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
-    Y = F.U\(F.L\X);
+    if strcmpi(trans,'n')
+      Y = F.U\(F.L\X);
+    else
+      Y = F.L'\(F.U'\X);
+    end
   else
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));
   end

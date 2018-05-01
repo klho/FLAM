@@ -109,7 +109,7 @@ function fd_square2x(n,occ,symm)
   tic
   Y = mf_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),@(x)(x - mf_sv(F,A*x,'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   if strcmpi(symm,'p')
@@ -137,7 +137,7 @@ function fd_square2x(n,occ,symm)
 
   % run PCG
   tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)(mf_sv(F,x)));
+  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)mf_sv(F,x));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);

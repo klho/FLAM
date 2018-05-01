@@ -152,7 +152,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
 
   % solve for surface density
   tic
-  [X,~,~,iter] = gmres(@(x)(ifmm_mv(F,x,Afun)),B,[],1e-6,32);
+  [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,[],1e-6,32);
   t = toc;
   r = randperm(N);
   r = r(1:min(N,128));

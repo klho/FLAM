@@ -74,7 +74,8 @@ function ie_cube1(n,occ,p,rank_or_tol,symm)
   tic
   Y = rskelf_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - mv(rskelf_sv(F,x))), ...
+                      @(x)(x - rskelf_sv(F,mv(x),'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % run unpreconditioned GMRES
@@ -82,7 +83,7 @@ function ie_cube1(n,occ,p,rank_or_tol,symm)
 
   % run preconditioned GMRES
   tic
-  [Z,~,~,piter] = gmres(mv,X,[],1e-12,32,@(x)(rskelf_sv(F,x)));
+  [Z,~,~,piter] = gmres(mv,X,[],1e-12,32,@(x)rskelf_sv(F,x));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - mv(Z))/norm(X);

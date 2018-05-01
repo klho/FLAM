@@ -103,7 +103,7 @@ function fd_cube3(n,k,occ,rank_or_tol,skip,symm)
   tic
   Y = hifde_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*hifde_sv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - A*hifde_sv(F,x)),@(x)(x - hifde_sv(F,A*x,'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % run unpreconditioned GMRES
@@ -111,7 +111,7 @@ function fd_cube3(n,k,occ,rank_or_tol,skip,symm)
 
   % run preconditioned GMRES
   tic
-  [Z,~,~,piter] = gmres(@(x)(A*x),X,[],1e-12,32,@(x)(hifde_sv(F,x)));
+  [Z,~,~,piter] = gmres(@(x)(A*x),X,[],1e-12,32,@(x)hifde_sv(F,x));
   t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(X - A*Z)/norm(X);

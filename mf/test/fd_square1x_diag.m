@@ -90,7 +90,7 @@ function fd_square1x_diag(n,occ,symm,spdiag)
   tic
   Y = mf_sv(F,X);
   t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),[],[],1);
+  [e,niter] = snorm(N,@(x)(x - A*mf_sv(F,x)),@(x)(x - mf_sv(F,A*x,'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % prepare for diagonal extracation

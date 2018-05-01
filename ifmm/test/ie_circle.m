@@ -66,7 +66,7 @@ function ie_circle(n,occ,p,rank_or_tol,near,store,symm)
 
   % solve for surface density
   tic
-  [X,~,~,iter] = gmres(@(x)(ifmm_mv(F,x,Afun)),B,[],1e-12,32);
+  [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,[],1e-12,32);
   t = toc;
   e = norm(B - mv(X))/norm(B);
   fprintf('gmres: %10.4e / %4d / %10.4e (s)\n',e,iter(2),t)
