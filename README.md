@@ -1,6 +1,8 @@
 FLAM (Fast Linear Algebra in MATLAB)
 ====================================
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1253582.svg)](https://doi.org/10.5281/zenodo.1253582)
+
 This MATLAB library implements various fast algorithms for certain classes of matrices with hierarchical low-rank block structure. Such matrices commonly arise in physical problems, including many classical integral and differential equations, and have appeared in the literature under an assortment of related names (e.g., H-, H2-, FMM, HODLR, HSS, HBS). Other application domains include multivariate statistics and uncertainty quantification (covariance matrices).
 
 The primary purpose of this library is for personal prototyping, though it has been recognized that others may find it useful as well. Consequently, the algorithms do not contain all the latest features, but they can be considered reasonably complete; for example, most codes support full adaptivity.
