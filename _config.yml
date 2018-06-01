@@ -1,0 +1,8 @@
+title: FLAM
+description: Fast linear algebra in MATLAB
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-minimal
+
+gems:
+  - jekyll-mentions
