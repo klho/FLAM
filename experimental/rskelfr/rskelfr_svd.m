@@ -24,7 +24,15 @@ function Y = rskelfr_svd(F,X,trans)
     for i = 1:n
       rrd = F.factors(i).rrd;
       crd = F.factors(i).crd;
-      Y(crd,:) = F.factors(i).U\(F.factors(i).L\X(rrd,:));
+      nrrd = length(rrd);
+      ncrd = length(crd);
+      if nrrd > ncrd
+        Y(crd,:) = F.factors(i).U\(F.factors(i).L'*X(rrd,:));
+      elseif nrrd < ncrd
+        Y(crd,:) = F.factors(i).U'*(F.factors(i).L\X(rrd,:));
+      else
+        Y(crd,:) = F.factors(i).U\(F.factors(i).L\X(rrd,:));
+      end
     end
 
   % conjugate transpose
@@ -33,9 +41,19 @@ function Y = rskelfr_svd(F,X,trans)
     for i = 1:n
       rrd = F.factors(i).rrd;
       crd = F.factors(i).crd;
-      L = F.factors(i).U';
-      U = F.factors(i).L';
-      Y(rrd,:) = U\(L\X(crd,:));
+      nrrd = length(rrd);
+      ncrd = length(crd);
+      if nrrd > ncrd
+        L = F.factors(i).U';
+        Y(rrd,:) = F.factors(i).L*(L\X(crd,:));
+      elseif nrrd < ncrd
+        U = F.factors(i).L';
+        Y(rrd,:) = U\(F.factors(i).U*X(crd,:));
+      else
+        L = F.factors(i).U';
+        U = F.factors(i).L';
+        Y(rrd,:) = U\(L\X(crd,:));
+      end
     end
   end
 end

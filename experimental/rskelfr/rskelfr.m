@@ -200,9 +200,23 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       % compute factors
       K(rrd,:) = K(rrd,:) - rT'*K(rsk,:);
       K(:,crd) = K(:,crd) - K(:,csk)*cT;
-      [L,U] = lu(K(rrd,crd));
-      E = (K(rsk,crd)/U)/L;
-      G = U\(L\K(rrd,csk));
+      Krd = K(rrd,crd);
+      [nrrd,ncrd] = size(Krd);
+      if nrrd > ncrd
+        [L,U] = qr(Krd);
+        E = (K(rsk,crd)/U)*L';
+        G = U\(L'*K(rrd,csk));
+      elseif nrrd < ncrd
+        [Q,R] = qr(Krd');
+        L = R';
+        U = Q';
+        E = (K(rsk,crd)*U')/L;
+        G = U'*(L\K(rrd,csk));
+      else
+        [L,U] = lu(Krd);
+        E = (K(rsk,crd)/U)/L;
+        G = U\(L\K(rrd,csk));
+      end
 
       % update self-interaction
       S{i} = S{i}(rsk,csk) - E*(L*(U*G));
