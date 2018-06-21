@@ -180,11 +180,6 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       K = [K; Kpxy];
       [csk,crd,cT] = id(K,rank_or_tol);
 
-      % move on if no compression
-      if isempty(rrd) && isempty(crd)
-        continue
-      end
-
       % find good redundant pivots
       K = S{i};
       if lvl > 1
@@ -195,6 +190,11 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         elseif nrrd < ncrd
           [csk,crd,cT] = rdpivot('c',K(rrd,crd),csk,crd,cT);
         end
+      end
+
+      % move on if no compression
+      if isempty(rrd) && isempty(crd)
+        continue
       end
 
       % compute factors
