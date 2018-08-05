@@ -1,6 +1,6 @@
-% Underdetermined least squares on the unit circle, Laplace sources.
+% Least squares on the unit circle, Laplace sources.
 
-function uls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
+function ls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
 
   % set default parameters
   if nargin < 1 || isempty(m)
@@ -10,7 +10,7 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
     n = 16384;
   end
   if nargin < 3 || isempty(delta)
-    delta = 1e-12;
+    delta = 1e-3;
   end
   if nargin < 4 || isempty(occ)
     occ = 128;
@@ -71,35 +71,32 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
   fprintf('mv: %10.4e / %4d / %10.4e (s) / %10.4e (s)\n',e,niter,t1,t2)
 
   % test weak pseudoinverse apply accuracy
-  X = rand(M,1);
-  X = X/norm(X);
+  X = rand(N,1);
+  B = ifmm_mv(G,X,Afun);
   tic
-  rskelfr_sv(F,X);
+  rskelfr_sv(F,B);
   t = toc;
 
-  % M >= N (overdetermined): NORM(I - PINV(F)*A)
-  if M >= N
-    [e,niter] = snorm(N,@(x)(x - rskelfr_sv(F,ifmm_mv(G,x,Afun,'n'),'n')),
-                        @(x)(x - ifmm_mv(G,rskelfr_sv(F,x,'c'),Afun,'c')));
-
-  % M < N (underdetermined): NORM(I - A*PINV(F))
-  else
-    [e,niter] = snorm(M,@(x)(x - ifmm_mv(G,rskelfr_sv(F,x,'n'),Afun,'n')),
-                        @(x)(x - rskelfr_sv(F,ifmm_mv(G,x,Afun,'c'),'c')));
-  end
+  % residual in range(A): NORM(A - A*PINV(F)*A)
+  [e,niter] = snorm(N,
+    @(x)(ifmm_mv(G,x,Afun,'n') - ...
+         ifmm_mv(G,rskelfr_sv(F,ifmm_mv(G,x,Afun,'n'),'n'),Afun,'n')), ...
+    @(x)(ifmm_mv(G,x,Afun,'c') - ...
+         ifmm_mv(G,rskelfr_sv(F,ifmm_mv(G,x,Afun,'c'),'c'),Afun,'c')));
   fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % example application with simple estimates for residual/norm factors
-  m = 16;
-  B = rand(M,m);
-  X = rskelfr_sv(F,B);
-  C = ifmm_mv(G,X,Afun);
+  nrhs = 16;
+  X = rand(N,nrhs);
+  B = ifmm_mv(G,X,Afun);
+  Y = rskelfr_sv(F,B);
+  C = ifmm_mv(G,Y,Afun);
   condl = snorm(M,@(x)rskelfr_mvl(F,x,'n'),@(x)rskelfr_mvl(F,x,'c')) ...
         * snorm(M,@(x)rskelfr_svl(F,x,'n'),@(x)rskelfr_svl(F,x,'c'));
   condu = snorm(N,@(x)rskelfr_mvu(F,x,'n'),@(x)rskelfr_mvu(F,x,'c')) ...
         * snorm(N,@(x)rskelfr_svu(F,x,'n'),@(x)rskelfr_svu(F,x,'c'));
-  fprintf('uls: %10.4e / %10.4e / %10.4e / %10.4e\n', ...
-          norm(B - C)/norm(B),norm(X),condl,condu)
+  fprintf('ls: %10.4e / %10.4e / %10.4e / %10.4e / %10.4e / %10.4e\n', ...
+          norm(B - C)/norm(B),norm(X - Y)/norm(X),norm(X),norm(Y),condl,condu)
 
   % kernel function
   function K = Kfun(x,y)
