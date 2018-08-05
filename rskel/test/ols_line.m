@@ -79,7 +79,7 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
   t = toc;
   w = whos('R');
   fprintf('qr: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6)
-    nc = size(A,1) - M - N;
+  nc = size(A,1) - M - N;
   ls = @(X)ls2(A,R,X,N,nc,tau);
 
   % set up right-hand side
