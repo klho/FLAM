@@ -4,10 +4,10 @@ function ls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
 
   % set default parameters
   if nargin < 1 || isempty(m)
-    m = 8192;
+    m = 16384;
   end
   if nargin < 2 || isempty(n)
-    n = 16384;
+    n = 8192;
   end
   if nargin < 3 || isempty(delta)
     delta = 1e-3;
