@@ -57,6 +57,10 @@ function [sk,rd,T] = id(A,rank_or_tol,srand)
     k = min(rank_or_tol,n);
   end
   sk = E(1:k);
-  rd = E(k+1:end);
-  T = R(1:k,1:k)\R(1:k,k+1:end);
+  if nargout > 1
+    rd = E(k+1:end);
+  end
+  if nargout > 2
+    T = R(1:k,1:k)\R(1:k,k+1:end);
+  end
 end

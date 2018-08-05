@@ -112,8 +112,10 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   F = struct('M',M,'N',N,'nlvl',t.nlvl,'lvp',zeros(1,t.nlvl+1),'factors',F);
   nlvl = 0;
   n = 0;
-  rrem = true(M,1);
+  rrem = true(M,1);   % which indices not yet eliminated
   crem = true(N,1);
+  rcrem = true(M,1);  % which indices need to be considered for ID
+  ccrem = true(N,1);
   S = cell(nbox,1);
   rI = zeros(M,1);
   cI = zeros(N,1);
@@ -124,6 +126,8 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     nlvl = nlvl + 1;
     nrrem1 = sum(rrem);
     ncrem1 = sum(crem);
+    nrcrem1 = sum(rcrem);
+    nccrem1 = sum(ccrem);
     l = t.lrt/2^(lvl - 1);
 
     % pull up skeletons from children
@@ -154,31 +158,47 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         end
       end
 
+      % find restriction to "skeletonizable" set
+      rcslf = find(rcrem(rslf))';
+      ccslf = find(ccrem(cslf))';
+      rnbr = rnbr(find(rcrem(rnbr)));
+      cnbr = cnbr(find(ccrem(cnbr)));
+
       % skeletonize rows
       Kpxy = zeros(nrslf,0);
       if lvl > 2
         if isempty(pxyfun)
-          cnbr = setdiff(find(crem),cslf);
+          cnbr = setdiff(find(ccrem),cslf(ccslf));
         else
           [Kpxy,cnbr] = pxyfun('r',rx,cx,rslf,cnbr,l,t.nodes(i).ctr);
         end
       end
       K = full(A(rslf,cnbr));
       K = [K Kpxy]';
-      [rsk,rrd,rT] = id(K,rank_or_tol);
+      [rsk,~,~] = id(K(:,rcslf),rank_or_tol);
+      rsk = rcslf(rsk);
+      rrd = setdiff(1:nrslf,rsk);
+      rT = K(:,rsk)\K(:,rrd);
 
       % skeletonize columns
       Kpxy = zeros(0,ncslf);
       if lvl > 2
         if isempty(pxyfun)
-          rnbr = setdiff(find(rrem),rslf);
+          rnbr = setdiff(find(rcrem),rslf(rcslf));
         else
           [Kpxy,rnbr] = pxyfun('c',rx,cx,cslf,rnbr,l,t.nodes(i).ctr);
         end
       end
       K = full(A(rnbr,cslf));
       K = [K; Kpxy];
-      [csk,crd,cT] = id(K,rank_or_tol);
+      [csk,~,~] = id(K(:,ccslf),rank_or_tol);
+      csk = ccslf(csk);
+      crd = setdiff(1:ncslf,csk);
+      cT = K(:,csk)\K(:,crd);
+
+      % update "skeletonizable" set
+      rcrem(rslf(rrd)) = 0;
+      ccrem(cslf(crd)) = 0;
 
       % find good redundant pivots
       K = S{i};
@@ -203,11 +223,11 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       Krd = K(rrd,crd);
       [nrrd,ncrd] = size(Krd);
       if nrrd > ncrd
-        [L,U] = qr(Krd);
+        [L,U] = qr(Krd,0);
         E = (K(rsk,crd)/U)*L';
         G = U\(L'*K(rrd,csk));
       elseif nrrd < ncrd
-        [Q,R] = qr(Krd');
+        [Q,R] = qr(Krd',0);
         L = R';
         U = Q';
         E = (K(rsk,crd)*U')/L;
@@ -246,11 +266,17 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     if opts.verb
       nrrem2 = sum(rrem);
       ncrem2 = sum(crem);
+      nrcrem2 = sum(rcrem);
+      nccrem2 = sum(ccrem);
       nblk = pblk(lvl) + t.lvp(lvl+1) - t.lvp(lvl);
       fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e (s)\n', ...
               lvl,nblk,nrrem1,nrrem2,nrrem1/nblk,nrrem2/nblk,toc)
       fprintf('%3s | %6s | %8d | %8d | %8.2f | %8.2f | %10s (s)\n', ...
-              ' ',' ',ncrem1,ncrem2,ncrem1/nblk,ncrem2/nblk,'')
+              ' ',' ',nrcrem1,nrcrem2,nrcrem1/nblk,nrcrem2/nblk,'')
+      fprintf('%3s | %6d | %8d | %8d | %8.2f | %8.2f | %10s (s)\n', ...
+              ' ',nblk,ncrem1,ncrem2,ncrem1/nblk,ncrem2/nblk,'')
+      fprintf('%3s | %6s | %8d | %8d | %8.2f | %8.2f | %10s (s)\n', ...
+              ' ',' ',nccrem1,nccrem2,nccrem1/nblk,nccrem2/nblk,'')
     end
   end
 
