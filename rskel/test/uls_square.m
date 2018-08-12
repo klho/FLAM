@@ -80,34 +80,45 @@ function uls_square(m,n,occ,p,rank_or_tol,store)
   nc = size(A,1) - N;
   ls = @(X)ls2(A,R,X,N,nc,tau);
 
-  % set up right-hand side
-  X = rand(N,1);
-  B = ifmm_mv(G,X,Afun);
-
   % test pseudoinverse apply accuracy
+  B = ifmm_mv(G,X,Afun);
+  C = [B; zeros(nc-M,1)];
   tic
-  [Y,cres,niter] = ls([B; zeros(nc-M,1)]);
+  [Y,cres,niter] = ls(C);
   t = toc;
-  e = norm(B - ifmm_mv(G,Y,Afun))/norm(B);
-  fprintf('ls: %10.4e / %10.4e / %2d / %10.4e (s) / %10.4e / %10.4e\n',e, ...
-          cres,niter,t,norm(X),norm(Y))
+  e1 = norm(B - ifmm_mv(G,Y,Afun))/norm(B);
+  e2 = norm(X - Y);
+  fprintf('ls: %10.4e / %10.4e / %2d / %10.4e / %10.4e / %10.4e (s)\n', ...
+          e1,cres,niter,e2,norm(Y),t)
 
-  if isoctave()
+  if ~isoctave()
+    % run LSQR
+    C = [X; zeros(N,1)];
+    mv = @(x,trans)mv_lsqr(G,x,trans,Afun);
+    [~,~,~,iter] = lsqr(mv,C,1e-6,128);
+
+    % run LSQR with initial guess
+    tic
+    [Z,~,~,piter] = lsqr(mv,C,1e-6,32,[],[],Y);
+    t = toc;
+    fprintf('lsqr')
+  else
     warning('No LSQR in Octave.')
-    return
+
+    % run CG
+    C = ifmm_mv(G,B,Afun,'c');
+    mv = @(x)mv_cg(G,x,Afun);
+    [~,~,~,iter] = pcg(mv,C,1e-6,128);
+
+    % run CG with initial guess
+    tic
+    [Z,~,~,piter] = pcg(mv,C,1e-6,32,[],[],Y);
+    t = toc;
+    fprintf('cg')
   end
-
-  % run LSQR
-  mv = @(x,trans)mv2(G,x,trans,M,lambda);
-  [~,~,~,iter] = lsqr(mv,B,1e-6,128);
-
-  % run LSQR with initial guess
-  tic
-  [Z,~,~,piter] = lsqr(mv,B,1e-6,32,[],[],Y);
-  t = toc;
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(B - ifmm_mv(G,Z,Afun))/norm(B);
-  fprintf('lsqr: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2,piter,iter,t)
+  fprintf(': %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2,piter,iter,t)
 end
 
 % kernel function
@@ -153,10 +164,15 @@ function [Y,cres,niter] = ls2(A,R,X,N,nc,tau)
 end
 
 % matrix multiply for LSQR
-function y = mv2(F,x,trans)
+function y = mv_lsqr(F,x,trans,Afun)
   if strcmpi(trans,'notransp')
     y = ifmm_mv(F,x,Afun,'n');
   elseif strcmpi(trans,'transp')
     y = ifmm_mv(F,x,Afun,'c');
   end
+end
+
+% matrix multiply for CG
+function y = mv_cg(F,x,Afun)
+  y = ifmm_mv(F,ifmm_mv(F,x,Afun,'n'),Afun,'c');
 end
