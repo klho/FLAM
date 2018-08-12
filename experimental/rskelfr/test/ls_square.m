@@ -36,7 +36,7 @@ function ls_square(m,n,occ,p,rank_or_tol,rdpiv,store)
   proxy = [proxy 2*proxy];
   clear x1 x2
 
-  % compress matrix using RSKELFR
+  % factor matrix using RSKELFR
   Afun = @(i,j)Afun2(i,j,rx,cx);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('rdpiv',rdpiv,'verb',1);
@@ -59,14 +59,11 @@ function ls_square(m,n,occ,p,rank_or_tol,rdpiv,store)
   % NORM(A - F)/NORM(A)
   tic
   rskelfr_mv(F,X);
-  t1 = toc;
-  tic
-  ifmm_mv(G,X,Afun);
-  t2 = toc;
+  t = toc;
   [e,niter] = snorm(N,@(x)(ifmm_mv(G,x,Afun,'n') - rskelfr_mv(F,x,'n')), ...
                       @(x)(ifmm_mv(G,x,Afun,'c') - rskelfr_mv(F,x,'c')));
   e = e/snorm(N,@(x)(ifmm_mv(G,x,Afun,'n')),@(x)(ifmm_mv(G,x,Afun,'c')));
-  fprintf('mv: %10.4e / %4d / %10.4e (s) / %10.4e (s)\n',e,niter,t1,t2)
+  fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % residual error: NORM(A - A*PINV(F)*A)/NORM(A)
   B = ifmm_mv(G,X,Afun);

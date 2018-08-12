@@ -1,4 +1,4 @@
-% RSKELFR_SVL  Solve by L factor in rectangular recursive skeletonization
+% RSKELFR_SVL  Solve by L factor in range-restricted recursive skeletonization
 %              factorization F = L*D*U.
 %
 %    See also RSKELFR, RSKELFR_SV.

@@ -58,7 +58,6 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store)
   tic
   rskel_mv(F,X);
   t = toc;
-  ifmm_mv(G,X,Afun);
   [e,niter] = snorm(N,@(x)(ifmm_mv(G,x,Afun,'n') - rskel_mv(F,x,'n')), ...
                       @(x)(ifmm_mv(G,x,Afun,'c') - rskel_mv(F,x,'c')));
   e = e/snorm(N,@(x)(ifmm_mv(G,x,Afun,'n')),@(x)(ifmm_mv(G,x,Afun,'c')));

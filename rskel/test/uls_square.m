@@ -55,14 +55,11 @@ function uls_square(m,n,occ,p,rank_or_tol,store)
   % NORM(A - F)/NORM(A)
   tic
   rskel_mv(F,X);
-  t1 = toc;
-  tic
-  ifmm_mv(G,X,Afun);
-  t2 = toc;
+  t = toc;
   [e,niter] = snorm(N,@(x)(ifmm_mv(G,x,Afun,'n') - rskel_mv(F,x,'n')), ...
                       @(x)(ifmm_mv(G,x,Afun,'c') - rskel_mv(F,x,'c')));
   e = e/snorm(N,@(x)(ifmm_mv(G,x,Afun,'n')),@(x)(ifmm_mv(G,x,Afun,'c')));
-  fprintf('mv: %10.4e / %4d / %10.4e (s) / %10.4e (s)\n',e,niter,t1,t2)
+  fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % factor extended sparsification
   tau = eps^(-1/3);

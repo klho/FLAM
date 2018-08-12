@@ -1,5 +1,5 @@
-% RSKELFR_MVD  Multiply by D factor in rectangular recursive skeletonization
-%              factorization F = L*D*U.
+% RSKELFR_MVD  Multiply by D factor in range-restricted recursive
+%              skeletonization factorization F = L*D*U.
 %
 %    See also RSKELFR, RSKELFR_MV.
 

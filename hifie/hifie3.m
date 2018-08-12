@@ -332,8 +332,6 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         mod = unique(mod);
         mod = mod(~ismemb(mod,sslf));
         nbr = unique([nbr(:); mod(:)]);
-        nnbr = length(nbr);
-        snbr = sort(nbr);
 
         % compute interaction matrix
         K1 = full(A(nbr,slf));
