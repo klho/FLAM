@@ -1,42 +1,40 @@
-% Least squares on the unit circle, Laplace sources.
+% Least squares on the unit square, Laplace sources.
 
-function ls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
+function ls_square(m,n,occ,p,rank_or_tol,rdpiv,store)
 
   % set default parameters
   if nargin < 1 || isempty(m)
     m = 16384;
   end
   if nargin < 2 || isempty(n)
-    n = 8192;
+    n = 64;
   end
-  if nargin < 3 || isempty(delta)
-    delta = 1e-3;
-  end
-  if nargin < 4 || isempty(occ)
+  if nargin < 3 || isempty(occ)
     occ = 128;
   end
-  if nargin < 5 || isempty(p)
+  if nargin < 4 || isempty(p)
     p = 64;
   end
-  if nargin < 6 || isempty(rank_or_tol)
-    rank_or_tol = 1e-12;
+  if nargin < 5 || isempty(rank_or_tol)
+    rank_or_tol = 1e-6;
   end
-  if nargin < 7 || isempty(rdpiv)
+  if nargin < 6 || isempty(rdpiv)
     rdpiv = 'l';
   end
-  if nargin < 8 || isempty(store)
+  if nargin < 7 || isempty(store)
     store = 'a';
   end
 
   % initialize
-  theta = (1:m)*2*pi/m;
-  rx = (1 + delta)*[cos(theta); sin(theta)];
-  theta = (1:n)*2*pi/n;
-  cx = [cos(theta); sin(theta)];
+  rx = rand(2,m);
+  [x1,x2] = ndgrid((1:n)/n);
+  cx = [x1(:) x2(:)]';
   M = size(rx,2);
   N = size(cx,2);
   theta = (1:p)*2*pi/p;
   proxy = 1.5*[cos(theta); sin(theta)];
+  proxy = [proxy 2*proxy];
+  clear x1 x2
 
   % compress matrix using RSKELFR
   Afun = @(i,j)Afun2(i,j,rx,cx);
@@ -95,11 +93,11 @@ function ls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
   if ~isoctave()
     % run LSQR
     mv = @(x,trans)mv_lsqr(G,x,trans,Afun);
-    [~,~,~,iter] = lsqr(mv,B,1e-9,128);
+    [~,~,~,iter] = lsqr(mv,B,1e-6,128);
 
     % run LSQR with initial guess
     tic
-    [Z,~,~,piter] = lsqr(mv,B,1e-9,32,[],[],Y);
+    [Z,~,~,piter] = lsqr(mv,B,1e-6,32,[],[],Y);
     t = toc;
     fprintf('lsqr')
   else
@@ -108,11 +106,11 @@ function ls_circle(m,n,delta,occ,p,rank_or_tol,rdpiv,store)
     % run CG
     C = ifmm_mv(G,B,Afun,'c');
     mv = @(x)mv_cg(G,x,Afun);
-    [~,~,~,iter] = pcg(mv,C,1e-9,128);
+    [~,~,~,iter] = pcg(mv,C,1e-6,128);
 
     % run CG with initial guess
     tic
-    [Z,~,~,piter] = pcg(mv,C,1e-9,32,[],[],Y);
+    [Z,~,~,piter] = pcg(mv,C,1e-6,32,[],[],Y);
     t = toc;
     fprintf('cg')
   end
@@ -125,7 +123,8 @@ end
 function K = Kfun(x,y)
   dx = bsxfun(@minus,x(1,:)',y(1,:));
   dy = bsxfun(@minus,x(2,:)',y(2,:));
-  K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
+  dr = sqrt(dx.^2 + dy.^2);
+  K = dr.^2.*log(dr);
 end
 
 % matrix entries
