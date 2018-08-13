@@ -18,9 +18,9 @@ for s = dirs
 end
 
 % add experimental paths
-dirs = {'experimental/rskelfr'};
+dirs = {'hifier','rskelfr'};
 for s = dirs
-  addpath(sprintf('%s/%s',curpath,s{:}))
+  addpath(sprintf('%s/experimental/%s',curpath,s{:}))
 end
 
 % clear
