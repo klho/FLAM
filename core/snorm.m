@@ -66,7 +66,7 @@ function [s,niter] = snorm(n,mv,mva,niter_or_tol,herm,niter_max)
     else
       x = mva(mv(x));
     end
-    nrm = sqrt(sum(conj(x).*x));  % for MKL LD_PRELOAD
+    nrm = sqrt(dot(x,x));
 
     % estimate spectral norm
     if herm
