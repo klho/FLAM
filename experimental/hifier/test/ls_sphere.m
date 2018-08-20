@@ -106,19 +106,18 @@ function ls_sphere(m,n,delta,occ,p,rank_or_tol,skip,rdpiv,store)
     warning('No LSQR in Octave.')
 
     % run CG
-    C = ifmm_mv(G,B,Afun,'c');
-    mv = @(x)mv_cg(G,x,Afun);
-    [~,~,~,iter] = pcg(mv,C,1e-6,128);
+    [~,~,~,iter] = pcg(@(x)(ifmm_mv(G,ifmm_mv(G,x,Afun,'n'),Afun,'c')), ...
+                       ifmm_mv(G,B,Afun,'c'),1e-6,128);
 
-    % run CG with initial guess
+    % run preconditioned GMRES
     tic
-    [Z,~,~,piter] = pcg(mv,C,1e-6,32,[],[],Y);
+    [Z,~,~,piter] = gmres(@(x)(rskelfr_sv(F,ifmm_mv(G,x,Afun))),Y,[],1e-6,32);
     t = toc;
-    fprintf('cg')
+    fprintf('cg/gmres')
   end
   e1 = norm(Z - Y)/norm(Z);
   e2 = norm(B - ifmm_mv(G,Z,Afun))/norm(B);
-  fprintf(': %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2,piter,iter,t)
+  fprintf(': %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2,piter(2),iter,t)
 end
 
 % kernel function
@@ -160,9 +159,4 @@ function y = mv_lsqr(F,x,trans,Afun)
   elseif strcmpi(trans,'transp')
     y = ifmm_mv(F,x,Afun,'c');
   end
-end
-
-% matrix multiply for CG
-function y = mv_cg(F,x,Afun)
-  y = ifmm_mv(F,ifmm_mv(F,x,Afun,'n'),Afun,'c');
 end
