@@ -327,8 +327,6 @@ function F = hifie2r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         cslf = blk.cxi;
         nrslf = length(rslf);
         ncslf = length(cslf);
-        srslf = sort(rslf);
-        scslf = sort(cslf);
 
         % find restriction to "skeletonizable" set
         rcslf = find(rcrem(rslf))';
@@ -349,7 +347,7 @@ function F = hifie2r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         % add neighbors with modified interactions
         [~,mod] = find(X(rslf,:));
         mod = unique(mod);
-        mod = mod(~ismemb(mod,scslf));
+        mod = mod(~ismemb(mod,sort(cslf)));
         cnbr = unique([cnbr(:); mod(:)]);
 
         % compute interaction matrix
@@ -376,7 +374,7 @@ function F = hifie2r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         % add neighbors with modified interactions
         [mod,~] = find(X(:,cslf));
         mod = unique(mod);
-        mod = mod(~ismemb(mod,srslf));
+        mod = mod(~ismemb(mod,sort(rslf)));
         rnbr = unique([rnbr(:); mod(:)]);
 
         % compute interaction matrix
@@ -390,22 +388,37 @@ function F = hifie2r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         crd = setdiff(1:ncslf,csk);
         cT = K(:,csk)\K(:,crd);
 
-        % update "skeletonizable" set
-        rcrem(rslf(rrd)) = 0;
-        ccrem(cslf(crd)) = 0;
+        prrd = rrd;
+        pcrd = crd;
 
         % find good redundant pivots
+        % - pivoting moves redundants to skeletons
+        % - randomly filter added skeletons to not add too many for compression
         [tmp,cP] = spget(X,rslf,cslf,cP);
         K = full(A(rslf,cslf)) + tmp;
         if lvl > 1
           nrrd = length(rrd);
           ncrd = length(crd);
           if nrrd > ncrd
+            nkeep = length(rsk);
             [rsk,rrd,rT] = rdpivot('r',K(rrd,crd),rsk,rrd,rT);
+            nadd = nrrd - length(rrd);
+            iadd = rsk(end-nadd+1:end);
+            idx = randperm(nadd,max(nadd-nkeep,0));
+            prrd = [rrd iadd(idx)];
           elseif nrrd < ncrd
+            nkeep = length(csk);
             [csk,crd,cT] = rdpivot('c',K(rrd,crd),csk,crd,cT);
+            nadd = ncrd - length(crd);
+            iadd = csk(end-nadd+1:end);
+            idx = randperm(nadd,max(nadd-nkeep,0));
+            pcrd = [crd iadd(idx)];
           end
         end
+
+        % update "skeletonizable" set
+        rcrem(rslf(prrd)) = 0;
+        ccrem(cslf(pcrd)) = 0;
 
         % restrict to skeletons
         if d == 2
