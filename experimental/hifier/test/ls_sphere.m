@@ -71,7 +71,6 @@ function ls_sphere(m,n,delta,occ,p,rank_or_tol,skip,rdpiv,store)
   fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
 
   % residual error: NORM(A - A*PINV(F)*A)/NORM(A)
-  B = ifmm_mv(G,X,Afun);
   [e1,niter1] = snorm(N,
     @(x)(ifmm_mv(G,x,Afun,'n') - ...
          ifmm_mv(G,hifier_sv(F,ifmm_mv(G,x,Afun,'n'),'n'),Afun,'n')), ...
@@ -85,6 +84,7 @@ function ls_sphere(m,n,delta,occ,p,rank_or_tol,skip,rdpiv,store)
   fprintf('ls: %10.4e / %4d / %10.4e / %4d\n',e1,niter1,e2,niter2)
 
   % concrete example
+  B = ifmm_mv(G,X,Afun);
   tic
   Y = hifier_sv(F,B);
   t = toc;
