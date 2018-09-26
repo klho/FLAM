@@ -1,5 +1,5 @@
-% HIFIE2R  Hierarchical interpolative factorization for range-restricted
-%          integral operators in 2D.
+% HIFIE2R  Hierarchical interpolative factorization for rectangular integral
+%          operators in 2D.
 %
 %    F = HIFIE2R(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of
 %    the interaction matrix A on the row and column points RX and CX,

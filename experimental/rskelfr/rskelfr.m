@@ -1,5 +1,4 @@
-% RSKELFR  Recursive skeletonization factorization for range-restricted least
-%          squares.
+% RSKELFR  Recursive skeletonization factorization for rectangular matrices.
 %
 %    F = RSKELFR(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of
 %    the interaction matrix A on the row and column points RX and CX,

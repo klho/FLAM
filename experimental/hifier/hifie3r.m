@@ -1,5 +1,5 @@
-% HIFIE3R  Hierarchical interpolative factorization for range-restricted
-%          integral operators in 3D.
+% HIFIE3R  Hierarchical interpolative factorization for rectangular integral
+%          operators in 3D.
 %
 %    F = HIFIE3R(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of
 %    the interaction matrix A on the row and column points RX and CX,
