@@ -361,7 +361,6 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
             nbr = [nbr(:); nbr_(:)]';
           end
           nnbr = length(nbr);
-          snbr = sort(nbr);
 
           % compute interaction matrix
           [K,P] = spget(A,nbr,slf,P);
