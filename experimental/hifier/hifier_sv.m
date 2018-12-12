@@ -1,5 +1,5 @@
-% HIFIER_SV  Solve using hierarchical interpolative factorization for range-
-%            restricted integral operators.
+% HIFIER_SV  Solve using rectangular hierarchical interpolative factorization
+%            for integral operators.
 %
 %    Y = HIFIER_SV(F,X) produces the matrix Y by applying the factored
 %    pseudoinverse of the factored matrix F to the matrix X.

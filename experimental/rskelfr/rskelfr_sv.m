@@ -1,5 +1,4 @@
-% RSKELFR_SV   Solve using range-restricted recursive skeletonization
-%              factorization.
+% RSKELFR_SV   Solve using rectangular recursive skeletonization factorization.
 %
 %    Y = RSKELFR_SV(F,X) produces the matrix Y by applying the factored
 %    pseudoinverse of the factored matrix F to the matrix X.

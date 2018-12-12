@@ -1,4 +1,4 @@
-% RSKELFR_MV   Multiply using range-restricted recursive skeletonization
+% RSKELFR_MV   Multiply using rectangular recursive skeletonization
 %              factorization.
 %
 %    Y = RSKELFR_MV(F,X) produces the matrix Y by applying the factored matrix F

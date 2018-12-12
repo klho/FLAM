@@ -1,4 +1,4 @@
-% RSKELFR_SVD  Solve by D factor in range-restricted recursive skeletonization
+% RSKELFR_SVD  Solve by D factor in rectangular recursive skeletonization
 %              factorization F = L*D*U.
 %
 %    See also RSKELFR, RSKELFR_SV.
@@ -27,11 +27,11 @@ function Y = rskelfr_svd(F,X,trans)
       nrrd = length(rrd);
       ncrd = length(crd);
       if nrrd > ncrd
-        Y(crd,:) = F.factors(i).U\(F.factors(i).L'*X(rrd,:));
+        Y(crd,:) = F.factors(i).L'*X(rrd,:);
       elseif nrrd < ncrd
-        Y(crd,:) = F.factors(i).U'*(F.factors(i).L\X(rrd,:));
+        Y(crd,:) = F.factors(i).U'*X(rrd,:);
       else
-        Y(crd,:) = F.factors(i).U\(F.factors(i).L\X(rrd,:));
+        Y(crd,:) = X(rrd,:);
       end
     end
 
@@ -44,15 +44,11 @@ function Y = rskelfr_svd(F,X,trans)
       nrrd = length(rrd);
       ncrd = length(crd);
       if nrrd > ncrd
-        L = F.factors(i).U';
-        Y(rrd,:) = F.factors(i).L*(L\X(crd,:));
+        Y(rrd,:) = F.factors(i).L*X(crd,:);
       elseif nrrd < ncrd
-        U = F.factors(i).L';
-        Y(rrd,:) = U\(F.factors(i).U*X(crd,:));
+        Y(rrd,:) = F.factors(i).U*X(crd,:);
       else
-        L = F.factors(i).U';
-        U = F.factors(i).L';
-        Y(rrd,:) = U\(L\X(crd,:));
+        Y(rrd,:) = X(crd,:);
       end
     end
   end

@@ -1,4 +1,4 @@
-% RSKELFR_MVD  Multiply by D factor in range-restricted recursive
+% RSKELFR_MVD  Multiply by D factor in rectangular recursive
 %              skeletonization factorization F = L*D*U.
 %
 %    See also RSKELFR, RSKELFR_MV.
@@ -24,7 +24,15 @@ function Y = rskelfr_mvd(F,X,trans)
     for i = 1:n
       rrd = F.factors(i).rrd;
       crd = F.factors(i).crd;
-      Y(rrd,:) = F.factors(i).L*(F.factors(i).U*X(crd,:));
+      nrrd = length(rrd);
+      ncrd = length(crd);
+      if nrrd > ncrd
+        Y(rrd,:) = F.factors(i).L*X(crd,:);
+      elseif nrrd < ncrd
+        Y(rrd,:) = F.factors(i).U*X(crd,:);
+      else
+        Y(rrd,:) = X(crd,:);
+      end
     end
 
   % conjugate transpose
@@ -33,7 +41,15 @@ function Y = rskelfr_mvd(F,X,trans)
     for i = 1:n
       rrd = F.factors(i).rrd;
       crd = F.factors(i).crd;
-      Y(crd,:) = F.factors(i).U'*(F.factors(i).L'*X(rrd,:));
+      nrrd = length(rrd);
+      ncrd = length(crd);
+      if nrrd > ncrd
+        Y(crd,:) = F.factors(i).L'*X(rrd,:);
+      elseif nrrd < ncrd
+        Y(crd,:) = F.factors(i).U'*X(rrd,:);
+      else
+        Y(crd,:) = X(rrd,:);
+      end
     end
   end
 end

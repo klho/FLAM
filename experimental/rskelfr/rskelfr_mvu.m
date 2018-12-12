@@ -1,4 +1,4 @@
-% RSKELFR_MVU  Multiply by U factor in range-restricted recursive
+% RSKELFR_MVU  Multiply by U factor in rectangular recursive
 %              skeletonization factorization F = L*D*U.
 %
 %    See also RSKELFR, RSKELFR_MV.
@@ -24,7 +24,11 @@ function Y = rskelfr_mvu(F,X,trans)
     for i = 1:n
       sk = F.factors(i).csk;
       rd = F.factors(i).crd;
+      U = F.factors(i).U;
       Y(sk,:) = Y(sk,:) + F.factors(i).cT*Y(rd,:);
+      if size(U,1) == size(U,2)
+        Y(rd,:) = U*Y(rd,:);
+      end
       Y(rd,:) = Y(rd,:) + F.factors(i).F*Y(sk,:);
     end
 
@@ -33,7 +37,11 @@ function Y = rskelfr_mvu(F,X,trans)
     for i = n:-1:1
       sk = F.factors(i).csk;
       rd = F.factors(i).crd;
+      L = F.factors(i).U';
       Y(sk,:) = Y(sk,:) + F.factors(i).F'*Y(rd,:);
+      if size(L,1) == size(L,2)
+        Y(rd,:) = L*Y(rd,:);
+      end
       Y(rd,:) = Y(rd,:) + F.factors(i).cT'*Y(sk,:);
     end
   end

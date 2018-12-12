@@ -222,24 +222,23 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       K(:,crd) = K(:,crd) - K(:,csk)*cT;
       Krd = K(rrd,crd);
       [nrrd,ncrd] = size(Krd);
-      if nrrd > ncrd
+      if nrrd > ncrd      % can only happen at root
         [L,U] = qr(Krd,0);
-        E = (K(rsk,crd)/U)*L';
-        G = U\(L'*K(rrd,csk));
-      elseif nrrd < ncrd
+        E = zeros(0,nrrd);
+        G = zeros(ncrd,0);
+      elseif nrrd < ncrd  % can only happen at root
         [Q,R] = qr(Krd',0);
         L = R';
         U = Q';
-        E = (K(rsk,crd)*U')/L;
-        G = U'*(L\K(rrd,csk));
-      else
+        E = zeros(0,nrrd);
+        G = zeros(ncrd,0);
+      else                % for all non-root
         [L,U] = lu(Krd);
-        E = (K(rsk,crd)/U)/L;
-        G = U\(L\K(rrd,csk));
+        E = K(rsk,crd)/U;
+        G = L\K(rrd,csk);
+        % update self-interaction
+        S{i} = S{i}(rsk,csk) - E*G;
       end
-
-      % update self-interaction
-      S{i} = S{i}(rsk,csk) - E*(L*(U*G));
 
       % store matrix factors
       n = n + 1;

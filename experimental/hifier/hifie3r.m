@@ -423,7 +423,7 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         K = [K1+K2; Kpxy];
 
         % skeletonize columns
-        [csk,~,~] = id(K(:,ccslf),rank_or_tol);
+        [csk,~,~] = id(K(:,ccslf),rank_or_tol,0);
         csk = ccslf(csk);
         crd = setdiff(1:ncslf,csk);
         cT = K(:,csk)\K(:,crd);
@@ -487,37 +487,37 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         K(:,crd) = K(:,crd) - K(:,csk)*cT;
         Krd = K(rrd,crd);
         [nrrd,ncrd] = size(Krd);
-        if nrrd > ncrd
+        if nrrd > ncrd      % can only happen at root
           [L,U] = qr(Krd,0);
-          E = (K(rsk,crd)/U)*L';
-          G = U\(L'*K(rrd,csk));
-        elseif nrrd < ncrd
+          E = zeros(0,nrrd);
+          G = zeros(ncrd,0);
+        elseif nrrd < ncrd  % can only happen at root
           [Q,R] = qr(Krd',0);
           L = R';
           U = Q';
-          E = (K(rsk,crd)*U')/L;
-          G = U'*(L\K(rrd,csk));
+          E = zeros(0,nrrd);
+          G = zeros(ncrd,0);
         else
           [L,U] = lu(Krd);
-          E = (K(rsk,crd)/U)/L;
-          G = U\(L\K(rrd,csk));
-        end
+          E = K(rsk,crd)/U;
+          G = L\K(rrd,csk);
 
-        % update self-interaction
-        S_ = -E*(L*(U*G));
-        [I_,J_] = ndgrid(rslf(rsk),cslf(csk));
-        m = length(rsk)*length(csk);
-        while mnz < nz + m
-          e = zeros(mnz,1);
-          I = [I; e];
-          J = [J; e];
-          S = [S; e];
-          mnz = 2*mnz;
+          % update self-interaction
+          S_ = -E*G;
+          [I_,J_] = ndgrid(rslf(rsk),cslf(csk));
+          m = length(rsk)*length(csk);
+          while mnz < nz + m
+            e = zeros(mnz,1);
+            I = [I; e];
+            J = [J; e];
+            S = [S; e];
+            mnz = 2*mnz;
+          end
+          I(nz+1:nz+m) = I_(:);
+          J(nz+1:nz+m) = J_(:);
+          S(nz+1:nz+m) = S_(:);
+          nz = nz + m;
         end
-        I(nz+1:nz+m) = I_(:);
-        J(nz+1:nz+m) = J_(:);
-        S(nz+1:nz+m) = S_(:);
-        nz = nz + m;
 
         % store matrix factors
         n = n + 1;

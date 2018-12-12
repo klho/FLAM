@@ -1,5 +1,5 @@
-% HIFIER_MV  Multiply using hierarchical interpolative factorization for
-%            range-restricted integral operators.
+% HIFIER_MV  Multiply using rectangular hierarchical interpolative factorization
+%            for integral operators.
 %
 %    Y = HIFIER_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.
