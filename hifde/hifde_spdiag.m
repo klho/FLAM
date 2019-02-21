@@ -48,9 +48,11 @@ function D = hifde_spdiag(F,dinv)
       % find neighbors
       if mflvl(lvl)
         nbr = unique([x{slf}]);
-        for j = nbr
-          nbor{i} = [nbor{i} j];
-          nbor{j} = [nbor{j} i];
+        if ~isempty(nbr)
+          for j = nbr
+            nbor{i} = [nbor{i} j];
+            nbor{j} = [nbor{j} i];
+          end
         end
       end
 
