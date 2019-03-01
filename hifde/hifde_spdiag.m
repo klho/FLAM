@@ -45,8 +45,14 @@ function D = hifde_spdiag(F,dinv)
       rd = F.factors(i).rd;
       slf = [sk rd];
 
-      % find neighbors
-      if mflvl(lvl)
+      if lvl == 1
+        chld = [];
+      else
+        chld = unique([y{slf}]);
+      end
+
+      % find neighbors if first elimination
+      if mflvl(lvl) && isempty(chld)
         nbr = unique([x{slf}]);
         if ~isempty(nbr)
           for j = nbr
@@ -57,11 +63,8 @@ function D = hifde_spdiag(F,dinv)
       end
 
       % find parents
-      if lvl > 1
-        chld = unique([y{slf}]);
-        for j = chld
-          prnt{j} = [prnt{j} i];
-        end
+      for j = chld
+        prnt{j} = [prnt{j} i];
       end
 
       % update block for each index

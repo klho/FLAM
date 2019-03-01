@@ -39,19 +39,24 @@ function D = mf_spdiag(F,dinv)
       rd = F.factors(i).rd;
       slf = [sk rd];
 
-      % find neighbors
-      nbr = unique([x{slf}]);
-      for j = nbr
-        nbor{i} = [nbor{i} j];
-        nbor{j} = [nbor{j} i];
+      if lvl == 1
+        chld = [];
+      else
+        chld = unique([y{slf}]);
+      end
+
+      % find neighbors if first elimination
+      if isempty(chld)
+        nbr = unique([x{slf}]);
+        for j = nbr
+          nbor{i} = [nbor{i} j];
+          nbor{j} = [nbor{j} i];
+        end
       end
 
       % find parents
-      if lvl > 1
-        chld = unique([y{slf}]);
-        for j = chld
-          prnt{j} = [prnt{j} i];
-        end
+      for j = chld
+        prnt{j} = [prnt{j} i];
       end
 
       % update block for each index
