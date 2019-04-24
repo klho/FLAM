@@ -22,6 +22,3 @@ dirs = {'hifier','rskelfr'};
 for s = dirs
   addpath(sprintf('%s/experimental/%s',curpath,s{:}))
 end
-
-% clear
-clear
