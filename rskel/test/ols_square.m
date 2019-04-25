@@ -161,7 +161,7 @@ end
 function [Y,cres,niter] = ls2(A,R,X,N,nc,tau)
   n = size(X,2);
   X = [X; zeros(N,n)];
-  [Y,cres,niter] = lsedc(@(b)lsfun(A,R,b),A(nc+1:end,:),X,A(1:nc,:), ...
+  [Y,cres,niter] = lsedc(@(b)lsfun(A,R,b),A(nc+1:end,:),X,A(1:nc,:)/tau, ...
                          zeros(nc,n),tau);
   Y = Y(1:N,:);
 end

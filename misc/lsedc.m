@@ -52,7 +52,7 @@ function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
   % initial solve
   x = lsfun([D; B]);
   r = B - A*x;
-  w = D - C/tau*x;
+  w = D - C*x;
   lambda = tau^2*w;
 
   % iteratively correct constraints
@@ -61,7 +61,7 @@ function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
     dx = lsfun(y);
     x = x + dx;
     r = r - A*dx;
-    w = w - C/tau*dx;
+    w = w - C*dx;
     lambda = lambda + tau^2*w;
 
     % return if all converged
