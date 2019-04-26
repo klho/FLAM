@@ -13,14 +13,14 @@
 %    argument LSFUN is a function to apply the pseudoinverse of ATAU.
 %
 %    [X,CRES] = LSEDC(LSFUN,A,B,C,D,TAU) also returns the constraint residual
-%    norm CRES upon termination.
+%    matrix CRES upon termination.
 %
 %    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU) further returns the number NITER
 %    of deferred correction iterations required for convergence. If NITER = -1,
 %    then convergence was not detected.
 %
 %    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU,TOL) iterates until the constraint
-%    residual has norm less than TOL (default: TOL = 1E-12).
+%    residual matrix has norm less than or equal to TOL (default: TOL = 1E-12).
 %
 %    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU,TOL,NITER_MAX) uses at most
 %    NITER_MAX iterations (default: NITER_MAX = 8).
@@ -34,7 +34,7 @@
 %      C. Van Loan. On the method of weighting for equality-constrained least-
 %        squares problems. SIAM J. Numer. Anal. 22 (5): 851-864, 1985.
 
-function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
+function [x,w,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
 
   % set default parameters
   if nargin < 7 || isempty(tol)
@@ -46,33 +46,34 @@ function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
 
   % check inputs
   assert(tol >= 0,'FLAM:lsedc:negativeTol','Tolerance must be nonnegative.')
-  assert(niter_max > 0,'FLAM:lsedc:nonpositiveMaxIter', ...
-         'Maximum number of iterations must be positive.')
+  assert(niter_max >= 0,'FLAM:lsedc:negativeMaxIter', ...
+         'Maximum number of iterations must be nonnegative.')
 
   % initial solve
   x = lsfun([tau*D; B]);
-  r = B - A*x;
   w = D - C*x;
-  lambda = tau^2*w;
+
+  % return if all converged
+  if norm(w) <= tol
+    niter = 0;
+    return
+  end
 
   % iteratively correct constraints
+  r = B - A*x;
+  lambda = tau^2*w;
   for niter = 1:niter_max
-    y = [tau*w + lambda/tau; r];
-    dx = lsfun(y);
+    dx = lsfun([tau*w + lambda/tau; r]);
     x = x + dx;
-    r = r - A*dx;
     w = w - C*dx;
-    lambda = lambda + tau^2*w;
-
-    % return if all converged
-    if all(sqrt(dot(w,w)) < tol)
-      cres = norm(w);
+    if norm(w) <= tol
       return
     end
+    r = r - A*dx;
+    lambda = lambda + tau^2*w;
   end
 
   % no convergence
   niter = -1;
   warning('FLAM:lsedc:maxIterCount','Maximum number of iterations reached.')
-  cres = norm(w);
 end

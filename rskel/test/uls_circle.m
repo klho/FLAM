@@ -89,7 +89,7 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,store)
   e1 = norm(B - ifmm_mv(G,Y,Afun))/norm(B);
   e2 = norm(X - Y);
   fprintf('ls: %10.4e / %10.4e / %2d / %10.4e / %10.4e / %10.4e (s)\n', ...
-          e1,cres,niter,e2,norm(Y),t)
+          e1,norm(cres),niter,e2,norm(Y),t)
 
   if ~isoctave()
     % run LSQR
