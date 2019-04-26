@@ -50,7 +50,7 @@ function [x,cres,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
          'Maximum number of iterations must be positive.')
 
   % initial solve
-  x = lsfun([D; B]);
+  x = lsfun([tau*D; B]);
   r = B - A*x;
   w = D - C*x;
   lambda = tau^2*w;
