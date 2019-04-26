@@ -61,16 +61,16 @@ function [x,w,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
 
   % iteratively correct constraints
   r = B - A*x;
-  lambda = tau^2*w;
+  lambda = tau*w;
   for niter = 1:niter_max
-    dx = lsfun([tau*w + lambda/tau; r]);
+    dx = lsfun([tau*w + lambda; r]);
     x = x + dx;
     w = w - C*dx;
     if norm(w) <= tol
       return
     end
     r = r - A*dx;
-    lambda = lambda + tau^2*w;
+    lambda = lambda + tau*w;
   end
 
   % no convergence
