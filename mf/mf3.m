@@ -146,7 +146,7 @@ function F = mf3(A,n,occ,opts)
           rem(slf(rd)) = 0;
 
           % compute factors
-          [K,P] = spget(A,slf,slf,P);
+          K = spget(A,slf,slf);
           if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
             [L,U] = lu(K(rd,rd));
             E = K(sk,rd)/U;

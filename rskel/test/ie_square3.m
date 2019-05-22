@@ -1,43 +1,36 @@
 % Second-kind integral equation on the unit square, Helmholtz single-layer.
+%
+% This example solves the Lippmann-Schwinger equation for Helmholtz scattering
+% on the unit square, which can be ill-conditioned even though it is formally
+% second-kind. The problem is discretized as in IE_SQUARE1. We assume that the
+% potential/velocity field is nonnegative so that the matrix can be symmetrized;
+% the resulting matrix is square, complex, symmetric, and Toeplitz. This demo
+% follows the same outline as in IE_SQUARE1.
 
-function ie_square3(n,k,occ,p,rank_or_tol,symm)
+function ie_square3(n,k,occ,p,rank_or_tol,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n)
-    n = 128;
-  end
-  if nargin < 2 || isempty(k)
-    k = 2*pi*4;
-  end
-  if nargin < 3 || isempty(occ)
-    occ = 128;
-  end
-  if nargin < 4 || isempty(p)
-    p = 64;
-  end
-  if nargin < 5 || isempty(rank_or_tol)
-    rank_or_tol = 1e-6;
-  end
-  if nargin < 6 || isempty(symm)
-    symm = 's';
-  end
+  if nargin < 1 || isempty(n), n = 128; end  % number of points in one dimension
+  if nargin < 2 || isempty(k), k = 2*pi*4; end  % wavenumber
+  if nargin < 3 || isempty(occ), occ = 128; end
+  if nargin < 4 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
+  if nargin < 6 || isempty(symm), symm = 's'; end  % symmetric
+  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned GMRES?
 
   % initialize
-  [x1,x2] = ndgrid((1:n)/n);
-  x = [x1(:) x2(:)]';
+  [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
   N = size(x,2);
-  theta = (1:p)*2*pi/p;
-  proxy = 1.5*[cos(theta); sin(theta)];
-  clear x1 x2
+  theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
 
-  % set up potential
+  % set up potential/velocity field
   V = exp(-32*((x(1,:) - 0.5).^2 + (x(2,:) - 0.5).^2))';
-  sqrtb = k*sqrt(V);
+  sqrtb = k*sqrt(V);  % assume nonnegative
 
   % compute diagonal quadratures
   h = 1/n;
   intgrnd = @(x,y)(0.25i*besselh(0,1,k*sqrt(x.^2 + y.^2)));
-  if isoctave()
+  if isoctave()  % no complex integration in Octave
     intgrl_r = 4*dblquad(@(x,y)(real(intgrnd(x,y))),0,h/2,0,h/2);
     intgrl_i = 4*dblquad(@(x,y)(imag(intgrnd(x,y))),0,h/2,0,h/2);
     intgrl = intgrl_r + intgrl_i*1i;
@@ -46,37 +39,15 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   end
 
   % compress matrix
-  Afun = @(i,j)Afun2(i,j,x,k,intgrl,sqrtb);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,k, ...
+  Afun = @(i,j)Afun_(i,j,x,k,intgrl,sqrtb);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k, ...
                                             sqrtb);
   opts = struct('symm',symm,'verb',1);
-  F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
-  w = whos('F');
-  fprintf([repmat('-',1,80) '\n'])
-  fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
+  tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
+  mem = whos('F').bytes/1e6;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
-  % factor extended sparsification
-  tic
-  A = rskel_xsp(F);
-  if strcmpi(symm,'s')
-    A = A + tril(A,-1).';
-  elseif strcmpi(symm,'h') || strcmpi(symm,'p')
-    A = A + tril(A,-1)';
-  end
-  t = toc;
-  w = whos('A');
-  fprintf('xsp: %10.4e (s) / %6.2f (MB)\n',t,w.bytes/1e6);
-  tic
-  [L,U] = lu(A);
-  t = toc;
-  w = whos('L');
-  spmem = w.bytes;
-  w = whos('U');
-  spmem = (spmem + w.bytes)/1e6;
-  fprintf('lu: %10.4e (s) / %6.2f (MB)\n',t,spmem)
-  sv = @(x,trans)sv2(L,U,x,trans);
-
-  % set up FFT multiplication
+  % set up reference FFT multiplication
   a = reshape(Afun_ti(1:N,1,x,k,intgrl),n,n);
   B = zeros(2*n-1,2*n-1);
   B(  1:n  ,  1:n  ) = a;
@@ -86,7 +57,7 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   B(:,n+1:end) = flipdim(B(:,n+1:end),2);
   B(n+1:end,:) = flipdim(B(n+1:end,:),1);
   G = fft2(B);
-  mv = @(x)mv2(G,x,sqrtb);
+  mv  = @(x)mv_(G,x,sqrtb);
   mva = @(x)(conj(mv(conj(x))));
 
   % test accuracy using randomized power method
@@ -94,33 +65,55 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm)
   X = X/norm(X);
 
   % NORM(A - F)/NORM(A)
+  tic; rskel_mv(F,X); t = toc;  % for timing
+  err = snorm(N,@(x)(mv (x) - rskel_mv(F,x,'n')), ...
+                @(x)(mva(x) - rskel_mv(F,x,'c')));
+  err = err/snorm(N,mv,mva);
+  fprintf('rskel_mv err/time: %10.4e / %10.4e (s)\n',err,t)
+
+  % build extended sparsification
+  tic; A = rskel_xsp(F); t = toc;
+  mem = whos('A').bytes/1e6;
+  fprintf('rskel_xsp:\n')
+  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
+
+  % factor extended sparsification
+  dolu = strcmpi(F.symm,'n');  % LU or LDL?
+  if ~dolu && isoctave
+    warning('No LDL in Octave; using LU.')
+    dolu = 1;
+    A = A + tril(A,-1).';
+  end
+  FA = struct('lu',dolu);
   tic
-  rskel_mv(F,X);
+  if dolu, [FA.L,FA.U,FA.P] = lu(A);
+  else,    [FA.L,FA.D,FA.P] = ldl(A);
+  end
   t = toc;
-  [e,niter] = snorm(N,@(x)(mv (x) - rskel_mv(F,x,'n')), ...
-                      @(x)(mva(x) - rskel_mv(F,x,'c')));
-  e = e/snorm(N,mv,mva);
-  fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  mem = whos('FA.L').bytes/1e6;
+  if dolu, mem = mem + (whos('FA.U').bytes + whos('FA.P').bytes)/1e6;
+  else,    mem = mem + (whos('FA.D').bytes + whos('FA.P').bytes)/1e6;
+  end
+  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  sv = @(x,trans)sv_(FA,x,trans);  % linear solve function
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
-  tic
-  Y = sv(X,'n');
-  t = toc;
-  [e,niter] = snorm(N,@(x)(x - mv (sv(x,'n'))), ...
-                      @(x)(x - mva(sv(x,'c'))));
-  fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  tic; sv(X,'n'); t = toc;  % for timing
+  err = snorm(N,@(x)(x - mv (sv(x,'n'))),@(x)(x - mva(sv(x,'c'))));
+  fprintf('  solve err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % run unpreconditioned GMRES
-  [~,~,~,iter] = gmres(mv,X,[],1e-12,1024);
+  B = mv(X);
+  iter(2) = nan;
+  if doiter, [~,~,~,iter] = gmres(mv,B,[],1e-12,128); end
 
   % run preconditioned GMRES
-  tic
-  [Z,~,~,piter] = gmres(mv,X,[],1e-12,32,@(x)sv(x,'n'));
-  t = toc;
-  e1 = norm(Z - Y)/norm(Z);
-  e2 = norm(X - mv(Z))/norm(X);
-  fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter(2),iter(2),t)
+  tic; [Y,~,~,piter] = gmres(mv,B,[],1e-12,32,@(x)sv(x,'n')); t = toc;
+  err1 = norm(X - Y)/norm(X);
+  err2 = norm(B - mv(Y))/norm(B);
+  fprintf('gmres:\n')
+  fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
+  fprintf('  precon/unprecon iter: %d / %d\n',piter(2),iter(2))
 end
 
 % kernel function
@@ -130,45 +123,50 @@ function K = Kfun(x,y,k)
   K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
 end
 
-% translation-invariant part of matrix
-function [A,idx] = Afun_ti(i,j,x,k,intgrl)
+% translation-invariant part of matrix, i.e., without potential
+function [A,diagidx] = Afun_ti(i,j,x,k,intgrl)
   N = size(x,2);
-  A = Kfun(x(:,i),x(:,j),k)/N;
+  A = Kfun(x(:,i),x(:,j),k)/N;  % area-weighted point interaction
   [I,J] = ndgrid(i,j);
-  idx = I == J;
-  A(idx) = intgrl;
+  diagidx = I == J;             % indices for diagonal
+  A(diagidx) = intgrl;          % replace diagonal with precomputed values
 end
 
 % matrix entries
-function A = Afun2(i,j,x,k,intgrl,sqrtb)
-  [A,idx] = Afun_ti(i,j,x,k,intgrl);
-  if ~isempty(A)
-    A = bsxfun(@times,sqrtb(i),bsxfun(@times,A,sqrtb(j)'));
-    A(idx) = A(idx) + 1;
-  end
+function A = Afun_(i,j,x,k,intgrl,sqrtb)
+  [A,diagidx] = Afun_ti(i,j,x,k,intgrl);  % translation-invariant part
+  if isempty(A), return; end
+  % scale by potential/velocity field
+  A = bsxfun(@times,sqrtb(i),bsxfun(@times,A,sqrtb(j)'));
+  A(diagidx) = A(diagidx) + 1;            % add identity to diagonal
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy,k,sqrtb)
-  pxy = bsxfun(@plus,proxy*l,ctr');
+function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k,sqrtb)
+  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  % proxy interaction is kernel evaluation between proxy points and row/column
+  % points being compressed, multiplied by row/column potential/velocity field
+  % and scaled to match the matrix scale
   N = size(rx,2);
   if strcmpi(rc,'r')
     Kpxy = Kfun(rx(:,slf),pxy,k)/N;
     Kpxy = bsxfun(@times,sqrtb(slf),Kpxy);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
-  elseif strcmpi(rc,'c')
+  else
     Kpxy = Kfun(pxy,cx(:,slf),k)/N;
     Kpxy = bsxfun(@times,Kpxy,sqrtb(slf)');
     dx = rx(1,nbr) - ctr(1);
     dy = rx(2,nbr) - ctr(2);
   end
+  % proxy points form circle of scaled radius 1.5 around current box
+  % keep among neighbors only those within circle
   dist = sqrt(dx.^2 + dy.^2);
   nbr = nbr(dist/l < 1.5);
 end
 
 % FFT multiplication
-function y = mv2(F,x,sqrtb)
+function y = mv_(F,x,sqrtb)
   N = length(x);
   n = sqrt(N);
   y = ifft2(F.*fft2(reshape(sqrtb.*x,n,n),2*n-1,2*n-1));
@@ -176,14 +174,16 @@ function y = mv2(F,x,sqrtb)
   y = y + x;
 end
 
-% sparse LU solve
-function Y = sv2(L,U,X,trans)
+% sparse LU/LDL solve
+function Y = sv_(F,X,trans)
   N = size(X,1);
-  X = [X; zeros(size(L,1)-N,size(X,2))];
-  if strcmpi(trans,'n')
-    Y = U\(L\X);
-  elseif strcmpi(trans,'c')
-    Y = L'\(U'\X);
+  X = [X; zeros(size(F.L,1)-N,size(X,2))];
+  if F.lu
+    if strcmpi(trans,'n'), Y = F.U \(F.L \(F.P *X));
+    else,                  Y = F.P'*(F.L'\(F.U'\X));
+    end
+  else
+    Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));
   end
   Y = Y(1:N,:);
 end

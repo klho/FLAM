@@ -45,7 +45,6 @@ function D = mf_diag(F,dinv,opts)
   mnz = 128;
   I = zeros(mnz,1);
   J = zeros(mnz,1);
-  P = zeros(N,1);
 
   % get required entries at each level
   tic
@@ -201,7 +200,7 @@ function D = mf_diag(F,dinv,opts)
 
   % sparse matrix access
   function A = spget_sk
-    [A,P] = spget(M,sk,sk,P);
+    A = spget(M,sk,sk);
     if nsk && ~strcmpi(F.symm,'n')
       D_ = diag(diag(A));
       L_ = tril(A,-1);

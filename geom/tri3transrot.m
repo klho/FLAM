@@ -1,11 +1,11 @@
-% TRI3TRANSROT   Translate and rotate a triangle in 3D to a reference
-%                configuration in 2D.
+% TRI3TRANSROT  Translate and rotate a triangle in 3D to a reference
+%               configuration in 2D.
 %
 %    [TRANS,ROT,V2,V3] = TRI3TRANSROT(V) produces a translation vector TRANS
-%    and a rotation matrix ROT such that the transformation
-%    @(X)(ROT*(X + TRANS)) moves the vertex V(:,1) to the origin, the vertex
-%    V(:,2) to the point [V2; 0] with V2 > 0, and the vertex V(:,3) to the point
-%    V3 in the positive quadrant (if the triangle is positively oriented).
+%    and a rotation matrix ROT such that the affine transformation
+%    ROT*(V + TRANS) moves the vertex V(1) to the origin, V(2) to a point
+%    [V2; 0] with V2 > 0, and V(3) to a point V3 in the positive quadrant (if
+%    positively oriented).
 %
 %    [TRANS,ROT,V2,V3] = TRI3TRANSROT(V,F) computes this transformation for
 %    each triangle I with vertices V(:,F(:,I)).
@@ -15,16 +15,14 @@
 function [trans,rot,V2,V3] = tri3transrot(V,F)
 
   % set default parameters
-  if nargin < 2 || isempty(F)
-    F = [1; 2; 3];
-  end
+  if nargin < 2 || isempty(F), F = [1; 2; 3]; end
 
-  % recenter at V(:,1)
+  % recenter at V(:,F(1,:))
   trans = -V(:,F(1,:));
   V21 = V(:,F(2,:)) + trans;
   V31 = V(:,F(3,:)) + trans;
 
-  % store new V(:,2) = [V2; 0]
+  % store new V(:,F(2,:)) = [V2; 0]
   V2 = sqrt(sum(V21.^2));
 
   % generate rotation matrices
@@ -36,9 +34,7 @@ function [trans,rot,V2,V3] = tri3transrot(V,F)
   rot(:,2,:) = cross(rot(:,3,:),rot(:,1,:));
   rot = permute(rot,[2 1 3]);
 
-  % compute new V(:,3)
+  % compute new V(:,F(3,:))
   V3 = zeros(2,n);
-  for i = 1:n
-    V3(:,i) = rot(1:2,:,i)*V31(:,i);
-  end
+  for i = 1:n, V3(:,i) = rot(1:2,:,i)*V31(:,i); end
 end

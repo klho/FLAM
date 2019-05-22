@@ -26,11 +26,11 @@
 %    F = HIFIE3R(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various
 %    options to the algorithm. Valid options include:
 %
-%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%
+%      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data.
-%
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SKIP: skip the dimension reductions on the first SKIP levels (default:
 %              SKIP = 0).
@@ -59,11 +59,11 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if nargin < 7
     opts = [];
   end
-  if ~isfield(opts,'ext')
-    opts.ext = [];
-  end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
+  end
+  if ~isfield(opts,'ext')
+    opts.ext = [];
   end
   if ~isfield(opts,'skip')
     opts.skip = 0;
@@ -392,7 +392,7 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
         % compute interaction matrix
         K1 = full(A(rslf,cnbr));
-        [K2,cP] = spget(X,rslf,cnbr,cP);
+        K2 = spget(X,rslf,cnbr);
         K = [K1+K2 Kpxy]';
 
         % skeletonize rows
@@ -419,7 +419,7 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
         % compute interaction matrix
         K1 = full(A(rnbr,cslf));
-        [K2,cP] = spget(X,rnbr,cslf,cP);
+        K2 = spget(X,rnbr,cslf);
         K = [K1+K2; Kpxy];
 
         % skeletonize columns
@@ -434,8 +434,7 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         % find good redundant pivots
         % - pivoting moves redundants to skeletons
         % - randomly filter added skeletons to not add too many for compression
-        [tmp,cP] = spget(X,rslf,cslf,cP);
-        K = full(A(rslf,cslf)) + tmp;
+        K = full(A(rslf,cslf)) + spget(X,rslf,cslf);
         if lvl > 1
           nrrd = length(rrd);
           ncrd = length(crd);
@@ -481,8 +480,7 @@ function F = hifie3r(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         crem(cslf(crd)) = 0;
 
         % compute factors
-        [tmp,cP] = spget(X,rslf,cslf,cP);
-        K = full(A(rslf,cslf)) + tmp;
+        K = full(A(rslf,cslf)) + spget(X,rslf,cslf);
         K(rrd,:) = K(rrd,:) - rT'*K(rsk,:);
         K(:,crd) = K(:,crd) - K(:,csk)*cT;
         Krd = K(rrd,crd);

@@ -1,4 +1,4 @@
-% GLEGQUAD   Gauss-Legendre quadrature nodes and weights.
+% GLEGQUAD  Gauss-Legendre quadrature nodes and weights.
 %
 %    [X,W] = GLEGQUAD(N) produces the nodes and weights X and W, respectively,
 %    of the Gauss-Legendre quadrature rule of order N on [-1,1].
@@ -10,12 +10,8 @@
 function [x,w] = glegquad(n,a,b)
 
   % set default parameters
-  if nargin < 2 || isempty(a)
-    a = -1;
-  end
-  if nargin < 3 || isempty(b)
-    b = 1;
-  end
+  if nargin < 2 || isempty(a), a = -1; end
+  if nargin < 3 || isempty(b), b =  1; end
 
   % check inputs
   assert(n >= 1,'FLAM:glegquad:invalidOrder', ...

@@ -109,7 +109,6 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
   I = zeros(mnz,1);
   J = zeros(mnz,1);
   S = zeros(mnz,1);
-  P = zeros(N,1);
 
   % set initial width
   w = n;
@@ -238,10 +237,9 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
             nbr = nbr(~ismemb(nbr,slf));
 
             % compute interaction matrix
-            [K,P] = spget(A,nbr,slf,P);
+            K = spget(A,nbr,slf);
             if strcmpi(opts.symm,'n')
-              [tmp,P] = spget(A,slf,nbr,P);
-              K = [K; tmp'];
+              K = [K; spget(A,slf,nbr)'];
             end
 
             % skeletonize
@@ -276,7 +274,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
         T = blocks(i).T;
 
         % compute factors
-        [K,P] = spget(A,slf,slf,P);
+        K = spget(A,slf,slf);
         if ~isempty(T)
           if strcmpi(opts.symm,'s')
             K(rd,:) = K(rd,:) - T.'*K(sk,:);

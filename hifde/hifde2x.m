@@ -8,11 +8,11 @@
 %    F = HIFDE2X(A,X,OCC,RANK_OR_TOL,OPTS) also passes various options to the
 %    algorithm. Valid options include:
 %
-%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%
+%      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data.
-%
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SKIP: skip the dimension reductions on the first SKIP levels (default:
 %              SKIP = 0).
@@ -332,10 +332,9 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
           nnbr = length(nbr);
 
           % compute interaction matrix
-          [K,P] = spget(A,nbr,slf,P);
+          K = spget(A,nbr,slf);
           if strcmpi(opts.symm,'n')
-            [tmp,P] = spget(A,slf,nbr,P);
-            K = [K; tmp'];
+            K = [K; spget(A,slf,nbr)'];
           end
 
           % skeletonize
@@ -375,7 +374,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         sslf = sort(slf);
 
         % compute factors
-        [K,P] = spget(A,slf,slf,P);
+        K = spget(A,slf,slf);
         if ~isempty(T)
           if strcmpi(opts.symm,'s')
             K(rd,:) = K(rd,:) - T.'*K(sk,:);

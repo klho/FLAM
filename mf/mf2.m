@@ -90,7 +90,6 @@ function F = mf2(A,n,occ,opts)
   I = zeros(mnz,1);
   J = zeros(mnz,1);
   S = zeros(mnz,1);
-  P = zeros(N,1);
 
   % set initial width
   w = n;
@@ -142,7 +141,7 @@ function F = mf2(A,n,occ,opts)
         rem(slf(rd)) = 0;
 
         % compute factors
-        [K,P] = spget(A,slf,slf,P);
+        K = spget(A,slf,slf);
         if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
           [L,U] = lu(K(rd,rd));
           E = K(sk,rd)/U;

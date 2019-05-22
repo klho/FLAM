@@ -1,4 +1,4 @@
-% TRI3GEOM   Centroid, unit normal, and area of a triangle in 3D.
+% TRI3GEOM  Centroid, unit normal, and area of a triangle in 3D.
 %
 %    [C,N,A] = TRI3GEOM(V) produces the centroid C, unit normal N, and area A
 %    of the triangle with vertices V.
@@ -9,9 +9,7 @@
 function [C,N,A] = tri3geom(V,F)
 
   % set default parameters
-  if nargin < 2 || isempty(F)
-    F = [1; 2; 3];
-  end
+  if nargin < 2 || isempty(F), F = [1; 2; 3]; end
 
   % compute triangle information
   C = (V(:,F(1,:)) + V(:,F(2,:)) + V(:,F(3,:)))/3;

@@ -23,11 +23,11 @@
 %    F = HIFIE3X(A,X,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various options to
 %    the algorithm. Valid options include:
 %
-%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%
+%      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data.
-%
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SKIP: skip the dimension reductions on the first SKIP levels (default:
 %              SKIP = 0).
@@ -60,11 +60,11 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
   if nargin < 6
     opts = [];
   end
-  if ~isfield(opts,'ext')
-    opts.ext = [];
-  end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
+  end
+  if ~isfield(opts,'ext')
+    opts.ext = [];
   end
   if ~isfield(opts,'skip')
     opts.skip = 0;
@@ -338,10 +338,9 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
         if strcmpi(opts.symm,'n')
           K1 = [K1; full(A(slf,nbr))'];
         end
-        [K2,P] = spget(M,nbr,slf,P);
+        K2 = spget(M,nbr,slf);
         if strcmpi(opts.symm,'n')
-          [tmp,P] = spget(M,slf,nbr,P);
-          K2 = [K2; tmp'];
+          K2 = [K2; spget(M,slf,nbr)'];
         end
         K = [K1 + K2; Kpxy];
 
@@ -423,8 +422,7 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
         rem(slf(rd)) = 0;
 
         % compute factors
-        [tmp,P] = spget(M,slf,slf,P);
-        K = full(A(slf,slf)) + tmp;
+        K = full(A(slf,slf)) + spget(M,slf,slf);
         if strcmpi(opts.symm,'s')
           K(rd,:) = K(rd,:) - T.'*K(sk,:);
         else

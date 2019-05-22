@@ -1,70 +1,56 @@
-% Unit line, Laplace sources.
+% Pairwise interactions on the unit line, Laplace kernel.
+%
+% This example computes the interactions between random points on the unit line
+% via the Laplace kernel. The associated matrix is square, real, and symmetric.
+%
+% This demo does the following in order:
+%
+%   - compress the matrix
+%   - check multiply error/time
+%   - check adjoint multiply error/time
 
 function mv_line(n,occ,p,rank_or_tol,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n)
-    n = 16384;
-  end
-  if nargin < 2 || isempty(occ)
-    occ = 128;
-  end
-  if nargin < 3 || isempty(p)
-    p = 8;
-  end
-  if nargin < 4 || isempty(rank_or_tol)
-    rank_or_tol = 1e-12;
-  end
-  if nargin < 5 || isempty(symm)
-    symm = 'n';
-  end
+  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 2 || isempty(occ), occ = 128; end
+  if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
+  if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
+  if nargin < 5 || isempty(symm), symm = 's'; end  % symmetric
 
   % initialize
-  x = rand(1,n);
-  N = size(x,2);
-  proxy = 1.5 + ((1:p) - 1)/p;
-  proxy = [proxy -proxy];
+  x = rand(1,n); N = size(x,2);                         % source points
+  proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
+  % reference proxy points are for unit box [-1, 1]
 
   % compress matrix
-  Afun = @(i,j)Afun2(i,j,x);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy);
+  Afun = @(i,j)Afun_(i,j,x);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('symm',symm,'verb',1);
-  F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts);
-  w = whos('F');
-  fprintf([repmat('-',1,80) '\n'])
-  fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
+  tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
+  mem = whos('F').bytes/1e6;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % test matrix apply accuracy
-  X = rand(N,1);
-  X = X/norm(X);
-  tic
-  rskel_mv(F,X,'n');
-  t = toc;
-  X = rand(N,16);
-  X = X/norm(X);
-  r = randperm(N);
-  r = r(1:min(N,128));
-  A = Afun(r,1:N);
+  X = rand(N,1); X = X/norm(X);
+  tic; rskel_mv(F,X,'n'); t = toc;  % for timing
+  X = rand(N,16); X = X/norm(X);  % test against 16 vectors for robustness
+  r = randperm(N); r = r(1:min(N,128));  % check up to 128 rows in result
   Y = rskel_mv(F,X,'n');
-  Z = A*X;
-  e = norm(Z - Y(r,:))/norm(Z);
-  fprintf('mv:  %10.4e / %10.4e (s)\n',e,t)
+  Z = Afun(r,1:N)*X;
+  err = norm(Z - Y(r,:))/norm(Z);
+  fprintf('rskel_mv:\n')
+  fprintf('  multiply err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % test matrix adjoint apply accuracy
-  X = rand(N,1);
-  X = X/norm(X);
-  tic
-  rskel_mv(F,X,'c');
-  t = toc;
-  X = rand(N,16);
-  X = X/norm(X);
-  r = randperm(N);
-  r = r(1:min(N,128));
-  A = Afun(1:N,r);
+  X = rand(N,1); X = X/norm(X);
+  tic; rskel_mv(F,X,'c'); t = toc;  % for timing
+  X = rand(N,16); X = X/norm(X);  % test against 16 vectors for robustness
+  r = randperm(N); r = r(1:min(N,128));  % check up to 128 rows in result
   Y = rskel_mv(F,X,'c');
-  Z = A'*X;
-  e = norm(Z - Y(r,:))/norm(Z);
-  fprintf('mva: %10.4e / %10.4e (s)\n',e,t)
+  Z = Afun(1:N,r)'*X;
+  err = norm(Z - Y(r,:))/norm(Z);
+  fprintf('  adjoint multiply err/time: %10.4e / %10.4e (s)\n',err,t)
 end
 
 % kernel function
@@ -74,17 +60,22 @@ function K = Kfun(x,y)
 end
 
 % matrix entries
-function A = Afun2(i,j,x)
+function A = Afun_(i,j,x)
   A = Kfun(x(:,i),x(:,j));
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(rc,rx,cx,slf,nbr,l,ctr,proxy)
-  pxy = bsxfun(@plus,proxy*l,ctr');
-  N = size(rx,2);
+function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
+  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
   if strcmpi(rc,'r')
-    Kpxy = Kfun(rx(:,slf),pxy)/N;
-  elseif strcmpi(rc,'c')
-    Kpxy = Kfun(pxy,cx(:,slf))/N;
+    Kpxy = Kfun(rx(:,slf),pxy);
+    dr = cx(nbr) - ctr;
+  else
+    Kpxy = Kfun(pxy,cx(:,slf));
+    dr = rx(nbr) - ctr;
   end
+  % proxy points form interval of scaled radius 1.5 around current box
+  % keep among neighbors only those within interval
+  dist = abs(dr);
+  nbr = nbr(dist/l < 1.5);
 end

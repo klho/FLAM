@@ -1,4 +1,4 @@
-% RSKEL_MV   Multiply using recursive skeletonization.
+% RSKEL_MV  Multiply using recursive skeletonization.
 %
 %    Y = RSKEL_MV(F,X) produces the matrix Y by applying the compressed matrix F
 %    to the matrix X.
@@ -11,9 +11,7 @@
 function Y = rskel_mv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
@@ -21,10 +19,7 @@ function Y = rskel_mv(F,X,trans)
          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t')
-    Y = conj(rskel_mv(F,conj(X),'c'));
-    return
-  end
+  if strcmpi(trans,'t'), Y = conj(rskel_mv(F,conj(X),'c')); return; end
 
   % initialize
   M = F.M;
@@ -32,8 +27,8 @@ function Y = rskel_mv(F,X,trans)
   nlvl = F.nlvl;
   rrem = true(M,1);
   crem = true(N,1);
-  Z = cell(nlvl+1,1);
-  Y = cell(nlvl+1,1);
+  Z = cell(nlvl+1,1);  % successively compressed from upward pass
+  Y = cell(nlvl+1,1);  % successively refined from downward pass
 
   % upward sweep
   Z{1} = X;
@@ -42,18 +37,14 @@ function Y = rskel_mv(F,X,trans)
     pcrem1 = cumsum(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmpi(F.symm,'n')
-        crem(F.U(i).crd) = 0;
-      else
-        crem(F.U(i).rrd) = 0;
+      if strcmpi(F.symm,'n'), crem(F.U(i).crd) = 0;
+      else,                   crem(F.U(i).rrd) = 0;
       end
     end
     prrem2 = cumsum(rrem);
     pcrem2 = cumsum(crem);
-    if strcmpi(trans,'n')
-      Z{lvl+1} = Z{lvl}(pcrem1(find(crem)),:);
-    else
-      Z{lvl+1} = Z{lvl}(prrem1(find(rrem)),:);
+    if strcmpi(trans,'n'), Z{lvl+1} = Z{lvl}(pcrem1(find(crem)),:);
+    else,                  Z{lvl+1} = Z{lvl}(prrem1(find(rrem)),:);
     end
 
     % apply interpolation operators
@@ -71,10 +62,8 @@ function Y = rskel_mv(F,X,trans)
       elseif strcmpi(F.symm,'s')
         rd = pcrem1(F.U(i).rrd);
         sk = pcrem2(F.U(i).rsk);
-        if strcmpi(trans,'n')
-          T = F.U(i).rT.';
-        else
-          T = F.U(i).rT';
+        if strcmpi(trans,'n'), T = F.U(i).rT.';
+        else,                  T = F.U(i).rT';
         end
       elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         rd = pcrem1(F.U(i).rrd);
@@ -86,25 +75,19 @@ function Y = rskel_mv(F,X,trans)
   end
 
   % downward sweep
-  if strcmpi(trans,'n')
-    Y{nlvl+1} = zeros(sum(rrem),size(X,2));
-  else
-    Y{nlvl+1} = zeros(sum(crem),size(X,2));
+  if strcmpi(trans,'n'), Y{nlvl+1} = zeros(sum(rrem),size(X,2));
+  else,                  Y{nlvl+1} = zeros(sum(crem),size(X,2));
   end
   for lvl = nlvl:-1:1
     prrem2 = cumsum(rrem);
     pcrem2 = cumsum(crem);
-    if strcmpi(trans,'n')
-      rem_ = rrem;
-    else
-      rem_ = crem;
+    if strcmpi(trans,'n'), rem_ = rrem;
+    else,                  rem_ = crem;
     end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 1;
-      if strcmpi(F.symm,'n')
-        crem(F.U(i).crd) = 1;
-      else
-        crem(F.U(i).rrd) = 1;
+      if strcmpi(F.symm,'n'), crem(F.U(i).crd) = 1;
+      else,                   crem(F.U(i).rrd) = 1;
       end
     end
     prrem1 = cumsum(rrem);
@@ -135,10 +118,8 @@ function Y = rskel_mv(F,X,trans)
         rd  = prrem1(F.U(i).rrd);
         sk1 = prrem1(F.U(i).rsk);
         sk2 = prrem2(F.U(i).rsk);
-        if strcmpi(trans,'n')
-          T = F.U(i).rT;
-        else
-          T = conj(F.U(i).rT);
+        if strcmpi(trans,'n'), T = F.U(i).rT;
+        else,                  T = conj(F.U(i).rT);
         end
       elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
         rd  = prrem1(F.U(i).rrd);

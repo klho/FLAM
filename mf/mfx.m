@@ -6,11 +6,11 @@
 %    F = MFX(A,X,OCC,OPTS) also passes various options to the algorithm. Valid
 %    options include:
 %
-%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%
+%      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data.
-%
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
@@ -182,7 +182,7 @@ function F = mfx(A,x,occ,opts)
       rem(slf(rd)) = 0;
 
       % compute factors
-      [K,P] = spget(A,slf,slf,P);
+      K = spget(A,slf,slf);
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
         [L,U] = lu(K(rd,rd));
         E = K(sk,rd)/U;

@@ -1,4 +1,4 @@
-% TRISPHERE_SUBDIV   Recursive subdivision of unit sphere triangulation.
+% TRISPHERE_SUBDIV  Recursive subdivision of unit sphere triangulation.
 %
 %    [V,F] = TRISPHERE_SUBDIV(N) produces a triangulation of the unit sphere
 %    with vertices V and faces F of size at least N by recursively subdividing a
@@ -7,7 +7,7 @@
 
 function [V,F] = trisphere_subdiv(n)
 
-  % initialize
+  % base triangulation
   V = [-1.000000000000000   0.000000000000000                   0
        -0.956625793988502  -0.147620904422163  -0.251147683352745
        -0.956625793988502   0.147620904422163  -0.251147683352745
@@ -546,6 +546,5 @@ function [V,F] = trisphere_subdiv(n)
   end
 
   % rotate outputs
-  V = V';
-  F = F';
+  V = V'; F = F';
 end

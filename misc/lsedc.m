@@ -3,11 +3,11 @@
 %    X = LSEDC(LSFUN,A,B,C,D,TAU) produces the solution X to the equality-
 %    constrained least squares problem
 %
-%      MIN NORM(A*X - B)  S.T.  C*X = D
+%      MIN. NORM(A*X - B)  S.T.  C*X = D
 %
 %    by solving the unconstrained weighted least squares problem
 %
-%      MIN NORM(ATAU*X - BTAU),  ATAU = [TAU*C; A],  BTAU = [TAU*D; B],
+%      MIN. NORM(ATAU*X - BTAU),  ATAU = [TAU*C; A],  BTAU = [TAU*D; B],
 %
 %    where TAU is a fixed weighting factor, using deferred correction. The
 %    argument LSFUN is a function to apply the pseudoinverse of ATAU.
@@ -37,12 +37,8 @@
 function [x,w,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
 
   % set default parameters
-  if nargin < 7 || isempty(tol)
-    tol = 1e-12;
-  end
-  if nargin < 8 || isempty(niter_max)
-    niter_max = 8;
-  end
+  if nargin < 7 || isempty(tol), tol = 1e-12; end
+  if nargin < 8 || isempty(niter_max), niter_max = 8; end
 
   % check inputs
   assert(tol >= 0,'FLAM:lsedc:negativeTol','Tolerance must be nonnegative.')
@@ -54,10 +50,7 @@ function [x,w,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
   w = D - C*x;
 
   % return if all converged
-  if norm(w) <= tol
-    niter = 0;
-    return
-  end
+  if norm(w) <= tol, niter = 0; return; end
 
   % iteratively correct constraints
   r = B - A*x;
@@ -66,14 +59,12 @@ function [x,w,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
     dx = lsfun([tau*w + lambda; r]);
     x = x + dx;
     w = w - C*dx;
-    if norm(w) <= tol
-      return
-    end
+    if norm(w) <= tol, return; end
     r = r - A*dx;
     lambda = lambda + tau*w;
   end
 
-  % no convergence
+  % loop didn't return; no convergence
   niter = -1;
   warning('FLAM:lsedc:maxIterCount','Maximum number of iterations reached.')
 end

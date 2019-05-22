@@ -1,12 +1,18 @@
 % RSKEL_XSP  Extended sparsification for recursive skeletonization.
 %
-%    A = RSKEL_XSP(F) produces the extended sparsification A of the compressed
+%    A = RSKEL_XSP(F) produces the extended sparse embedding A of the compressed
 %    matrix F. If F has the single-level representation D + U*S*V', then
-%    A = [D U 0; V' 0 -I; 0 -I S], where I is an identity matrix of the
-%    appropriate size; in the multilevel setting, S itself is extended in the
-%    same way. If F.SYMM = 'N', then the entire extended sparsification is
-%    returned; if F.SYMM = 'S', 'H', or 'P', then only the lower triangular part
-%    part of A is returned.
+%
+%          [D   U   ]
+%      A = [V'    -I]
+%          [   -I  S]
+%
+%    where I is an identity matrix of the appropriate size; in the multilevel
+%    setting, S itself is expanded in the same way. This can be used to solve
+%    linear systems and least squares problems.
+%
+%    If F.SYMM = 'N', then the entire extended sparse matrix is returned; if
+%    F.SYMM = 'S', 'H', or 'P', then only the lower triangular part is returned.
 %
 %    See also RSKEL.
 
@@ -20,25 +26,21 @@ function A = rskel_xsp(F)
   % allocate storage
   rrem = true(F.M,1);
   crem = true(F.N,1);
-  nz = 0;
+  nz = 0;  % total number of nonzeros
   for lvl = 1:nlvl
-    for i = F.lvpd(lvl)+1:F.lvpd(lvl+1)
-      nz = nz + numel(F.D(i).D);
-    end
+    for i = F.lvpd(lvl)+1:F.lvpd(lvl+1), nz = nz + numel(F.D(i).D); end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
       if strcmpi(F.symm,'n')
         crem(F.U(i).crd) = 0;
         nz = nz + numel(F.U(i).rT) + numel(F.U(i).cT);
-      elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+      else
         crem(F.U(i).rrd) = 0;
         nz = nz + numel(F.U(i).rT);
       end
     end
-    if strcmpi(F.symm,'n')
-      nz = nz + 2*(sum(rrem) + sum(crem));
-    elseif strcmpi(F.symm,'s') || strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-      nz = nz + sum(rrem) + sum(crem);
+    if strcmpi(F.symm,'n'), nz = nz + 2*(sum(rrem) + sum(crem));
+    else,                   nz = nz +    sum(rrem) + sum(crem);
     end
   end
   I = zeros(nz,1);
@@ -56,10 +58,8 @@ function A = rskel_xsp(F)
     pcrem1 = cumsum(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmpi(F.symm,'n')
-        crem(F.U(i).crd) = 0;
-      else
-        crem(F.U(i).rrd) = 0;
+      if strcmpi(F.symm,'n'), crem(F.U(i).crd) = 0;
+      else,                   crem(F.U(i).rrd) = 0;
       end
     end
     prrem2 = cumsum(rrem);
@@ -88,7 +88,7 @@ function A = rskel_xsp(F)
     end
 
     % embed interpolation identity matrices
-    if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
+    if strcmpi(F.symm,'n')
       I(nz+1:nz+rk) = M + prrem1(find(rrem));
       J(nz+1:nz+rk) = N + cn + prrem2(find(rrem));
       S(nz+1:nz+rk) = ones(rk,1);
@@ -157,7 +157,7 @@ function A = rskel_xsp(F)
   end
 
   % assemble sparse matrix
-  if strcmpi(F.symm,'s') || strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+  if ~strcmpi(F.symm,'n')
     idx = I >= J;
     I = I(idx);
     J = J(idx);

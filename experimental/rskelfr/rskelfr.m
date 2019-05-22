@@ -25,11 +25,11 @@
 %    F = RSKELFR(A,RX,CX,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various
 %    options to the algorithm. Valid options include:
 %
-%      - EXT: set the root node extent to [EXT(I,1) EXT(I,2)] along dimension I.
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%
+%      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data.
-%
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
 %
 %      - RDPIV: pivoting strategy for redundant point subselection. No pivoting
 %               is used if RDPIV = 'N', LU pivoting if RDPIV = 'L', and QR
@@ -55,11 +55,11 @@ function F = rskelfr(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if nargin < 7
     opts = [];
   end
-  if ~isfield(opts,'ext')
-    opts.ext = [];
-  end
   if ~isfield(opts,'lvlmax')
     opts.lvlmax = Inf;
+  end
+  if ~isfield(opts,'ext')
+    opts.ext = [];
   end
   if ~isfield(opts,'rdpiv')
     opts.rdpiv = 'l';
