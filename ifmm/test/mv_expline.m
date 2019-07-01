@@ -25,8 +25,8 @@ function mv_expline(n,occ,p,rank_or_tol,near,store,symm)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('near',near,'store',store,'symm',symm,'verb',1);
   tic; F = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  w = whos('F'); mem = w.bytes;
-  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
+  w = whos('F'); mem = w.bytes/1e6;
+  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % set up accuracy tests
   A = Afun(1:N,1:N);  % full matrix is okay since problem size is small

@@ -24,8 +24,8 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale);
   opts = struct('symm',symm,'verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  w = whos('F'); mem = w.bytes;
-  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
+  w = whos('F'); mem = w.bytes/1e6;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % set up reference FFT multiplication
   a = Afun(1:n,1);
@@ -47,9 +47,9 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
 
   % build extended sparsification
   tic; A = rskel_xsp(F); t = toc;
-  w = whos('A'); mem = w.bytes;
+  w = whos('A'); mem = w.bytes/1e6;
   fprintf('rskel_xsp:\n')
-  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6);
+  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
   dolu = strcmpi(F.symm,'n');  % LU or LDL?
@@ -64,12 +64,8 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   else,    [FA.L,FA.D,FA.P] = ldl(A);
   end
   t = toc;
-  w = whos('FA.L'); mem =       w.bytes;
-  w = whos('FA.P'); mem = mem + w.bytes;
-  if dolu, w = whos('FA.U'); mem = mem + w.bytes;
-  else,    w = whos('FA.D'); mem = mem + w.bytes;
-  end
-  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
+  w = whos('FA'); mem = w.bytes/1e6;
+  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
   sv = @(x,trans)sv_(FA,x,trans);  % linear solve function
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))

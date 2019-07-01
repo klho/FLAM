@@ -50,13 +50,13 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,A);
   opts = struct('symm',symm,'verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  w = whos('F'); mem = w.bytes;
-  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
+  w = whos('F'); mem = w.bytes/1e6;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % build extended sparsification
   tic; S = rskel_xsp(F); t = toc;
-  w = whos('S'); mem = w.bytes;
-  fprintf('rskel_xsp time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6);
+  w = whos('S'); mem = w.bytes/1e6;
+  fprintf('rskel_xsp time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
   dolu = strcmpi(F.symm,'n');  % LU or LDL?
@@ -72,12 +72,8 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   else,    [FS.L,FS.D,FS.P] = ldl(A);
   end
   t = toc;
-  w = whos('FS.L'); mem =       w.bytes;
-  w = whos('FS.P'); mem = mem + w.bytes;
-  if dolu, w = whos('FS.U'); mem = mem + w.bytes;
-  else,    w = whos('FS.D'); mem = mem + w.bytes;
-  end
-  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
+  w = whos('FS'); mem = w.bytes/1e6;
+  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
   sv = @(x,trans)sv_(FS,x,trans);  % linear solve function
 
   % test accuracy using randomized power method
