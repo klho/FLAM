@@ -30,15 +30,15 @@ function ols_square(m,n,lambda,occ,p,rank_or_tol,store,doiter)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('verb',1);
   tic; F = rskel(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('F').bytes/1e6;
-  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('F'); mem = w.bytes;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % compress matrix using IFMM
   opts = struct('store',store);
   rank_or_tol = max(rank_or_tol*1e-2,1e-15);  % higher accuracy for reference
   tic; G = ifmm(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('G').bytes/1e6;
-  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('G'); mem = w.bytes;
+  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -59,14 +59,14 @@ function ols_square(m,n,lambda,occ,p,rank_or_tol,store,doiter)
   A = rskel_xsp(F);
   A = [tau*A(M+1:end,:); A(1:M,:); lambda*speye(N) sparse(N,size(A,2)-N)];
   t = toc;
-  mem = whos('A').bytes/1e6;
+  w = whos('A'); mem = w.bytes;
   fprintf('rskel_xsp:\n')
-  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
+  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6);
 
   % factor extended sparsification
   tic; R = qr(A,0); t = toc;
-  mem = whos('R').bytes/1e6;
-  fprintf('  qr time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('R'); mem = w.bytes;
+  fprintf('  qr time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
   ls = @(X)ls_(A,R,X,M,N,tau);  % least squares solve function
 
   % test pseudoinverse apply accuracy

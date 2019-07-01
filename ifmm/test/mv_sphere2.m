@@ -29,8 +29,8 @@ function mv_sphere2(m,n,k,occ,p,rank_or_tol,near,store)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k);
   opts = struct('near',near,'store',store,'verb',1);
   tic; F = ifmm(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('F').bytes/1e6;
-  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('F'); mem = w.bytes;
+  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % test matrix apply accuracy
   X = rand(N,1); X = X/norm(X);

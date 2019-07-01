@@ -33,8 +33,8 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('symm',symm,'verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('F').bytes/1e6;
-  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('F'); mem = w.bytes;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % set up reference FFT multiplication
   G = fft(Afun(1:N,1));
@@ -52,9 +52,9 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
 
   % build extended sparsification
   tic; A = rskel_xsp(F); t = toc;
-  mem = whos('A').bytes/1e6;
+  w = whos('A'); mem = w.bytes;
   fprintf('rskel_xsp:\n')
-  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
+  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6);
 
   % factor extended sparsification
   dolu = strcmpi(F.symm,'n');  % LU or LDL?
@@ -69,11 +69,12 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   else,    [FA.L,FA.D,FA.P] = ldl(A);
   end
   t = toc;
-  mem = whos('FA.L').bytes/1e6;
-  if dolu, mem = mem + (whos('FA.U').bytes + whos('FA.P').bytes)/1e6;
-  else,    mem = mem + (whos('FA.D').bytes + whos('FA.P').bytes)/1e6;
+  w = whos('FA.L'); mem =       w.bytes;
+  w = whos('FA.P'); mem = mem + w.bytes;
+  if dolu, w = whos('FA.U'); mem = mem + w.bytes;
+  else,    w = whos('FA.D'); mem = mem + w.bytes;
   end
-  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
   sv = @(x,trans)sv_(FA,x,trans);  % linear solve function
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))

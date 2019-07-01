@@ -79,8 +79,8 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   end
   S = sparse(I,J,S,N,N);  % store in sparse matrix
   t = toc;
-  mem = whos('S').bytes/1e6;
-  fprintf('quad time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('S'); mem = w.bytes;
+  fprintf('quad time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
   clear V F trans rot V2 V3 T I J
 
   % compress matrix using RSKEL
@@ -89,15 +89,15 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
                                             area);
   opts = struct('verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('F').bytes/1e6;
-  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('F'); mem = w.bytes;
+  fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % compress matrix using IFMM
   opts = struct('store',store);
   rank_or_tol = max(rank_or_tol*1e-2,1e-15);  % higher accuracy for reference
   tic; G = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('G').bytes/1e6;
-  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('G'); mem = w.bytes;
+  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -114,14 +114,16 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
 
   % build extended sparsification
   tic; A = rskel_xsp(F); t = toc;
-  mem = whos('A').bytes/1e6;
+  w = whos('A'); mem = w.bytes;
   fprintf('rskel_xsp:\n')
-  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
+  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6);
 
   % factor extended sparsification
   tic; [FA.L,FA.U,FA.P] = lu(A); t = toc;
-  mem = (whos('FA.L').bytes + whos('FA.U').bytes + whos('FA.P').bytes)/1e6;
-  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w = whos('FA.L'); mem =       w.bytes;
+  w = whos('FA.U'); mem = mem + w.bytes;
+  w = whos('FA.P'); mem = mem + w.bytes;
+  fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
   sv = @(x,trans)sv_(FA,x,trans);  % linear solve function
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))

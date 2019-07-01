@@ -34,8 +34,8 @@ function ie_circle(n,occ,p,rank_or_tol,near,store,symm)
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
   opts = struct('near',near,'store',store,'symm',symm,'verb',1);
   tic; F = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
-  mem = whos('F').bytes/1e6;
-  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  w= whos('F'); mem = w.bytes;
+  fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem/1e6)
 
   % set up reference FFT multiplication
   G = fft(Afun(1:N,1));
