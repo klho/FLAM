@@ -115,9 +115,8 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,A)
   % only neighbor interactions -- no far field
   Kpxy = zeros(0,length(slf));
   if strcmpi(rc,'r'), Kpxy = Kpxy'; end
-  % keep only neighbors with nonzero interaction
   [nbr,~] = find(A(:,slf));
-  nbr = nbr(ismemb(nbr,sort(nbr)));
+  nbr = nbr(~ismemb(nbr,sort(slf)));
 end
 
 % sparse LU/LDL solve
