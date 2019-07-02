@@ -79,8 +79,10 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm,doiter)
 
   % factor extended sparsification
   dolu = strcmpi(F.symm,'n');  % LU or LDL?
-  if ~dolu && isoctave
-    warning('No LDL in Octave; using LU.')
+  if ~dolu
+    if isoctave(), warning('No LDL in Octave; using LU.');
+    else,          warning('No complex sparse LDL in MATLAB; using LU.');
+    end
     dolu = 1;
     A = A + tril(A,-1).';
   end

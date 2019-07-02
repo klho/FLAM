@@ -61,7 +61,7 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   % factor extended sparsification
   dolu = strcmpi(F.symm,'n');  % LU or LDL?
   % note: extended sparse matrix is not SPD even if original matrix is!
-  if ~dolu && isoctave
+  if ~dolu && isoctave()
     warning('No LDL in Octave; using LU.')
     dolu = 1;
     S = S + tril(S,-1)';
@@ -100,7 +100,7 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   tic; [Y,~,~,piter] = pcg(@(x)(A*x),B,1e-12,32,@(x)sv(x,'n')); t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - A*Y)/norm(B);
-  fprintf('cg soln/resid err, time: %10.4e / %10.4e / %10.4e (s)\n',
+  fprintf('cg soln/resid err, time: %10.4e / %10.4e / %10.4e (s)\n', ...
           err1,err2,t)
   fprintf('cg precon/unprecon iter: %d / %d\n',piter,iter)
 end

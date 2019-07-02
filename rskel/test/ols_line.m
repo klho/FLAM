@@ -88,14 +88,14 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store,doiter)
 
   iter = nan;
   if ~isoctave()
-    C = [X; zeros(N,1)];
+    C = [B; zeros(N,1)];
     mv = @(x,trans)mv_lsqr(G,x,trans,Afun,M,lambda);
 
     % run LSQR
-    if doiter, [~,~,~,iter] = lsqr(mv,C,1e-12,128); end
+    if doiter, [~,~,~,iter] = lsqr(mv,C,1e-9,128); end
 
     % run LSQR with initial guess from pseudoinverse
-    tic; [Z,~,~,piter] = lsqr(mv,C,1e-12,32,[],[],Y); t = toc;
+    tic; [Z,~,~,piter] = lsqr(mv,C,1e-9,32,[],[],Y); t = toc;
     fprintf('lsqr:\n')
   else
     warning('No LSQR in Octave.')
@@ -104,10 +104,10 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store,doiter)
     mv = @(x)mv_cg(G,x,Afun,lambda);
 
     % run CG (on normal equations)
-    if doiter, [~,~,~,iter] = pcg(mv,C,1e-12,128); end
+    if doiter, [~,~,~,iter] = pcg(mv,C,1e-9,128); end
 
     % run CG with initial guess from pseudoinverse
-    tic; [Z,~,~,piter] = pcg(mv,C,1e-12,32,[],[],Y); t = toc;
+    tic; [Z,~,~,piter] = pcg(mv,C,1e-9,32,[],[],Y); t = toc;
     fprintf('cg:\n')
   end
   err1 = norm(X - Z)/norm(X);

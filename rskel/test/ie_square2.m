@@ -62,7 +62,7 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
 
   % factor extended sparsification
   dolu = strcmpi(F.symm,'n');  % LU or LDL?
-  if ~dolu && isoctave
+  if ~dolu && isoctave()
     warning('No LDL in Octave; using LU.')
     dolu = 1;
     A = A + tril(A,-1)';
