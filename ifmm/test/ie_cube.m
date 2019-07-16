@@ -18,8 +18,8 @@ function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
   clear x1 x2 x3
   N = size(x,2);
   % proxy points are quasi-uniform sampling of scaled 1.5-radius sphere
-  proxy = trisphere_subdiv(p);
-  % reference proxy points are for unit box [-1, 1]^3
+  proxy = trisphere_subdiv(p); r = randperm(size(proxy,2));
+  proxy = proxy(:,r(1:p));  % reference proxy points are for unit box [-1, 1]^3
 
   % compute diagonal quadratures
   h = 1/n;

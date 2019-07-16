@@ -25,8 +25,8 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   [x,nu,area] = tri3geom(V,F);  % centroid, normal, and area of each triangle
   N = size(x,2);
   % proxy points are quasi-uniform sampling of scaled 1.5-radius sphere
-  proxy = trisphere_subdiv(p);
-  % reference proxy points are for unit box [-1, 1]^3
+  proxy = trisphere_subdiv(p); r = randperm(size(proxy,2));
+  proxy = proxy(:,r(1:p));  % reference proxy points are for unit box [-1, 1]^3
 
   % compute near-field quadratures
   tic
