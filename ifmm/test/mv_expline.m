@@ -30,12 +30,12 @@ function mv_expline(n,occ,p,rank_or_tol,near,store,symm)
 
   % set up accuracy tests
   A = Afun(1:N,1:N);  % full matrix is okay since problem size is small
-
-  % test matrix apply accuracy
-  X = rand(N,1); X = X/norm(X);
-  tic; ifmm_mv(F,X,Afun,'n'); t = toc;  % for timing
+  X1 = rand(N,1); X1 = X1/norm(X1);  % for timing
   X = rand(N,16); X = X/norm(X);  % test against 16 vectors for robustness
   r = randperm(N); r = r(1:min(N,128));  % check up to 128 rows in result
+
+  % test matrix apply accuracy
+  tic; ifmm_mv(F,X1,Afun,'n'); t = toc;  % for timing
   Y = ifmm_mv(F,X,Afun,'n');
   Z = Afun(r,1:N)*X;
   err = norm(Z - Y(r,:))/norm(Z);
@@ -43,10 +43,7 @@ function mv_expline(n,occ,p,rank_or_tol,near,store,symm)
   fprintf('  multiply err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % test matrix adjoint apply accuracy
-  X = rand(N,1); X = X/norm(X);
-  tic; ifmm_mv(F,X,Afun,'c'); t = toc;  % for timing
-  X = rand(N,16); X = X/norm(X);  % test against 16 vectors for robustness
-  r = randperm(N); r = r(1:min(N,128));  % check up to 128 rows in result
+  tic; ifmm_mv(F,X1,Afun,'c'); t = toc;  % for timing
   Y = ifmm_mv(F,X,Afun,'c');
   Z = Afun(1:N,r)'*X;
   err = norm(Z - Y(r,:))/norm(Z);

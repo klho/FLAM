@@ -95,7 +95,7 @@ function T = hypoct(x,occ,lvlmax,ext)
         nbox_new = nbox + length(uidx);
         if mbox < nbox_new
           while mbox < nbox_new, mbox = 2*mbox; end
-          e = cell(mbox,1);
+          e = cell(mbox-length(T.nodes),1);
           s = struct('ctr',e,'xi',e,'prnt',e,'chld',e,'nbor',e);
           T.nodes = [T.nodes; s];
         end

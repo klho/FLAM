@@ -93,8 +93,8 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % compress matrix using IFMM
-  opts = struct('store',store);
   rank_or_tol = max(rank_or_tol*1e-2,1e-15);  % higher accuracy for reference
+  opts = struct('store',store);
   tic; G = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('G'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

@@ -2,7 +2,7 @@
 %
 % This example solves the Poisson equation on the unit square with Dirichlet
 % boundary conditions. The system is discretized using the standard five-point
-% stencil; the resulting matrix is square, real, and positive-definite.
+% stencil; the resulting matrix is square, real, and positive definite.
 %
 % This demo does the following in order:
 %
@@ -18,7 +18,7 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   if nargin < 1 || isempty(n), n = 128; end  % number of points in one dimension
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
-  if nargin < 4 || isempty(symm), symm = 'p'; end  % positive-definite
+  if nargin < 4 || isempty(symm), symm = 'p'; end  % positive definite
   if nargin < 5 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
 
   % initialize
@@ -28,16 +28,16 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   % set up sparse matrix
   h = 1/(n + 1);           % mesh width
   idx = reshape(1:N,n,n);  % index mapping to each point
-  Im = idx(1:n,1:n); Jm = idx(1:n,1:n);    % interaction with middle (self)
-  Sm = 4/h^2*ones(size(Im));
-  Il = idx(1:n-1,1:n); Jl = idx(2:n,1:n);  % interaction with left
-  Sl = -1/h^2*ones(size(Il));
-  Ir = idx(2:n,1:n); Jr = idx(1:n-1,1:n);  % interaction with right
-  Sr = -1/h^2*ones(size(Ir));
-  Iu = idx(1:n,1:n-1); Ju = idx(1:n,2:n);  % interaction with up
-  Su = -1/h^2*ones(size(Iu));
-  Id = idx(1:n,2:n); Jd = idx(1:n,1:n-1);  % interaction with down
-  Sd = -1/h^2*ones(size(Id));
+  % interaction with middle (self)
+  Im = idx(1:n,1:n); Jm = idx(1:n,1:n); Sm = 4/h^2*ones(size(Im));
+  % interaction with left
+  Il = idx(1:n-1,1:n); Jl = idx(2:n,1:n); Sl = -1/h^2*ones(size(Il));
+  % interaction with right
+  Ir = idx(2:n,1:n); Jr = idx(1:n-1,1:n); Sr = -1/h^2*ones(size(Ir));
+  % interaction with up
+  Iu = idx(1:n,1:n-1); Ju = idx(1:n,2:n); Su = -1/h^2*ones(size(Iu));
+  % interaction with down
+  Id = idx(1:n,2:n); Jd = idx(1:n,1:n-1); Sd = -1/h^2*ones(size(Id));
   % combine all interactions
   I = [Im(:); Il(:); Ir(:); Iu(:); Id(:)];
   J = [Jm(:); Jl(:); Jr(:); Ju(:); Jd(:)];

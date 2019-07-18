@@ -33,11 +33,13 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
-  % test matrix apply accuracy
-  X = rand(N,1); X = X/norm(X);
-  tic; ifmm_mv(F,X,Afun,'n'); t = toc;  % for timing
+  % set up accuracy tests
+  X1 = rand(N,1); X1 = X1/norm(X1);  % for timing
   X = rand(N,16); X = X/norm(X);  % test against 16 vectors for robustness
   r = randperm(N); r = r(1:min(N,128));  % check up to 128 rows in result
+
+  % test matrix apply accuracy
+  tic; ifmm_mv(F,X1,Afun,'n'); t = toc;  % for timing
   Y = ifmm_mv(F,X,Afun,'n');
   Z = Afun(r,1:N)*X;
   err = norm(Z - Y(r,:))/norm(Z);
@@ -45,10 +47,7 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   fprintf('  multiply err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % test matrix adjoint apply accuracy
-  X = rand(N,1); X = X/norm(X);
-  tic; ifmm_mv(F,X,Afun,'c'); t = toc;  % for timing
-  X = rand(N,16); X = X/norm(X);  % test against 16 vectors for robustness
-  r = randperm(N); r = r(1:min(N,128));  % check up to 128 rows in result
+  tic; ifmm_mv(F,X1,Afun,'c'); t = toc;  % for timing
   Y = ifmm_mv(F,X,Afun,'c');
   Z = Afun(1:N,r)'*X;
   err = norm(Z - Y(r,:))/norm(Z);

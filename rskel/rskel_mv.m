@@ -1,5 +1,8 @@
 % RSKEL_MV  Multiply using recursive skeletonization.
 %
+%    Typical complexity for [M,N] = SIZE(A) with M >= N without loss of
+%    generality: O(M + N) in 1D and O(M + N^(2*(1 - 1/D))) in D dimensions.
+%
 %    Y = RSKEL_MV(F,X) produces the matrix Y by applying the compressed matrix F
 %    to the matrix X.
 %

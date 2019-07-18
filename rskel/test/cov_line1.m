@@ -2,7 +2,7 @@
 %
 % This example considers the covariance matrix between equispaced points on the
 % unit line with squared exponential covariance function. The matrix is square,
-% real, positive-definite, and Toeplitz.
+% real, positive definite, and Toeplitz.
 %
 % We remark on a few key departures from the PDE setting:
 %
@@ -16,7 +16,7 @@
 %
 % This demo does the following in order:
 %
-%   - compres the matrix
+%   - compress the matrix
 %   - check multiply error/time
 %   - build/factor extended sparsification
 %   - check solve error/time using extended sparsification
@@ -30,7 +30,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale)
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive-definite
+  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
   if nargin < 6 || isempty(noise), noise = 1e-2; end  % nugget effect
   if nargin < 7 || isempty(scale), scale = 100; end  % kernel length scale
 

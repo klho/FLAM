@@ -14,6 +14,8 @@
 %    If F.SYMM = 'N', then the entire extended sparse matrix is returned; if
 %    F.SYMM = 'S', 'H', or 'P', then only the lower triangular part is returned.
 %
+%    Typical complexity: same as RSKEL_MV.
+%
 %    See also RSKEL.
 
 function A = rskel_xsp(F)

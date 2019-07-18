@@ -1,7 +1,6 @@
 % Covariance matrix on the unit line, Matern 3/2 kernel.
 %
-% This is basically the same as COV_LINE1 but using the Matern 3/2 kernel
-% instead of the squared exponential.
+% This is basically the same as COV_LINE1 but using the Matern 3/2 kernel.
 
 function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
 
@@ -10,7 +9,7 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive-definite
+  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
   if nargin < 6 || isempty(noise), noise = 1e-2; end  % nugget effect
   if nargin < 7 || isempty(scale), scale = 100; end  % kernel length scale
 
