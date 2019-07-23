@@ -1,4 +1,4 @@
-% RSKELF_MV_SN   Dispatch for RSKELF_MV with F.SYMM = 'S' and TRANS = 'N'.
+% RSKELF_MV_SN  Dispatch for RSKELF_MV with F.SYMM = 'S' and TRANS = 'N'.
 %
 %    See also RSKELF, RSKELF_MV.
 

@@ -1,5 +1,7 @@
 % RSKELF_SV  Solve using recursive skeletonization factorization.
 %
+%    Typical complexity: same as RSKELF_MV.
+%
 %    Y = RSKELF_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.
 %
@@ -11,9 +13,7 @@
 function Y = rskelf_sv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
@@ -21,27 +21,18 @@ function Y = rskelf_sv(F,X,trans)
          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t')
-    Y = conj(rskelf_sv(F,conj(X),'c'));
-    return
-  end
+  if strcmpi(trans,'t'), Y = conj(rskelf_sv(F,conj(X),'c')); return; end
 
-  % dispatch
+  % dispatch to eliminate overhead
   if strcmpi(F.symm,'n')
-    if strcmpi(trans,'n')
-      Y = rskelf_sv_nn(F,X);
-    else
-      Y = rskelf_sv_nc(F,X);
+    if strcmpi(trans,'n'), Y = rskelf_sv_nn(F,X);
+    else,                  Y = rskelf_sv_nc(F,X);
     end
   elseif strcmpi(F.symm,'s')
-    if strcmpi(trans,'n')
-      Y = rskelf_sv_sn(F,X);
-    else
-      Y = rskelf_sv_sc(F,X);
+    if strcmpi(trans,'n'), Y = rskelf_sv_sn(F,X);
+    else,                  Y = rskelf_sv_sc(F,X);
     end
-  elseif strcmpi(F.symm,'h')
-    Y = rskelf_sv_h(F,X);
-  elseif strcmpi(F.symm,'p')
-    Y = rskelf_sv_p(F,X);
+  elseif strcmpi(F.symm,'h'), Y = rskelf_sv_h(F,X);
+  elseif strcmpi(F.symm,'p'), Y = rskelf_sv_p(F,X);
   end
 end

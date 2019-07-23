@@ -1,51 +1,89 @@
-% RSKELF   Recursive skeletonization factorization.
+% RSKELF  Recursive skeletonization factorization.
 %
-%    F = RSKELF(A,X,OCC,RANK_OR_TOL,PXYFUN) produces a factorization F of the
-%    interaction matrix A on the points X using tree occupancy parameter OCC,
-%    local precision parameter RANK_OR_TOL, and proxy function PXYFUN to capture
-%    the far field. This is a function of the form
+%    The recursive skeletonization factorization approximates a hierarchically
+%    rank-structured matrix A as a generalized LDU decomposition A = L*D*U,
+%    where L and U are multilevel products of sparse unit triangular matrices
+%    (both upper and lower), and D is block diagonal. In the symmetric or
+%    positive definite case, this naturally becomes a generalized LDL or
+%    Cholesky decomposition, respectively.
+%
+%    The matrix A must be square with full-rank diagonal blocks. This
+%    representation facilitates fast multiplication, inversion, determinant
+%    computation, and selected inversion, among other operations.
+%
+%    Each row/column of A is associated with a point, with identical row/column
+%    indices corresponding to the same point. The induced point geometry exposes
+%    the required matrix rank structure. In typical operation, only the near-
+%    field (near-diagonal blocks) is explicitly evaluated; the far-field is
+%    captured by a user-supplied "proxy" function. To avoid excessive storage,
+%    the matrix should be given as a function handle implementing the usual
+%    submatrix access interface.
+%
+%    This algorithm can be viewed as a dense counterpart to the multifrontal
+%    factorization for sparse matrices, where the ID is used to introduce
+%    sparsity at each level.
+%
+%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N) in 1D and
+%    O(N^(3*(1 - 1/D))) in D dimensions.
+%
+%    F = RSKELF(A,X,OCC,RANK_OR_TOL) produces a factorization F of the matrix A
+%    acting on the points X using tree occupancy parameter OCC and local
+%    precision parameter RANK_OR_TOL. See HYPOCT and ID for details. Since no
+%    proxy function is supplied, this simply performs a naive compression of all
+%    off-diagonal blocks.
+%
+%    F = RSKELF(A,X,OCC,RANK_OR_TOL,PXYFUN) accelerates the compression using
+%    the proxy function PXYFUN to capture the far field (both incoming and
+%    outgoing). This is a function of the form
 %
 %      [KPXY,NBR] = PXYFUN(X,SLF,NBR,L,CTR)
 %
 %    that is called for every block, where
 %
 %      - KPXY: interaction matrix against artificial proxy points
-%      - NBR:  block neighbor indices (can be modified)
+%      - NBR:  block neighbor point indices (can be modified)
 %      - X:    input points
-%      - SLF:  block indices
-%      - L:    block size
-%      - CTR:  block center
+%      - SLF:  block point indices
+%      - L:    block node size
+%      - CTR:  block node center
 %
-%    See the examples for further details. If PXYFUN is not provided or empty
-%    (default), then the code uses the naive global compression scheme.
+%    The relevant arguments will be passed in by the algorithm; the user is
+%    responsible for handling them. See the examples for further details. If
+%    PXYFUN is not provided or empty (default), then the code uses the naive
+%    global compression scheme.
 %
 %    F = RSKELF(A,X,OCC,RANK_OR_TOL,PXYFUN,OPTS) also passes various options to
 %    the algorithm. Valid options include:
 %
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
+%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf). See HYPOCT.
 %
 %      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
-%             the data.
+%             the data. See HYPOCT.
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
 %              positive definite if SYMM = 'P' (default: SYMM = 'N'). If
 %              SYMM = 'N' or 'S', then local factors are computed using the LU
 %              decomposition; if SYMM = 'H', the LDL decomposition; and if
-%              SYMM = 'P', the Cholesky decomposition.
+%              SYMM = 'P', the Cholesky decomposition. Symmetry can reduce the
+%              computation time by about a factor of two.
 %
-%      - VERB: display status of the code if VERB = 1 (default: VERB = 0).
+%      - VERB: display status info if VERB = 1 (default: VERB = 0). This prints
+%              to screen a table tracking compression statistics through level.
+%              Special levels: 'T', tree sorting.
 %
-%    References:
-%
-%      S. Chandrasekaran, M. Gu, T. Pals. A fast ULV decomposition solver for
-%        hierarchically semiseparable representations. SIAM J. Matrix Anal.
-%        Appl. 28 (3): 603-622, 2006.
+%    Primary references:
 %
 %      K.L. Ho, L. Ying. Hierarchical interpolative factorization for elliptic
 %        operators: integral equations. Comm. Pure Appl. Math. 69 (7):
 %        1314-1353, 2016.
+%
+%    Other references:
+%
+%      S. Chandrasekaran, M. Gu, T. Pals. A fast ULV decomposition solver for
+%        hierarchically semiseparable representations. SIAM J. Matrix Anal.
+%        Appl. 28 (3): 603-622, 2006.
 %
 %      J. Xia, S. Chandrasekaran, M. Gu, X.S. Li. Fast algorithms for
 %        hierarchically semiseparable matrices. Numer. Linear Algebra Appl. 17
@@ -55,27 +93,14 @@
 %    RSKELF_LOGDET, RSKELF_MV, RSKELF_SPDIAG, RSKELF_SV.
 
 function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
-  start = tic;
 
   % set default parameters
-  if nargin < 5
-    pxyfun = [];
-  end
-  if nargin < 6
-    opts = [];
-  end
-  if ~isfield(opts,'lvlmax')
-    opts.lvlmax = Inf;
-  end
-  if ~isfield(opts,'ext')
-    opts.ext = [];
-  end
-  if ~isfield(opts,'symm')
-    opts.symm = 'n';
-  end
-  if ~isfield(opts,'verb')
-    opts.verb = 0;
-  end
+  if nargin < 5, pxyfun = []; end
+  if nargin < 6, opts = []; end
+  if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
+  if ~isfield(opts,'ext'), opts.ext = []; end
+  if ~isfield(opts,'symm'), opts.symm = 'n'; end
+  if ~isfield(opts,'verb'), opts.verb = 0; end
 
   % check inputs
   assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
@@ -87,24 +112,27 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
     opts.symm = 's';
   end
 
+  if opts.verb
+    fprintf([repmat('-',1,69) '\n'])
+    fprintf('%3s | %6s | %19s | %19s | %10s\n', ...
+            'lvl','nblk','start/end npts','start/end npts/blk','time (s)')
+    fprintf([repmat('-',1,69) '\n'])
+  end
+
   % build tree
   N = size(x,2);
-  tic
+  ts = tic;
   t = hypoct(x,occ,opts.lvlmax,opts.ext);
+  te = toc(ts);
+  if opts.verb, fprintf('%3s | %63.2e\n','t',te); end
 
-  % print summary
-  if opts.verb
-    fprintf([repmat('-',1,80) '\n'])
-    fprintf('%3s | %63.2e (s)\n','-',toc)
-
-    % count nonempty boxes at each level
-    pblk = zeros(t.nlvl+1,1);
-    for lvl = 1:t.nlvl
-      pblk(lvl+1) = pblk(lvl);
-      for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-        if ~isempty(t.nodes(i).xi)
-          pblk(lvl+1) = pblk(lvl+1) + 1;
-        end
+  % count nonempty boxes at each level
+  pblk = zeros(t.nlvl+1,1);
+  for lvl = 1:t.nlvl
+    pblk(lvl+1) = pblk(lvl);
+    for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+      if ~isempty(t.nodes(i).xi)
+        pblk(lvl+1) = pblk(lvl+1) + 1;
       end
     end
   end
@@ -117,15 +145,15 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
              opts.symm);
   nlvl = 0;
   n = 0;
-  rem = true(N,1);
-  M = cell(nbox,1);
-  I = zeros(N,1);
+  rem = true(N,1);   % which points remain?
+  M = cell(nbox,1);  % storage for modified diagonal blocks
+  P = zeros(N,1);    % auxiliary array for indexing
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1
-    tic
+    ts = tic;
     nlvl = nlvl + 1;
-    nrem1 = sum(rem);
+    nrem1 = sum(rem);  % remaining points at start
     l = t.lrt/2^(lvl - 1);
 
     % pull up skeletons from children
@@ -142,45 +170,35 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       % generate modified diagonal block
       M{i} = full(A(slf,slf));
       if lvl < t.nlvl
-        I(slf) = 1:nslf;
+        P(slf) = 1:nslf;
         for j = t.nodes(i).chld
-          xi = t.nodes(j).xi;
-          M{i}(I(xi),I(xi)) = M{j};
-          M{j} = [];
+          k = P(t.nodes(j).xi);
+          M{i}(k,k) = M{j};  % overwrite subblock from child
+          M{j} = [];         % clear child storage
         end
       end
 
       % compute proxy interactions and subselect neighbors
       Kpxy = zeros(0,nslf);
       if lvl > 2
-        if isempty(pxyfun)
-          nbr = setdiff(find(rem),slf);
-        else
-          [Kpxy,nbr] = pxyfun(x,slf,nbr,l,t.nodes(i).ctr);
+        if isempty(pxyfun), nbr = setdiff(find(rem),slf);
+        else, [Kpxy,nbr] = pxyfun(x,slf,nbr,l,t.nodes(i).ctr);
         end
       end
 
-      % compute interaction matrix
+      % compress off-diagonal block
       K = full(A(nbr,slf));
-      if strcmpi(opts.symm,'n')
-        K = [K; full(A(slf,nbr))'];
-      end
+      if strcmpi(opts.symm,'n'), K = [K; full(A(slf,nbr))']; end
       K = [K; Kpxy];
-
-      % skeletonize
       [sk,rd,T] = id(K,rank_or_tol);
 
       % move on if no compression
-      if isempty(rd)
-        continue
-      end
+      if isempty(rd), continue; end
 
       % compute factors
       K = M{i};
-      if strcmpi(opts.symm,'s')
-        K(rd,:) = K(rd,:) - T.'*K(sk,:);
-      else
-        K(rd,:) = K(rd,:) - T'*K(sk,:);
+      if strcmpi(opts.symm,'s'), K(rd,:) = K(rd,:) - T.'*K(sk,:);
+      else,                      K(rd,:) = K(rd,:) - T' *K(sk,:);
       end
       K(:,rd) = K(:,rd) - K(:,sk)*T;
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
@@ -199,13 +217,11 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       end
 
       % update self-interaction
-      if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
-        M{i} = M{i}(sk,sk) - E*G;
-      elseif strcmpi(opts.symm,'h')
-        M{i} = M{i}(sk,sk) - E*U*E';
-      elseif strcmpi(opts.symm,'p')
-        M{i} = M{i}(sk,sk) - E*E';
+      if     strcmpi(opts.symm,'h'), X = E*U*E';
+      elseif strcmpi(opts.symm,'p'), X = E*E';
+      else,                          X = E*G;
       end
+      M{i} = M{i}(sk,sk) - X;
 
       % store matrix factors
       n = n + 1;
@@ -217,25 +233,23 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       F.factors(n).L = L;
       F.factors(n).U = U;
 
-      % restrict to skeletons
+      % restrict to skeletons for next level
       t.nodes(i).xi = slf(sk);
       rem(slf(rd)) = 0;
     end
     F.lvp(nlvl+1) = n;
+    te = toc(ts);
 
     % print summary
     if opts.verb
-      nrem2 = sum(rem);
-      nblk = pblk(lvl) + t.lvp(lvl+1) - t.lvp(lvl);
-      fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e (s)\n', ...
-              lvl,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,toc)
+      nrem2 = sum(rem);  % remaining points at end
+      nblk = pblk(lvl) + t.lvp(lvl+1) - t.lvp(lvl);  % nonempty up to this level
+      fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
+              lvl,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)
     end
   end
 
   % finish
   F.factors = F.factors(1:n);
-  if opts.verb
-    fprintf([repmat('-',1,80) '\n'])
-    toc(start)
-  end
+  if opts.verb, fprintf([repmat('-',1,69) '\n']), end
 end
