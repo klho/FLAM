@@ -101,7 +101,9 @@ function D = rskelf_diag(F,dinv,opts)
     % construct requirement matrix
     idx = 1:nz;
     if ~strcmpi(F.symm,'n'), idx = find(I(idx) >= J(idx)); end
-    keep{lvl+1} = sparse(I(idx),J(idx),true(size(idx)),N,N);
+    if isoctave(), keep{lvl+1} = sparse(I(idx),J(idx),true(size(idx)),N,N);
+    else, keep{lvl+1} = logical(sparse(I(idx),J(idx),ones(size(idx)),N,N));
+    end
   end
   t = toc(ts);
 

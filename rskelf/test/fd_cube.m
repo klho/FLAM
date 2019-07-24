@@ -41,7 +41,7 @@ function fd_cube(n,occ,rank_or_tol,skip,symm,doiter)
   clear idx Im Jm Sm Il Jl Sl Ir Jr Sr Iu Ju Su Id Jd Sd If Jf Sf Ib Jb Sb I J S
 
   % factor matrix
-  Afun = @(i,j)Afun_(i,j,A,N);
+  Afun = @(i,j)Afun_(i,j,A);
   pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,A);
   opts = struct('symm',symm,'verb',1);
   tic; F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
