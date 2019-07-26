@@ -18,7 +18,7 @@
 function ie_square1(n,occ,p,rank_or_tol,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points in one dimension
+  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(p), p = 64; end  % number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-6; end

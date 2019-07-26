@@ -108,6 +108,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
          'FLAM:rskel:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
 
+  % print header
   if opts.verb
     fprintf([repmat('-',1,69) '\n'])
     fprintf('%3s | %6s | %19s | %19s | %10s\n', ...

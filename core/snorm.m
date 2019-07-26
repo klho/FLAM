@@ -36,8 +36,8 @@ function [s,niter] = snorm(n,mv,mva,tol,herm,niter_max)
   if nargin < 6 || isempty(niter_max), niter_max = 32; end
 
   % check inputs
-  assert(tol >= 0,'FLAM:snorm:negativeTol','Tolerance must be nonnegative.')
-  assert(niter_max > 0,'FLAM:snorm:nonpositiveMaxIter', ...
+  assert(tol >= 0,'FLAM:snorm:invalidTol','Tolerance must be nonnegative.')
+  assert(niter_max > 0,'FLAM:snorm:invalidMaxIter', ...
          'Maximum number of iterations must be positive.')
 
   % initialize

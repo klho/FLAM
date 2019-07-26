@@ -6,16 +6,14 @@
 %
 % This demo does the following in order:
 %
-%   - compress the matrix
-%   - build/factor extended sparsification
-%   - check multiply error/time
-%   - check solve error/time (using extended sparsification)
+%   - factor the matrix
+%   - check multiply/solve error/time
 %   - compare CG with/without preconditioning by approximate solve
 
 function fd_square(n,occ,rank_or_tol,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points in one dimension
+  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
   if nargin < 4 || isempty(symm), symm = 'p'; end  % positive definite
@@ -26,18 +24,17 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   N = size(x,2);
 
   % set up sparse matrix
-  h = 1/(n + 1);           % mesh width
   idx = reshape(1:N,n,n);  % index mapping to each point
   % interaction with middle (self)
-  Im = idx(1:n,1:n); Jm = idx(1:n,1:n); Sm = 4/h^2*ones(size(Im));
+  Im = idx(1:n,1:n); Jm = idx(1:n,1:n); Sm = 4*ones(size(Im));
   % interaction with left
-  Il = idx(1:n-1,1:n); Jl = idx(2:n,1:n); Sl = -1/h^2*ones(size(Il));
+  Il = idx(1:n-1,1:n); Jl = idx(2:n,1:n); Sl = -ones(size(Il));
   % interaction with right
-  Ir = idx(2:n,1:n); Jr = idx(1:n-1,1:n); Sr = -1/h^2*ones(size(Ir));
-  % interaction with right
-  Iu = idx(1:n,1:n-1); Ju = idx(1:n,2:n); Su = -1/h^2*ones(size(Iu));
+  Ir = idx(2:n,1:n); Jr = idx(1:n-1,1:n); Sr = -ones(size(Ir));
+  % interaction with up
+  Iu = idx(1:n,1:n-1); Ju = idx(1:n,2:n); Su = -ones(size(Iu));
   % interaction with down
-  Id = idx(1:n,2:n); Jd = idx(1:n,1:n-1); Sd = -1/h^2*ones(size(Id));
+  Id = idx(1:n,2:n); Jd = idx(1:n,1:n-1); Sd = -ones(size(Id));
   % combine all interactions
   I = [Im(:); Il(:); Ir(:); Iu(:); Id(:)];
   J = [Jm(:); Jl(:); Jr(:); Ju(:); Jd(:)];

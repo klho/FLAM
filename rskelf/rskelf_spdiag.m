@@ -67,7 +67,7 @@ function D = rskelf_spdiag(F,dinv)
   spinfo.i = unique(x);
   spinfo.t = spinfo.t(spinfo.i,:);
 
-  % dispatch
+  % dispatch to eliminate overhead
   if strcmpi(F.symm,'n')
     if dinv, D = rskelf_spdiag_sv_n(F,spinfo);
     else,    D = rskelf_spdiag_mv_n(F,spinfo);

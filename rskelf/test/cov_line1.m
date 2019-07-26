@@ -22,7 +22,7 @@
 %   - compute log-determinant
 %   - do diagonal inversion (i.e., selected inversion for the diagonal)
 
-function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
+function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 16384; end  % number of points
@@ -32,7 +32,8 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
   if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
   if nargin < 6 || isempty(noise), noise = 1e-2; end  % nugget effect
   if nargin < 7 || isempty(scale), scale = 100; end  % kernel length scale
-  if nargin < 8 || isempty(spdiag), spdiag = 0; end  % sparse diag extraction?
+  if nargin < 8 || isempty(diagmode), diagmode = 1; end  % diag extraction mode:
+  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
   % initialize
   x = (1:n)/n; N = size(x,2);                           % grid points
@@ -91,39 +92,41 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,spdiag)
   tic; ld = rskelf_logdet(F); t = toc;
   fprintf('rskelf_logdet: %22.16e / %10.4e (s)\n',ld,t)
 
-  % prepare for diagonal extraction
-  opts = struct('verb',1);
-  m = min(N,128);  % number of entries to check against
-  r = randperm(N); r = r(1:m);
-  % reference comparison from compressed solve against coordinate vectors
-  X = zeros(N,m);
-  for i = 1:m, X(r(i),i) = 1; end
-  E = zeros(m,1);  % solution storage
-  if spdiag, fprintf('rskelf_spdiag:\n')
-  else,      fprintf('rskelf_diag:\n')
-  end
+  if diagmode > 0
+    % prepare for diagonal extraction
+    opts = struct('verb',1);
+    m = min(N,128);  % number of entries to check against
+    r = randperm(N); r = r(1:m);
+    % reference comparison from compressed solve against coordinate vectors
+    X = zeros(N,m);
+    for i = 1:m, X(r(i),i) = 1; end
+    E = zeros(m,1);  % solution storage
+    if diagmode == 1, fprintf('rskelf_diag:\n')
+    else,             fprintf('rskelf_spdiag:\n')
+    end
 
-  % extract diagonal
-  tic;
-  if spdiag, D = rskelf_spdiag(F);
-  else,      D = rskelf_diag(F,0,opts);
-  end
-  t = toc;
-  Y = rskelf_mv(F,X);
-  for i = 1:m, E(i) = Y(r(i),i); end
-  err = norm(D(r) - E)/norm(E);
-  fprintf('  fwd: %10.4e / %10.4e (s)\n',err,t)
+    % extract diagonal
+    tic;
+    if diagmode == 1, D = rskelf_diag(F,0,opts);
+    else,             D = rskelf_spdiag(F);
+    end
+    t = toc;
+    Y = rskelf_mv(F,X);
+    for i = 1:m, E(i) = Y(r(i),i); end
+    err = norm(D(r) - E)/norm(E);
+    fprintf('  fwd: %10.4e / %10.4e (s)\n',err,t)
 
-  % extract diagonal of inverse
-  tic;
-  if spdiag, D = rskelf_spdiag(F,1);
-  else,      D = rskelf_diag(F,1,opts);
+    % extract diagonal of inverse
+    tic;
+    if diagmode == 1, D = rskelf_diag(F,1,opts);
+    else,             D = rskelf_spdiag(F,1);
+    end
+    t = toc;
+    Y = rskelf_sv(F,X);
+    for i = 1:m, E(i) = Y(r(i),i); end
+    err = norm(D(r) - E)/norm(E);
+    fprintf('  inv: %10.4e / %10.4e (s)\n',err,t)
   end
-  t = toc;
-  Y = rskelf_sv(F,X);
-  for i = 1:m, E(i) = Y(r(i),i); end
-  err = norm(D(r) - E)/norm(E);
-  fprintf('  inv: %10.4e / %10.4e (s)\n',err,t)
 end
 
 % kernel function

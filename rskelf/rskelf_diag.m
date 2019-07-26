@@ -38,6 +38,7 @@ function D = rskelf_diag(F,dinv,opts)
   if nargin < 3, opts = []; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
+  % print header
   if opts.verb
     fprintf([repmat('-',1,31) '\n'])
     fprintf('%3s | %12s | %10s\n','lvl','nnz kept','time (s)')
@@ -48,8 +49,8 @@ function D = rskelf_diag(F,dinv,opts)
   N = F.N;
   nlvl = F.nlvl;
   rem = true(N,1);   % which points remain?
-  mnz = N;           % maximum capacity for sparse matrix workspace
-  I = zeros(mnz,1);  % sparse matrix worksapce
+  mnz = N;           % maximum capacity for ...
+  I = zeros(mnz,1);  % ... sparse matrix workspace
   J = zeros(mnz,1);
 
   % find required entries at each level
@@ -167,7 +168,7 @@ function D = rskelf_diag(F,dinv,opts)
         end
       end
       X(isk,isk) = Xsk;
-      % undo elimination and sparsification operators
+      % undo elimination
       if dinv
         X(:,ird) = (X(:,ird) - X(:,isk)*E)/L;
         X(ird,:) = U\(X(ird,:) - G*X(isk,:));
@@ -175,6 +176,7 @@ function D = rskelf_diag(F,dinv,opts)
         X(:,isk) = X(:,isk) + X(:,ird)*G;
         X(isk,:) = X(isk,:) + E*X(ird,:);
       end
+      % undo sparsification
       if dinv
         if strcmp(F.symm,'s'), X(:,isk) = X(:,isk) - X(:,ird)*T.';
         else,                  X(:,isk) = X(:,isk) - X(:,ird)*T' ;

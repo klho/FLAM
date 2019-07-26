@@ -112,6 +112,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
     opts.symm = 's';
   end
 
+  % print header
   if opts.verb
     fprintf([repmat('-',1,69) '\n'])
     fprintf('%3s | %6s | %19s | %19s | %10s\n', ...

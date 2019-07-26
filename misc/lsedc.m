@@ -41,8 +41,8 @@ function [x,w,niter] = lsedc(lsfun,A,B,C,D,tau,tol,niter_max)
   if nargin < 8 || isempty(niter_max), niter_max = 8; end
 
   % check inputs
-  assert(tol >= 0,'FLAM:lsedc:negativeTol','Tolerance must be nonnegative.')
-  assert(niter_max >= 0,'FLAM:lsedc:negativeMaxIter', ...
+  assert(tol >= 0,'FLAM:lsedc:invalidTol','Tolerance must be nonnegative.')
+  assert(niter_max >= 0,'FLAM:lsedc:invalidMaxIter', ...
          'Maximum number of iterations must be nonnegative.')
 
   % initial solve

@@ -5,7 +5,7 @@
 function fd_cube(n,occ,rank_or_tol,skip,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 32; end  % number of points in one dimension
+  if nargin < 1 || isempty(n), n = 32; end  % number of points in each dimension
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
   if nargin < 4 || isempty(symm), symm = 'p'; end  % positive definite
@@ -17,22 +17,21 @@ function fd_cube(n,occ,rank_or_tol,skip,symm,doiter)
   N = size(x,2);
 
   % set up sparse matrix
-  h = 1/(n + 1);             % mesh width
   idx = reshape(1:N,n,n,n);  % index mapping to each point
   % interaction with middle (self)
-  Im = idx(1:n,1:n,1:n); Jm = idx(1:n,1:n,1:n); Sm = 6/h^2*ones(size(Im));
+  Im = idx(1:n,1:n,1:n); Jm = idx(1:n,1:n,1:n); Sm = 6*ones(size(Im));
   % interaction with left
-  Il = idx(1:n-1,1:n,1:n); Jl = idx(2:n,1:n,1:n); Sl = -1/h^2*ones(size(Il));
+  Il = idx(1:n-1,1:n,1:n); Jl = idx(2:n,1:n,1:n); Sl = -ones(size(Il));
   % interaction with right
-  Ir = idx(2:n,1:n,1:n); Jr = idx(1:n-1,1:n,1:n); Sr = -1/h^2*ones(size(Ir));
+  Ir = idx(2:n,1:n,1:n); Jr = idx(1:n-1,1:n,1:n); Sr = -ones(size(Ir));
   % interaction with up
-  Iu = idx(1:n,1:n-1,1:n); Ju = idx(1:n,2:n,1:n); Su = -1/h^2*ones(size(Iu));
+  Iu = idx(1:n,1:n-1,1:n); Ju = idx(1:n,2:n,1:n); Su = -ones(size(Iu));
   % interaction with down
-  Id = idx(1:n,2:n,1:n); Jd = idx(1:n,1:n-1,1:n); Sd = -1/h^2*ones(size(Id));
+  Id = idx(1:n,2:n,1:n); Jd = idx(1:n,1:n-1,1:n); Sd = -ones(size(Id));
   % interaction with front
-  If = idx(1:n,1:n,1:n-1); Jf = idx(1:n,1:n,2:n); Sf = -1/h^2*ones(size(If));
+  If = idx(1:n,1:n,1:n-1); Jf = idx(1:n,1:n,2:n); Sf = -ones(size(If));
   % interaction with back
-  Ib = idx(1:n,1:n,2:n); Jb = idx(1:n,1:n,1:n-1); Sb = -1/h^2*ones(size(Ib));
+  Ib = idx(1:n,1:n,2:n); Jb = idx(1:n,1:n,1:n-1); Sb = -ones(size(Ib));
   % combine all interactions
   I = [Im(:); Il(:); Ir(:); Iu(:); Id(:); If(:); Ib(:)];
   J = [Jm(:); Jl(:); Jr(:); Ju(:); Jd(:); Jf(:); Jb(:)];

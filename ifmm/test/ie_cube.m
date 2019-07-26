@@ -5,7 +5,7 @@
 function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 32; end  % number of points in one dimension
+  if nargin < 1 || isempty(n), n = 32; end  % number of points in each dimension
   if nargin < 2 || isempty(occ), occ = 1024; end
   if nargin < 3 || isempty(p), p = 512; end  % number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-6; end

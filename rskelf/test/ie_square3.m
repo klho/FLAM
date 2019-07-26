@@ -10,7 +10,7 @@
 function ie_square3(n,k,occ,p,rank_or_tol,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points in one dimension
+  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
   if nargin < 2 || isempty(k), k = 2*pi*4; end  % wavenumber
   if nargin < 3 || isempty(occ), occ = 64; end
   if nargin < 4 || isempty(p), p = 64; end  % number of proxy points

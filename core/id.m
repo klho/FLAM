@@ -31,7 +31,7 @@ function [sk,rd,T] = id(A,rank_or_tol,srand)
   if nargin < 3 || isempty(srand), srand = 1; end
 
   % check inputs
-  assert(rank_or_tol >= 0,'FLAM:id:negativeRankOrTol', ...
+  assert(rank_or_tol >= 0,'FLAM:id:invalidRankOrTol', ...
          'Rank or tolerance must be nonnegative.')
 
   % initialize

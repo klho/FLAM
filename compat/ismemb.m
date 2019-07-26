@@ -7,6 +7,6 @@
 
 function idx = ismemb(A,S)
   if isoctave(), idx = ismember(A,S);
-  else,          idx = ismembc (A,S);
+  else,          idx = ismembc (A,S);  % S must be sorted
   end
 end
