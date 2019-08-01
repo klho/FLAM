@@ -1,78 +1,71 @@
-% Seven-point stencil on the unit cube, variable-coefficient Poisson equation,
-% Dirichlet boundary conditions.
+% Five-point stencil on the unit square, constant-coefficient Poisson equation,
+% Dirichlet-Neumann boundary conditions.
 %
-% This is basically the 3D analogue of FD_SQUARE2.
+% This is basically the same as FD_SQUARE1 but with Dirichlet boundary
+% conditions along the top and bottom sides of the domain, and Neumann boundary
+% conditions along the left and right sides. The Neumann conditions are imposed
+% as follows:
+%
+%   - At interior points, we have the standard five-point stencil relation
+%     between U(I,J) and its neighbors U(I-1,J), U(I+1,J), U(I,J-1), and
+%     U(I,J+1).
+%
+%   - Near the left boundary, say, U(1,J) depends on the ghost point U(0,J),
+%     which is unknown. However, we can use the Neumann condition in conjunction
+%     with a second-order one-sided difference to express it in terms of U(1,J)
+%     and U(2,J).
+%
+%   - Repeat similarly with the right boundary, being careful to rescale the
+%     boundary rows of the matrix in order to maintain symmetry.
 
-function fd_cube2(n,occ,symm,doiter,diagmode)
+function fd_square5(n,occ,symm,doiter,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 32; end  % number of points + 1 in each dim
-  if nargin < 2 || isempty(occ), occ = 4; end
+  if nargin < 1 || isempty(n), n = 128; end  % number of points + 1 in each dim
+  if nargin < 2 || isempty(occ), occ = 8; end
   if nargin < 3 || isempty(symm), symm = 'p'; end  % positive definite
   if nargin < 4 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
   if nargin < 5 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
-  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
+  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solvess
 
   % initialize
-  N = (n - 1)^3;  % total number of grid points
-
-  % set up conductivity field
-  a = zeros(n+1,n+1,n+1);
-  A = rand(n-1,n-1,n-1);  % random field
-  A = fftn(A,[2*n-3 2*n-3 2*n-3]);
-  [X,Y,Z] = ndgrid(0:n-2);
-  % Gaussian smoothing over 4 grid points
-  C = normpdf(X,0,4).*normpdf(Y,0,4).*normpdf(Z,0,4);
-  B = zeros(2*n-3,2*n-3,2*n-3);
-  B(1:n-1,1:n-1,1:n-1) = C;
-  B(1:n-1,1:n-1,n:end) = C( :   , :   ,2:n-1);
-  B(1:n-1,n:end,1:n-1) = C( :   ,2:n-1, :   );
-  B(1:n-1,n:end,n:end) = C( :   ,2:n-1,2:n-1);
-  B(n:end,1:n-1,1:n-1) = C(2:n-1, :   , :   );
-  B(n:end,1:n-1,n:end) = C(2:n-1, :   ,2:n-1);
-  B(n:end,n:end,1:n-1) = C(2:n-1,2:n-1, :   );
-  B(n:end,n:end,n:end) = C(2:n-1,2:n-1,2:n-1);
-  B(:,:,n:end) = flipdim(B(:,:,n:end),3);
-  B(:,n:end,:) = flipdim(B(:,n:end,:),2);
-  B(n:end,:,:) = flipdim(B(n:end,:,:),1);
-  B = fftn(B);
-  A = ifftn(A.*B);        % convolution in Fourier domain
-  A = A(1:n-1,1:n-1,1:n-1);
-  idx = A > median(A(:));
-  A( idx) = 1e+2;         % set upper 50% to something large
-  A(~idx) = 1e-2;         % set lower 50% to something small
-  a(2:n,2:n,2:n) = A;
-  clear X Y Z A B C
+  N = (n - 1)^2;  % total number of grid points
 
   % set up sparse matrix
-  idx = zeros(n+1,n+1,n+1);  % index mapping to each point, including "ghosts"
-  idx(2:n,2:n,2:n) = reshape(1:N,n-1,n-1,n-1);
+  idx = zeros(n+1,n+1);  % index mapping to each point, including "ghost" points
+  idx(2:n,2:n) = reshape(1:N,n-1,n-1);
   mid = 2:n;    % "middle" indices -- interaction with self
   lft = 1:n-1;  % "left"   indices -- interaction with one below
   rgt = 3:n+1;  % "right"  indices -- interaction with one above
-  I = idx(mid,mid,mid);
-  % interactions with ...
-  Jl = idx(lft,mid,mid); Sl = -0.5*(a(lft,mid,mid) + a(mid,mid,mid));  % left
-  Jr = idx(rgt,mid,mid); Sr = -0.5*(a(rgt,mid,mid) + a(mid,mid,mid));  % right
-  Ju = idx(mid,lft,mid); Su = -0.5*(a(mid,lft,mid) + a(mid,mid,mid));  % up
-  Jd = idx(mid,rgt,mid); Sd = -0.5*(a(mid,rgt,mid) + a(mid,mid,mid));  % down
-  Jf = idx(mid,mid,lft); Sf = -0.5*(a(mid,mid,lft) + a(mid,mid,mid));  % front
-  Jb = idx(mid,mid,rgt); Sb = -0.5*(a(mid,mid,rgt) + a(mid,mid,mid));  % back
-  Jm = idx(mid,mid,mid); Sm = -(Sl + Sr + Sd + Su + Sb + Sf);  % middle (self)
+  % interior interactions with ...
+  I = idx(mid,mid); e = ones(size(I));
+  Jl = idx(lft,mid); Sl = -e;                    % ... left
+  Jr = idx(rgt,mid); Sr = -e;                    % ... right
+  Ju = idx(mid,lft); Su = -e;                    % ... up
+  Jd = idx(mid,rgt); Sd = -e;                    % ... down
+  Jm = idx(mid,mid); Sm = -(Sl + Sr + Su + Sd);  % ... middle (self)
+  % boundary interactions with ...
+  Il = idx(2,mid); Ir = idx(n,mid); e = ones(size(mid));
+  Jl1 = idx(2  ,mid); Sl1 = -4/3*e;  % ... left  side, one over
+  Jl2 = idx(3  ,mid); Sl2 =  1/3*e;  % ... left  side, two over
+  Jr1 = idx(n  ,mid); Sr1 = -4/3*e;  % ... right side, one over
+  Jr2 = idx(n-1,mid); Sr2 =  1/3*e;  % ... right side, two over
   % combine all interactions
-  I = [ I(:);  I(:);  I(:);  I(:);  I(:);  I(:);  I(:)];
-  J = [Jl(:); Jr(:); Ju(:); Jd(:); Jf(:); Jb(:); Jm(:)];
-  S = [Sl(:); Sr(:); Su(:); Sd(:); Sf(:); Sb(:); Sm(:)];
+  I = [  I(:);   I(:);   I(:);   I(:);   I(:);  Il(:);  Il(:);  Ir(:);  Ir(:)];
+  J = [ Jl(:);  Jr(:);  Ju(:);  Jd(:);  Jm(:); Jl1(:); Jl2(:); Jr1(:); Jr2(:)];
+  S = [ Sl(:);  Sr(:);  Su(:);  Sd(:);  Sm(:); Sl1(:); Sl2(:); Sr1(:); Sr2(:)];
   % remove ghost interactions
   idx = find(J > 0); I = I(idx); J = J(idx); S = S(idx);
   A = sparse(I,J,S,N,N);
-  clear idx Jl Sl Jr Sr Ju Su Jd Sd Jf Sf Jb Sb Im Sm I J S
+  A([Il Ir],:) = A([Il Ir],:) * 3/2;  % rescale boundary rows to symmetrize
+  clear idx Jl Sl Jr Sr Ju Su Jd Sd Jm Sm ...
+        Il Ir Jl1 Sl1 Jl2 Sl2 Jr1 Sr1 Jr2 Sr2 I J S
 
   % factor matrix
   opts = struct('symm',symm,'verb',1);
-  tic; F = mf3(A,n,occ,opts); t = toc;
+  tic; F = mf2(A,n,occ,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
-  fprintf('mf3 time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  fprintf('mf2 time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -158,9 +151,4 @@ function fd_cube2(n,occ,symm,doiter,diagmode)
     err = norm(D(r) - E)/norm(E);
     fprintf('  inv: %10.4e / %10.4e (s)\n',err,t)
   end
-end
-
-% Gaussian PDF -- in case statistics toolbox not available
-function y = normpdf(x,mu,sigma)
-  y = exp(-0.5*((x - mu)./sigma).^2)./(sqrt(2*pi).*sigma);
 end

@@ -1,4 +1,4 @@
-% MF_SV_NC   Dispatch for MF_SV with F.SYMM = 'N' and TRANS = 'C'.
+% MF_SV_NC  Dispatch for MF_SV with F.SYMM = 'N' and TRANS = 'C'.
 %
 %    See also MF2, MF3, MF_MV, MFX.
 

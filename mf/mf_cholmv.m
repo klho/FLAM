@@ -1,8 +1,10 @@
 % MF_CHOLMV  Multiply using Cholesky factor from multifrontal factorization.
 %
+%    Typical complexity: about half that of MF_MV.
+%
 %    Y = MF_CHOLMV(F,X) produces the matrix Y by applying the Cholesky factor C
 %    of the factored matrix F = C*C' to the matrix X. Requires that F be
-%    computed with the Hermitian positive-definite option.
+%    computed with the Hermitian positive definite option.
 %
 %    Y = MF_CHOLMV(F,X,TRANS) computes Y = C*X if TRANS = 'N' (default),
 %    Y = C.'*X if TRANS = 'T', and Y = C'*X if TRANS = 'C'.
@@ -12,9 +14,7 @@
 function Y = mf_cholmv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(F.symm,'p'),'FLAM:mf_cholmv:invalidSymm', ...
@@ -24,10 +24,7 @@ function Y = mf_cholmv(F,X,trans)
          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t')
-    Y = conj(mf_cholmv(F,conj(X),'c'));
-    return
-  end
+  if strcmpi(trans,'t'), Y = conj(mf_cholmv(F,conj(X),'c')); return; end
 
   % initialize
   n = F.lvp(end);
