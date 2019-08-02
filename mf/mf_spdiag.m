@@ -45,16 +45,17 @@ function D = mf_spdiag(F,dinv)
       slf = [sk rd];
       chld = unique([x_{slf}]);  % associated block indices at previous level
 
-      % find neighbors if first elimination
-      if isempty(chld)
-        for j = unique([x{slf}])
-          nbor{i} = [nbor{i} j];
-          nbor{j} = [nbor{j} i];
+      if isempty(chld)  % find neighbors if first elimination
+        nbr = unique([x{slf}]);
+        if ~isempty(nbr)
+          for j = nbr
+            nbor{i} = [nbor{i} j];
+            nbor{j} = [nbor{j} i];
+          end
         end
+      else              % update parents of children blocks
+        for j = chld, prnt{j} = [prnt{j} i]; end
       end
-
-      % update parents of children blocks
-      for j = chld, prnt{j} = [prnt{j} i]; end
 
       % update blocks for each index
       for j = slf, x{j} = [x{j} i]; end
