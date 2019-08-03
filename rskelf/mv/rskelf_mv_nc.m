@@ -13,7 +13,7 @@ function Y = rskelf_mv_nc(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     Y(sk,:) = Y(sk,:) + F.factors(i).T*Y(rd,:);
-    Y(rd,:) = F.factors(i).L'*Y(rd,:);
+    Y(rd,:) = F.factors(i).L'*Y(rd(F.factors(i).p),:);
     Y(rd,:) = Y(rd,:) + F.factors(i).E'*Y(sk,:);
   end
 

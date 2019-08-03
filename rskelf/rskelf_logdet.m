@@ -1,7 +1,7 @@
 % RSKELF_LOGDET  Compute log-determinant using recursive skeletonization
 %                factorization.
 %
-%    Typical complexity: same as RSKELF.
+%    Typical complexity: O(N) in all dimensions.
 %
 %    LD = RSKELF_LOGDET(F) produces the log-determinant LD of the factored
 %    matrix F with 0 <= IMAG(LD) < 2*PI.
@@ -16,10 +16,9 @@ function ld = rskelf_logdet(F)
 
   % loop over nodes
   for i = 1:n
-    L = F.factors(i).L;
-    if     strcmpi(F.symm,'h'), ld = ld + sum(log(diag(F.factors(i).U)));
-    elseif strcmpi(F.symm,'p'), ld = ld + 2*sum(log(diag(L)));
-    else, ld = ld + log(det(L)) + sum(log(diag(F.factors(i).U)));
+    if strcmpi(F.symm,'p'), ld = ld + 2*sum(log(diag(F.factors(i).L)));
+    else,                   ld = ld +   sum(log(diag(F.factors(i).U)));
+      if ~strcmpi(F.symm,'h'), ld = ld + log(detperm(F.factors(i).p)); end
     end
   end
 

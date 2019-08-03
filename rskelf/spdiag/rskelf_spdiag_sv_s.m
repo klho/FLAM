@@ -33,7 +33,7 @@ function D = rskelf_spdiag_sv_s(F,spinfo)
       sk = P(F.factors(j).sk);
       rd = P(F.factors(j).rd);
       Y(rd,:) = Y(rd,:) - F.factors(j).T.'*Y(sk,:);
-      Y(rd,:) = F.factors(j).L\Y(rd,:);
+      Y(rd,:) = F.factors(j).L\Y(rd(F.factors(j).p),:);
       Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
     end
 

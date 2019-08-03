@@ -141,7 +141,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   % initialize
   nbox = t.lvp(end);
   e = cell(nbox,1);
-  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'T',e,'L',e,'U',e,'p',e,'E',e,'F',e);
   F = struct('N',N,'nlvl',t.nlvl,'lvp',zeros(1,t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
@@ -203,18 +203,17 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       end
       K(:,rd) = K(:,rd) - K(:,sk)*T;
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
-        [L,U] = lu(K(rd,rd));
+        [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
-        G = L\K(rd,sk);
+        G = L\K(rd(p),sk);
       elseif strcmpi(opts.symm,'h')
-        [L,U] = ldl(K(rd,rd));
-        E = (K(sk,rd)/L')/U;
+        [L,U,p] = ldl(K(rd,rd),'vector');
+        E = (K(sk,rd(p))/L')/U;
         G = [];
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
-        U = [];
         E = K(sk,rd)/L';
-        G = [];
+        U = []; p = []; G = [];
       end
 
       % update self-interaction
@@ -229,10 +228,11 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       F.factors(n).sk = slf(sk);
       F.factors(n).rd = slf(rd);
       F.factors(n).T = T;
-      F.factors(n).E = E;
-      F.factors(n).F = G;
       F.factors(n).L = L;
       F.factors(n).U = U;
+      F.factors(n).p = p;
+      F.factors(n).E = E;
+      F.factors(n).F = G;
 
       % restrict to skeletons for next level
       t.nodes(i).xi = slf(sk);

@@ -1,7 +1,6 @@
 % RSKELF_MV  Multiply using recursive skeletonization factorization.
 %
-%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N) in 1D and
-%    O(N^(2*(1 - 1/D))) in D dimensions.
+%    Typical complexity: O(N) in 1D and O(N^(2*(1 - 1/D))) in D dimensions.
 %
 %    Y = RSKELF_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.

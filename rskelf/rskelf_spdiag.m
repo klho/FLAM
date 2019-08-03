@@ -5,9 +5,9 @@
 %    and right by unit coordinate vectors, taking advantage of the sparsity of
 %    each such operation.
 %
-%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N*LOG^3(N)) in 1D and
-%    O(N^(1 + 2*(1 - 1/D))) in D dimensions. This is generally worse than
-%    RSKELF_DIAG, but the constant can be substantially smaller.
+%    Typical complexity: O(N*LOG^3(N)) in 1D and O(N^(1 + 2*(1 - 1/D))) in D
+%    dimensions. This is generally worse than RSKELF_DIAG, but the constant can
+%    be substantially smaller.
 %
 %    D = RSKELF_DIAG(F) produces the diagonal D of the factored matrix F.
 %

@@ -132,20 +132,22 @@ function D = rskelf_diag(F,dinv,opts)
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
+      nrd = length(rd);
+      nsk = length(sk);
+
       T = F.factors(i).T;
       L = F.factors(i).L;
+      p = F.factors(i).p;
       E = F.factors(i).E;
       if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
-        G = F.factors(i).F;
         U = F.factors(i).U;
+        G = F.factors(i).F;
       else
-        G = F.factors(i).E';
         U = F.factors(i).L';
+        G = F.factors(i).E';
       end
 
       % unfold local factorization
-      nrd = length(rd);
-      nsk = length(sk);
       ird = 1:nrd;
       isk = nrd+(1:nsk);
       X = zeros(nrd+nsk);
@@ -154,8 +156,7 @@ function D = rskelf_diag(F,dinv,opts)
         if dinv, X(ird,ird) = inv(F.factors(i).U);
         else,    X(ird,ird) =     F.factors(i).U ;
         end
-      else
-        X(ird,ird) = eye(nrd);
+      else,      X(ird,ird) = eye(nrd);
       end
       % skeleton part
       Xsk = spget(M,sk,sk);
@@ -168,24 +169,23 @@ function D = rskelf_diag(F,dinv,opts)
         end
       end
       X(isk,isk) = Xsk;
-      % undo elimination
+      % undo elimination and sparsification
       if dinv
         X(:,ird) = (X(:,ird) - X(:,isk)*E)/L;
+        if ~isempty(p), X(:,ird(p)) = X(:,ird); end
         X(ird,:) = U\(X(ird,:) - G*X(isk,:));
-      else
-        X(:,isk) = X(:,isk) + X(:,ird)*G;
-        X(isk,:) = X(isk,:) + E*X(ird,:);
-      end
-      % undo sparsification
-      if dinv
         if strcmp(F.symm,'s'), X(:,isk) = X(:,isk) - X(:,ird)*T.';
         else,                  X(:,isk) = X(:,isk) - X(:,ird)*T' ;
         end
         X(isk,:) = X(isk,:) - T*X(ird,:);
       else
+        X(:,isk) = X(:,isk) + X(:,ird)*G;
+        X(isk,:) = X(isk,:) + E*X(ird,:);
         X(:,ird) = X(:,ird)*U + X(:,isk)*T;
-        if strcmp(F.symm,'s'), X(ird,:) = L*X(ird,:) + T.'*X(isk,:);
-        else,                  X(ird,:) = L*X(ird,:) + T' *X(isk,:);
+        X(ird,:) = L*X(ird,:);
+        if ~isempty(p), X(ird(p),:) = X(ird,:); end
+        if strcmp(F.symm,'s'), X(ird,:) = X(ird,:) + T.'*X(isk,:);
+        else,                  X(ird,:) = X(ird,:) + T' *X(isk,:);
         end
       end
       X(isk,isk) = X(isk,isk) - Xsk;  % to be stored as update

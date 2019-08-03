@@ -113,7 +113,7 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
   % initialize
   mn = t.lvp(end);
   e = cell(mn,1);
-  F = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'T',e,'L',e,'U',e,'p',e,'E',e,'F',e);
   F = struct('N',N,'nlvl',0,'lvp',zeros(1,2*t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
@@ -411,17 +411,18 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
         n = n + 1;
         while mn < n
           e = cell(mn,1);
-          s = struct('sk',e,'rd',e,'T',e,'E',e,'F',e,'L',e,'U',e);
+          s = struct('sk',e,'rd',e,'T',e,'L',e,'U',e,'p',e,'E',e,'F',e);
           F.factors = [F.factors; s];
           mn = 2*mn;
         end
         F.factors(n).sk = slf(sk);
         F.factors(n).rd = slf(rd);
         F.factors(n).T = T;
-        F.factors(n).E = E;
-        F.factors(n).F = G;
         F.factors(n).L = L;
         F.factors(n).U = U;
+        F.factors(n).p = 1:length(rd);
+        F.factors(n).E = E;
+        F.factors(n).F = G;
       end
       F.lvp(nlvl+1) = n;
 
