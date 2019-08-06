@@ -104,7 +104,8 @@ end
 
 % matrix entries
 function A = Afun_(i,j,x,nu,h,kappa)
-  A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),h(j));  % trapezoidal rule
+  A = Kfun(x(:,i),x(:,j),'d',nu(:,j));
+  if ~isempty(j), A = bsxfun(@times,A,h(j)); end  % trapezoidal rule
   % limit = identity + curvature
   [I,J] = ndgrid(i,j);
   idx = I == J;

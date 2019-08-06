@@ -172,8 +172,11 @@ function D = rskelf_diag(F,dinv,opts)
       % undo elimination and sparsification
       if dinv
         X(:,ird) = (X(:,ird) - X(:,isk)*E)/L;
-        if ~isempty(p), X(:,ird(p)) = X(:,ird); end
         X(ird,:) = U\(X(ird,:) - G*X(isk,:));
+        if ~isempty(p)
+          X(:,ird(p)) = X(:,ird);
+          X(ird(p),:) = X(ird,:);
+        end
         if strcmp(F.symm,'s'), X(:,isk) = X(:,isk) - X(:,ird)*T.';
         else,                  X(:,isk) = X(:,isk) - X(:,ird)*T' ;
         end
@@ -181,9 +184,13 @@ function D = rskelf_diag(F,dinv,opts)
       else
         X(:,isk) = X(:,isk) + X(:,ird)*G;
         X(isk,:) = X(isk,:) + E*X(ird,:);
-        X(:,ird) = X(:,ird)*U + X(:,isk)*T;
+        X(:,ird) = X(:,ird)*U;
         X(ird,:) = L*X(ird,:);
-        if ~isempty(p), X(ird(p),:) = X(ird,:); end
+        if ~isempty(p)
+          X(:,ird(p)) = X(:,ird);
+          X(ird(p),:) = X(ird,:);
+        end
+        X(:,ird) = X(:,ird) + X(:,isk)*T;
         if strcmp(F.symm,'s'), X(ird,:) = X(ird,:) + T.'*X(isk,:);
         else,                  X(ird,:) = X(ird,:) + T' *X(isk,:);
         end
