@@ -175,10 +175,10 @@ function D = rskelf_diag(F,dinv,opts)
         X(ird,:) = U\(X(ird,:) - G*X(isk,:));
         if ~isempty(p)
           X(:,ird(p)) = X(:,ird);
-          X(ird(p),:) = X(ird,:);
+          if strcmpi(F.symm,'h'), X(ird(p),:) = X(ird,:); end
         end
-        if strcmp(F.symm,'s'), X(:,isk) = X(:,isk) - X(:,ird)*T.';
-        else,                  X(:,isk) = X(:,isk) - X(:,ird)*T' ;
+        if strcmpi(F.symm,'s'), X(:,isk) = X(:,isk) - X(:,ird)*T.';
+        else,                   X(:,isk) = X(:,isk) - X(:,ird)*T' ;
         end
         X(isk,:) = X(isk,:) - T*X(ird,:);
       else
@@ -187,12 +187,12 @@ function D = rskelf_diag(F,dinv,opts)
         X(:,ird) = X(:,ird)*U;
         X(ird,:) = L*X(ird,:);
         if ~isempty(p)
-          X(:,ird(p)) = X(:,ird);
+          if strcmpi(F.symm,'h'), X(:,ird(p)) = X(:,ird); end
           X(ird(p),:) = X(ird,:);
         end
         X(:,ird) = X(:,ird) + X(:,isk)*T;
-        if strcmp(F.symm,'s'), X(ird,:) = X(ird,:) + T.'*X(isk,:);
-        else,                  X(ird,:) = X(ird,:) + T' *X(isk,:);
+        if strcmpi(F.symm,'s'), X(ird,:) = X(ird,:) + T.'*X(isk,:);
+        else,                   X(ird,:) = X(ird,:) + T' *X(isk,:);
         end
       end
       X(isk,isk) = X(isk,isk) - Xsk;  % to be stored as update
