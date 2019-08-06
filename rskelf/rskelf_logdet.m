@@ -16,9 +16,11 @@ function ld = rskelf_logdet(F)
 
   % loop over nodes
   for i = 1:n
-    if strcmpi(F.symm,'p'), ld = ld + 2*sum(log(diag(F.factors(i).L)));
-    else,                   ld = ld +   sum(log(diag(F.factors(i).U)));
-      if ~strcmpi(F.symm,'h'), ld = ld + log(detperm(F.factors(i).p)); end
+    if     strcmpi(F.symm,'p'), ld = ld + 2*sum(log(diag(F.factors(i).L)));
+    elseif strcmpi(F.symm,'h'), ld = ld + sum(log(F.factors(i).U));
+    else
+      ld = ld + sum(log(diag(F.factors(i).U))) + log(detperm(F.factors(i).p));
+    end
     end
   end
 

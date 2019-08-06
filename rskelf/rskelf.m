@@ -208,7 +208,8 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
         G = L\K(rd(p),sk);
       elseif strcmpi(opts.symm,'h')
         [L,U,p] = ldl(K(rd,rd),'vector');
-        E = (K(sk,rd(p))/L')/U;
+        U = diag(U);
+        E = (K(sk,rd(p))/L')./U;
         G = [];
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');

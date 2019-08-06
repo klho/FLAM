@@ -44,7 +44,7 @@ function D = rskelf_spdiag_sv_h(F,spinfo)
     for j = spinfo.t(i,:)
       if j == 0, continue; end
       rd = P(F.factors(j).rd);
-      Y(rd,:) = F.factors(j).U\Y(rd,:);
+      Y(rd,:) = F.factors(j).U.\Y(rd,:);
     end
 
     % extract diagonal
