@@ -21,7 +21,6 @@ function ld = rskelf_logdet(F)
     else
       ld = ld + sum(log(diag(F.factors(i).U))) + log(detperm(F.factors(i).p));
     end
-    end
   end
 
   % wrap imaginary part to [0, 2*PI)
