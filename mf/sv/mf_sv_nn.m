@@ -12,7 +12,7 @@ function Y = mf_sv_nn(F,X)
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    Y(rd,:) = F.factors(i).L\Y(rd,:);
+    Y(rd,:) = F.factors(i).L\Y(rd(F.factors(i).p),:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
   end
 

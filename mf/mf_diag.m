@@ -130,29 +130,30 @@ function D = mf_diag(F,dinv,opts)
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
+      nsk = length(sk);
+      nrd = length(rd);
+
       L = F.factors(i).L;
+      p = F.factors(i).p;
       E = F.factors(i).E;
       if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
-        G = F.factors(i).F;
         U = F.factors(i).U;
+        G = F.factors(i).F;
       else
-        G = F.factors(i).E';
         U = F.factors(i).L';
+        G = F.factors(i).E';
       end
 
       % unfold local factorization
-      nrd = length(rd);
-      nsk = length(sk);
       ird = 1:nrd;
       isk = nrd+(1:nsk);
       X = zeros(nrd+nsk);
       % redundant part
       if strcmpi(F.symm,'h')
-        if dinv, X(ird,ird) = inv(F.factors(i).U);
-        else,    X(ird,ird) =     F.factors(i).U ;
+        if dinv, X(ird,ird) = diag(1./F.factors(i).U);
+        else,    X(ird,ird) = diag(   F.factors(i).U);
         end
-      else
-        X(ird,ird) = eye(nrd);
+      else,      X(ird,ird) = eye(nrd);
       end
       % skeleton part
       Xsk = spget(M,sk,sk);
@@ -169,11 +170,19 @@ function D = mf_diag(F,dinv,opts)
       if dinv
         X(:,ird) = (X(:,ird) - X(:,isk)*E)/L;
         X(ird,:) = U\(X(ird,:) - G*X(isk,:));
+        if ~isempty(p)
+          X(:,ird(p)) = X(:,ird);
+          if strcmpi(F.symm,'h'), X(ird(p),:) = X(ird,:); end
+        end
       else
         X(:,isk) = X(:,isk) + X(:,ird)*G;
         X(isk,:) = X(isk,:) + E*X(ird,:);
         X(:,ird) = X(:,ird)*U;
         X(ird,:) = L*X(ird,:);
+        if ~isempty(p)
+          if strcmpi(F.symm,'h'), X(:,ird(p)) = X(:,ird); end
+          X(ird(p),:) = X(ird,:);
+        end
       end
       X(isk,isk) = X(isk,isk) - Xsk;  % to be stored as update
 

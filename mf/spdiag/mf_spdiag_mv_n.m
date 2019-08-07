@@ -39,7 +39,7 @@ function D = mf_spdiag_mv_n(F,spinfo)
       sk = P(F.factors(j).sk);
       rd = P(F.factors(j).rd);
       Y(sk,:) = Y(sk,:) + F.factors(j).E*Y(rd,:);
-      Y(rd,:) = F.factors(j).L*Y(rd,:);
+      Y(rd(F.factors(j).p),:) = F.factors(j).L*Y(rd,:);
     end
 
     % extract diagonal

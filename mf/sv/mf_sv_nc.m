@@ -12,8 +12,7 @@ function Y = mf_sv_nc(F,X)
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    L = F.factors(i).U';
-    Y(rd,:) = L\Y(rd,:);
+    Y(rd,:) = F.factors(i).U'\Y(rd,:);
     Y(sk,:) = Y(sk,:) - F.factors(i).F'*Y(rd,:);
   end
 
@@ -21,8 +20,7 @@ function Y = mf_sv_nc(F,X)
   for i = n:-1:1
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    U = F.factors(i).L';
     Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
-    Y(rd,:) = U\Y(rd,:);
+    Y(rd(F.factors(i).p),:) = F.factors(i).L'\Y(rd,:);
   end
 end

@@ -24,13 +24,9 @@ function Y = mf_sv(F,X,trans)
   if strcmpi(trans,'t'), Y = conj(mf_sv(F,conj(X),'c')); return; end
 
   % dispatch to eliminate overhead
-  if strcmpi(F.symm,'n')
+  if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
     if strcmpi(trans,'n'), Y = mf_sv_nn(F,X);
     else,                  Y = mf_sv_nc(F,X);
-    end
-  elseif strcmpi(F.symm,'s')
-    if strcmpi(trans,'n'), Y = mf_sv_sn(F,X);
-    else,                  Y = mf_sv_sc(F,X);
     end
   elseif strcmpi(F.symm,'h'), Y = mf_sv_h(F,X);
   elseif strcmpi(F.symm,'p'), Y = mf_sv_p(F,X);

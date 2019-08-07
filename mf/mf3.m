@@ -80,7 +80,7 @@ function F = mf3(A,n,occ,opts)
   nlvl = min(opts.lvlmax,ceil(max(0,log2(n/occ)))+1);  % number of tree levels
   nbox = (8^nlvl - 1)/7;  % number of factors in multifrontal tree
   e = cell(nbox,1);
-  F = struct('sk',e,'rd',e,'E',e,'F',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'L',e,'U',e,'p',e,'E',e,'F',e);
   F = struct('N',N,'nlvl',nlvl,'lvp',zeros(1,nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
@@ -142,22 +142,22 @@ function F = mf3(A,n,occ,opts)
       % compute factors
       K = spget(A,slf,slf);
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
-        [L,U] = lu(K(rd,rd));
+        [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
-        G = L\K(rd,sk);
+        G = L\K(rd(p),sk);
       elseif strcmpi(opts.symm,'h')
-        [L,U] = ldl(K(rd,rd));
-        E = (K(sk,rd)/L')/U;
+        [L,U,p] = ldl(K(rd,rd),'vector');
+        U = diag(U);
+        E = (K(sk,rd(p))/L')./U.';
         G = [];
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
-        U = [];
         E = K(sk,rd)/L';
-        G = [];
+        U = []; p = []; G = [];
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), S_ = -E*U*E';
+      if     strcmpi(opts.symm,'h'), S_ = -E*(U.*E');
       elseif strcmpi(opts.symm,'p'), S_ = -E*E';
       else,                          S_ = -E*G;
       end
@@ -180,10 +180,11 @@ function F = mf3(A,n,occ,opts)
       nf = nf + 1;
       F.factors(nf).sk = slf(sk);
       F.factors(nf).rd = slf(rd);
-      F.factors(nf).E = E;
-      F.factors(nf).F = G;
       F.factors(nf).L = L;
       F.factors(nf).U = U;
+      F.factors(nf).p = p;
+      F.factors(nf).E = E;
+      F.factors(nf).F = G;
     end, end, end
     F.lvp(nlvl+1) = nf;
 

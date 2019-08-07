@@ -21,6 +21,6 @@ function Y = mf_mv_nn(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     Y(sk,:) = Y(sk,:) + F.factors(i).E*Y(rd,:);
-    Y(rd,:) = F.factors(i).L*Y(rd,:);
+    Y(rd(F.factors(i).p),:) = F.factors(i).L*Y(rd,:);
   end
 end

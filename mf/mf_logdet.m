@@ -1,6 +1,6 @@
 % MF_LOGDET  Compute log-determinant using multifrontal factorization.
 %
-%    Typical complexity: same as MF.
+%    Typical complexity: O(N) in all dimensions.
 %
 %    LD = MF_LOGDET(F) produces the log-determinant LD of the factored matrix F
 %    with 0 <= IMAG(LD) < 2*PI.

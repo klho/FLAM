@@ -30,7 +30,7 @@ function D = mf_spdiag_mv_h(F,spinfo)
     for j = spinfo.t{i}
       sk = P(F.factors(j).sk);
       rd = P(F.factors(j).rd);
-      Y(rd,:) = F.factors(j).L'*Y(rd,:);
+      Y(rd,:) = F.factors(j).L'*Y(rd(F.factors(j).p),:);
       Y(rd,:) = Y(rd,:) + F.factors(j).E'*Y(sk,:);
     end
 
@@ -40,7 +40,7 @@ function D = mf_spdiag_mv_h(F,spinfo)
     % apply diagonal factors
     for j = spinfo.t{i}
       rd = P(F.factors(j).rd);
-      Y(rd,:) = F.factors(j).U*Y(rd,:);
+      Y(rd,:) = F.factors(j).U.*Y(rd,:);
     end
 
     % extract diagonal

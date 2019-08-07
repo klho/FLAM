@@ -111,7 +111,7 @@ function F = mfx(A,x,occ,opts)
   % initialize
   nbox = t.lvp(end);
   e = cell(nbox,1);
-  F = struct('sk',e,'rd',e,'E',e,'F',e,'L',e,'U',e);
+  F = struct('sk',e,'rd',e,'L',e,'U',e,'p',e,'E',e,'F',e);
   F = struct('N',N,'nlvl',t.nlvl,'lvp',zeros(1,t.nlvl+1),'factors',F,'symm', ...
              opts.symm);
   nlvl = 0;
@@ -149,7 +149,7 @@ function F = mfx(A,x,occ,opts)
       J_ = J_(idx);
       if strcmpi(opts.symm,'n')
         [Ic,Jc] = find(Ac(:,slf));
-        idx = ~ismemb(Ic_,sslf);
+        idx = ~ismemb(Ic,sslf);
         Ic = Ic(idx);
         Jc = Jc(idx);
         I_ = [I_(:); Ic(:)];
@@ -194,22 +194,22 @@ function F = mfx(A,x,occ,opts)
       % compute factors
       K = spget(A,slf,slf);
       if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
-        [L,U] = lu(K(rd,rd));
+        [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
-        G = L\K(rd,sk);
+        G = L\K(rd(p),sk);
       elseif strcmpi(opts.symm,'h')
-        [L,U] = ldl(K(rd,rd));
-        E = (K(sk,rd)/L')/U;
+        [L,U,p] = ldl(K(rd,rd),'vector');
+        U = diag(U);
+        E = (K(sk,rd(p))/L')./U.';
         G = [];
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
-        U = [];
         E = K(sk,rd)/L';
-        G = [];
+        U = []; p = []; G = [];
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), S_ = -E*U*E';
+      if     strcmpi(opts.symm,'h'), S_ = -E*(U.*E');
       elseif strcmpi(opts.symm,'p'), S_ = -E*E';
       else,                          S_ = -E*G;
       end
@@ -232,10 +232,11 @@ function F = mfx(A,x,occ,opts)
       n = n + 1;
       F.factors(n).sk = slf(sk);
       F.factors(n).rd = slf(rd);
-      F.factors(n).E = E;
-      F.factors(n).F = G;
       F.factors(n).L = L;
       F.factors(n).U = U;
+      F.factors(n).p = p;
+      F.factors(n).E = E;
+      F.factors(n).F = G;
     end
     F.lvp(nlvl+1) = n;
 

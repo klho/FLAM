@@ -132,8 +132,8 @@ function D = rskelf_diag(F,dinv,opts)
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
-      nrd = length(rd);
       nsk = length(sk);
+      nrd = length(rd);
 
       T = F.factors(i).T;
       L = F.factors(i).L;
