@@ -109,7 +109,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
   if strcmpi(opts.symm,'h') && isoctave()
     warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
-    opts.symm = 's';
+    opts.symm = 'n';
   end
 
   % print header

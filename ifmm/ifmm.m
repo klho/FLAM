@@ -105,6 +105,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:ifmm:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'p'), opts.symm = 'h'; end
 
   % print header
   if opts.verb

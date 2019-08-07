@@ -107,6 +107,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
          strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
          'FLAM:rskel:invalidSymm', ...
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
+  if strcmpi(opts.symm,'p'), opts.symm = 'h'; end
 
   % print header
   if opts.verb

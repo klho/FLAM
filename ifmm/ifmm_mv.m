@@ -72,7 +72,7 @@ function Y = ifmm_mv(F,X,A,trans)
         if strcmpi(trans,'n'), T = F.U(i).rT.';
         else,                  T = F.U(i).rT';
         end
-      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+      elseif strcmpi(F.symm,'h')
         rd = pcrem1(F.U(i).rrd);
         sk = pcrem2(F.U(i).rsk);
         T = F.U(i).rT';
@@ -128,7 +128,7 @@ function Y = ifmm_mv(F,X,A,trans)
         if strcmpi(trans,'n'), T = F.U(i).rT;
         else,                  T = conj(F.U(i).rT);
         end
-      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+      elseif strcmpi(F.symm,'h')
         rd  = prrem1(F.U(i).rrd);
         sk1 = prrem1(F.U(i).rsk);
         sk2 = prrem2(F.U(i).rsk);
@@ -158,21 +158,16 @@ function Y = ifmm_mv(F,X,A,trans)
 
       % get external interactions
       else
-        if strcmpi(F.store,'a') || (lvl == 2 && strcmpi(F.store,'r'))
-          Bo = F.B(i).Bo;
-        else
-          Bo = A(ie,js);
+        near = lvl == 2 && strcmpi(F.store,'r');  % near field stored?
+        if strcmpi(F.store,'a') || near, Bo = F.B(i).Bo;
+        else,                            Bo = A(ie,js);
         end
         if strcmpi(F.symm,'n')
-          if strcmpi(F.store,'a') || (lvl == 2 && strcmpi(F.store,'r'))
-            Bi = F.B(i).Bi;
-          else
-            Bi = A(is,je);
+          if strcmpi(F.store,'a') || near, Bi = F.B(i).Bi;
+          else,                            Bi = A(is,je);
           end
-        elseif strcmpi(F.symm,'s')
-          Bi = Bo.';
-        elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
-          Bi = Bo';
+        elseif strcmpi(F.symm,'s'),        Bi = Bo.';
+        elseif strcmpi(F.symm,'h'),        Bi = Bo';
         end
       end
 

@@ -68,7 +68,7 @@ function Y = rskel_mv(F,X,trans)
         if strcmpi(trans,'n'), T = F.U(i).rT.';
         else,                  T = F.U(i).rT';
         end
-      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+      elseif strcmpi(F.symm,'h')
         rd = pcrem1(F.U(i).rrd);
         sk = pcrem2(F.U(i).rsk);
         T = F.U(i).rT';
@@ -124,7 +124,7 @@ function Y = rskel_mv(F,X,trans)
         if strcmpi(trans,'n'), T = F.U(i).rT;
         else,                  T = conj(F.U(i).rT);
         end
-      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+      elseif strcmpi(F.symm,'h')
         rd  = prrem1(F.U(i).rrd);
         sk1 = prrem1(F.U(i).rsk);
         sk2 = prrem2(F.U(i).rsk);

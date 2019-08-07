@@ -63,7 +63,7 @@ function F = mf3(A,n,occ,opts)
          'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
   if strcmpi(opts.symm,'h') && isoctave()
     warning('FLAM:mf3:octaveLDL','No LDL decomposition in Octave; using LU.')
-    opts.symm = 's';
+    opts.symm = 'n';
   end
 
   % print header

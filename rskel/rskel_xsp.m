@@ -11,8 +11,8 @@
 %    setting, S itself is expanded in the same way. This can be used to solve
 %    linear systems and least squares problems.
 %
-%    If F.SYMM = 'N', then the entire extended sparse matrix is returned; if
-%    F.SYMM = 'S', 'H', or 'P', then only the lower triangular part is returned.
+%    If F.SYMM = 'N', then the entire extended sparse matrix is returned;
+%    otherwise, only the lower triangular part is returned.
 %
 %    Typical complexity: same as RSKEL_MV.
 %
@@ -114,7 +114,7 @@ function A = rskel_xsp(F)
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT.';
-      elseif strcmpi(F.symm,'h') || strcmpi(F.symm,'p')
+      elseif strcmpi(F.symm,'h')
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT';
