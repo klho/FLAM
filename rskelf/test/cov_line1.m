@@ -50,7 +50,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set up reference FFT multiplication
   a = Afun(1:n,1);
-  B = zeros(2*n-1,1);  % zero pad
+  B = zeros(2*n-1,1);  % zero-pad
   B(1:n) = a;
   B(n+1:end) = flipud(a(2:n));
   G = fft(B);

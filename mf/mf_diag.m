@@ -47,8 +47,8 @@ function D = mf_diag(F,dinv,opts)
   N = F.N;
   nlvl = F.nlvl;
   rem = true(N,1);  % which nodes remain?
-  nz = N;           % initial capacity for ...
-  I = zeros(nz,1);  % ... sparse matrix worksapce
+  nz = N;           % initial capacity for sparse matrix workspace
+  I = zeros(nz,1);
   J = zeros(nz,1);
 
   % find required entries at each level

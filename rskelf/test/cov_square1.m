@@ -34,7 +34,7 @@ function cov_square1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set up reference FFT multiplication
   a = reshape(Afun(1:N,1),n,n);
-  B = zeros(2*n-1,2*n-1);  % zero pad
+  B = zeros(2*n-1,2*n-1);  % zero-pad
   B(  1:n  ,  1:n  ) = a;
   B(  1:n  ,n+1:end) = a( : ,2:n);
   B(n+1:end,  1:n  ) = a(2:n, : );

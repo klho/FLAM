@@ -48,9 +48,9 @@ function D = rskelf_diag(F,dinv,opts)
   % initialize
   N = F.N;
   nlvl = F.nlvl;
-  rem = true(N,1);   % which points remain?
-  nz = N;            % initial capacity for ...
-  I = zeros(nz,1);   % ... sparse matrix workspace
+  rem = true(N,1);  % which points remain?
+  nz = N;           % initial capacity for sparse matrix workspace
+  I = zeros(nz,1);
   J = zeros(nz,1);
 
   % find required entries at each level
