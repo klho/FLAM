@@ -49,9 +49,9 @@ function D = rskelf_diag(F,dinv,opts)
   N = F.N;
   nlvl = F.nlvl;
   rem = true(N,1);   % which points remain?
-  mnz = N;           % maximum capacity for ...
-  I = zeros(mnz,1);  % ... sparse matrix workspace
-  J = zeros(mnz,1);
+  nz = N;            % initial capacity for ...
+  I = zeros(nz,1);   % ... sparse matrix workspace
+  J = zeros(nz,1);
 
   % find required entries at each level
   ts = tic;
@@ -66,19 +66,7 @@ function D = rskelf_diag(F,dinv,opts)
     % keep entries needed directly by previous level
     [I_,J_] = find(keep{lvl});
     idx = rem(I_) & rem(J_);
-    I_ = I_(idx);
-    J_ = J_(idx);
-    m = numel(I_);
-    nz_new = nz + m;
-    if mnz < nz_new
-      while mnz < nz_new, mnz = 2*mnz; end
-      e = zeros(mnz-length(I),1);
-      I = [I; e];
-      J = [J; e];
-    end
-    I(nz+1:nz+m) = I_;
-    J(nz+1:nz+m) = J_;
-    nz = nz + m;
+    [I,J,nz] = sppush2(I,J,nz,I_(idx),J_(idx));
 
     % loop over nodes at previous level
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
@@ -86,17 +74,7 @@ function D = rskelf_diag(F,dinv,opts)
       % keep skeleton entries
       sk = F.factors(i).sk;
       [I_,J_] = ndgrid(sk);
-      m = numel(I_);
-      nz_new = nz + m;
-      if mnz < nz_new
-        while mnz < nz_new, mnz = 2*mnz; end
-        e = zeros(mnz-length(I),1);
-        I = [I; e];
-        J = [J; e];
-      end
-      I(nz+1:nz+m) = I_;
-      J(nz+1:nz+m) = J_;
-      nz = nz + m;
+      [I,J,nz] = sppush2(I,J,nz,I_,J_);
     end
 
     % construct requirement matrix
@@ -116,17 +94,17 @@ function D = rskelf_diag(F,dinv,opts)
   end
 
   % unfold factorization
-  S = zeros(mnz,1);
+  V = zeros(length(I),1);
   M = sparse(N,N);  % successively unfolded matrix
   for lvl = nlvl:-1:1  % loop from top-down
     ts = tic;
 
     % find all existing entries
-    [I_,J_,S_] = find(M);
-    nz = length(S_);
+    [I_,J_,V_] = find(M);
+    nz = length(V_);
     I(1:nz) = I_;
     J(1:nz) = J_;
-    S(1:nz) = S_;
+    V(1:nz) = V_;
 
     % loop over nodes
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
@@ -199,23 +177,11 @@ function D = rskelf_diag(F,dinv,opts)
 
       % store update to global sparse matrix
       [I_,J_] = ndgrid([rd sk]);
-      m = numel(X);
-      nz_new = nz + m;
-      if mnz < nz_new
-        while mnz < nz_new, mnz = 2*mnz; end
-        e = zeros(mnz-length(I),1);
-        I = [I; e];
-        J = [J; e];
-        S = [S; e];
-      end
-      I(nz+1:nz+m) = I_;
-      J(nz+1:nz+m) = J_;
-      S(nz+1:nz+m) = X ;
-      nz = nz + m;
+      [I,J,V,nz] = sppush3(I,J,V,nz,I_,J_,X);
     end
 
     % update unfolded sparse matrix
-    M = sparse(I(1:nz),J(1:nz),S(1:nz),N,N) .* keep{lvl};
+    M = sparse(I(1:nz),J(1:nz),V(1:nz),N,N) .* keep{lvl};
     t = toc(ts);
 
     % print summary

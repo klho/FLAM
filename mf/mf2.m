@@ -87,10 +87,10 @@ function F = mf2(A,n,occ,opts)
   nf = 0;
   grd = reshape(1:N,nd,nd);  % index mapping to each node
   rem = true(nd,nd);         % which nodes remain?
-  mnz = 128;                 % maximum capacity for sparse matrix updates
-  I = zeros(mnz,1);
-  J = zeros(mnz,1);
-  S = zeros(mnz,1);
+  nz = 128;                  % initial capacity for sparse matrix updates
+  I = zeros(nz,1);
+  J = zeros(nz,1);
+  V = zeros(nz,1);
 
   % set initial width
   w = n;
@@ -154,24 +154,12 @@ function F = mf2(A,n,occ,opts)
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), S_ = -E*(U.*E');
-      elseif strcmpi(opts.symm,'p'), S_ = -E*E';
-      else,                          S_ = -E*G;
+      if     strcmpi(opts.symm,'h'), X = -E*(U.*E');
+      elseif strcmpi(opts.symm,'p'), X = -E*E';
+      else,                          X = -E*G;
       end
       [I_,J_] = ndgrid(slf(sk));
-      m = length(sk)^2;
-      nz_new = nz + m;
-      if mnz < nz_new
-        while mnz < nz_new, mnz = 2*mnz; end
-        e = zeros(mnz-length(I),1);
-        I = [I; e];
-        J = [J; e];
-        S = [S; e];
-      end
-      I(nz+1:nz+m) = I_(:);
-      J(nz+1:nz+m) = J_(:);
-      S(nz+1:nz+m) = S_(:);
-      nz = nz + m;
+      [I,J,V,nz] = sppush3(I,J,V,nz,I_,J_,X);
 
       % store matrix factors
       nf = nf + 1;
@@ -186,25 +174,10 @@ function F = mf2(A,n,occ,opts)
     F.lvp(nlvl+1) = nf;
 
     % update sparse matrix
-    [I_,J_,S_] = find(A);     % pull existing entries
+    [I_,J_,V_] = find(A);     % pull existing entries
     idx = rem(I_) & rem(J_);  % keep only those needed for next level
-    I_ = I_(idx);
-    J_ = J_(idx);
-    S_ = S_(idx);
-    m = length(S_);
-    nz_new = mnz + m;
-    if mnz < nz_new
-      while mnz < nz_new, mnz = 2*mnz; end
-      e = zeros(mnz-length(I),1);
-      I = [I; e];
-      J = [J; e];
-      S = [S; e];
-    end
-    I(nz+1:nz+m) = I_;        % apply on top of queued updates
-    J(nz+1:nz+m) = J_;
-    S(nz+1:nz+m) = S_;
-    nz = nz + m;
-    A = sparse(I(1:nz),J(1:nz),S(1:nz),N,N);
+    [I,J,V,nz] = sppush3(I,J,V,nz,I_(idx),J_(idx),V_(idx));
+    A = sparse(I(1:nz),J(1:nz),V(1:nz),N,N);
     te = toc(ts);
 
     % print summary
