@@ -6,6 +6,9 @@
 %   appropriately reallocating and expanding the capacities of I, J, and V as
 %   needed.
 %
+%   Note: This function relies on MATLAB's in-place semantics for performance,
+%         which are not currently supported by Octave.
+%
 %   See also SPPUSH2.
 
 function [I,J,V,nz] = sppush3(I,J,V,nz,i,j,v)

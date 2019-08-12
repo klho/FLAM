@@ -64,12 +64,12 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
   tic; rskelf_mv(F,X); t = toc;  % for timing
   err = snorm(N,@(x)(mv(x) - rskelf_mv(F,x)),[],[],1);
   err = err/snorm(N,mv,[],[],1);
-  fprintf('rskel_mv err/time: %10.4e / %10.4e (s)\n',err,t)
+  fprintf('rskelf_mv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
   tic; rskelf_sv(F,X); t = toc;  % for timing
   err = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),@(x)(x - rskelf_sv(F,mv(x),'c')));
-  fprintf('rskel_sv err/time: %10.4e / %10.4e (s)\n',err,t)
+  fprintf('rskelf_sv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % test Cholesky accuracy -- error is w.r.t. compressed apply/solve
   if strcmpi(symm,'p')

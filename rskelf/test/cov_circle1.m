@@ -26,8 +26,8 @@ function cov_circle1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
   % reference proxy points are for unit box [-1, 1]^2
 
   % factor matrix
-  Afun = @(i,j)Afun2(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,scale);
+  Afun = @(i,j)Afun_(i,j,x,noise,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,scale);
   opts = struct('symm',symm,'verb',1);
   tic; F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -35,7 +35,7 @@ function cov_circle1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set up reference FFT multiplication
   G = fft(Afun(1:N,1));
-  mv = @(x)mv2(G,x);
+  mv = @(x)mv_(G,x);
 
   % test accuracy using randomized power method
   X = rand(N,1);
@@ -45,12 +45,12 @@ function cov_circle1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
   tic; rskelf_mv(F,X); t = toc;  % for timing
   err = snorm(N,@(x)(mv(x) - rskelf_mv(F,x)),[],[],1);
   err = err/snorm(N,mv,[],[],1);
-  fprintf('rskel_mv err/time: %10.4e / %10.4e (s)\n',err,t)
+  fprintf('rskelf_mv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
   tic; rskelf_sv(F,X); t = toc;  % for timing
   err = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),@(x)(x - rskelf_sv(F,mv(x),'c')));
-  fprintf('rskel_sv err/time: %10.4e / %10.4e (s)\n',err,t)
+  fprintf('rskelf_sv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % test Cholesky accuracy -- error is w.r.t. compressed apply/solve
   if strcmpi(symm,'p')
@@ -119,7 +119,7 @@ function K = Kfun(x,y,scale)
 end
 
 % matrix entries
-function A = Afun2(i,j,x,noise,scale)
+function A = Afun_(i,j,x,noise,scale)
   A = Kfun(x(:,i),x(:,j),scale);
   [I,J] = ndgrid(i,j);
   idx = I == J;
@@ -127,7 +127,7 @@ function A = Afun2(i,j,x,noise,scale)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,scale)
+function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
   pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
   dx = x(1,nbr) - ctr(1);
@@ -139,6 +139,6 @@ function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,scale)
 end
 
 % FFT multiplication
-function y = mv2(F,x)
+function y = mv_(F,x)
   y = ifft(F.*fft(x));
 end

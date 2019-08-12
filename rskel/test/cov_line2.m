@@ -75,7 +75,7 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   % prepare for selected/diagonal inversion
   % note: reported error is with respect to compressed solve -- should ideally
   %       be close O(eps), independently of compression tolerance
-  m = 16;            % number of entries
+  m = 128;           % number of entries
   r = randi(N,m,2);  % random row/col index for each entry
   % reference comparison from compressed solve against coordinate vectors
   X = zeros(N,m);

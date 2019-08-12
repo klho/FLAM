@@ -134,15 +134,7 @@ function D = mf_diag(F,dinv,opts)
       else,      X(ird,ird) = eye(nrd);
       end
       % skeleton part
-      Xsk = spget(M,sk,sk);
-      if nsk && ~strcmpi(F.symm,'n')
-        D_ = diag(diag(Xsk));
-        L_ = tril(Xsk,-1);
-        U_ = triu(Xsk, 1);
-        if strcmpi(F.symm,'s'), Xsk = D_ + L_ + L_.' + U_ + U_.';
-        else,                   Xsk = D_ + L_ + L_'  + U_ + U_' ;
-        end
-      end
+      Xsk = spsymm(spget(M,sk,sk),F.symm);
       X(isk,isk) = Xsk;
       % undo elimination
       if dinv

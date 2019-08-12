@@ -8,7 +8,7 @@
 %    Y = RSKELF_MV(F,X,TRANS) computes Y = F*X if TRANS = 'N' (default),
 %    Y = F.'*X if TRANS = 'T', and Y = F'*X if TRANS = 'C'.
 %
-%    See also RSKELF, RSKELF_CHOLMV, RSKEL_CHOLSV, RSKELF_SV.
+%    See also RSKELF, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_SV.
 
 function Y = rskelf_mv(F,X,trans)
 

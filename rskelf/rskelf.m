@@ -132,9 +132,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   for lvl = 1:t.nlvl
     pblk(lvl+1) = pblk(lvl);
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-      if ~isempty(t.nodes(i).xi)
-        pblk(lvl+1) = pblk(lvl+1) + 1;
-      end
+      if ~isempty(t.nodes(i).xi), pblk(lvl+1) = pblk(lvl+1) + 1; end
     end
   end
 

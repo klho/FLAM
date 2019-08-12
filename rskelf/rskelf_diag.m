@@ -14,7 +14,7 @@
 %    D = RSKELF_DIAG(F,DINV) computes D = DIAG(F) if DINV = 0 (default) and
 %    D = DIAG(INV(F)) if DINV = 1.
 %
-%    D = RSKEL_DIAG(F,DINV,OPTS) also passes various options to the algorithm.
+%    D = RSKELF_DIAG(F,DINV,OPTS) also passes various options to the algorithm.
 %    Valid options include:
 %
 %      - VERB: display status info if VERB = 1 (default: VERB = 0). This prints
@@ -137,15 +137,7 @@ function D = rskelf_diag(F,dinv,opts)
       else,      X(ird,ird) = eye(nrd);
       end
       % skeleton part
-      Xsk = spget(M,sk,sk);
-      if nsk && ~strcmpi(F.symm,'n')
-        D_ = diag(diag(Xsk));
-        L_ = tril(Xsk,-1);
-        U_ = triu(Xsk, 1);
-        if strcmpi(F.symm,'s'), Xsk = D_ + L_ + L_.' + U_ + U_.';
-        else,                   Xsk = D_ + L_ + L_'  + U_ + U_' ;
-        end
-      end
+      Xsk = spsymm(spget(M,sk,sk),F.symm);
       X(isk,isk) = Xsk;
       % undo elimination and sparsification
       if dinv

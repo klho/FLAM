@@ -5,6 +5,9 @@
 %   NZ := NZ + N, appropriately reallocating and expanding the capacities of I
 %   and J as needed.
 %
+%   Note: This function relies on MATLAB's in-place semantics for performance,
+%         which are not currently supported by Octave.
+%
 %   See also SPPUSH3.
 
 function [I,J,nz] = sppush2(I,J,nz,i,j)
