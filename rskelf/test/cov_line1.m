@@ -131,7 +131,7 @@ end
 
 % kernel function
 function K = Kfun(x,y,scale)
-  dr = scale*abs(bsxfun(@minus,x',y));  % scaled distance
+  dr = scale*abs(x' - y);  % scaled distance
   K = exp(-0.5*dr.^2);
 end
 
@@ -145,7 +145,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   Kpxy = Kfun(pxy,x(slf),scale);
   % proxy points form interval of scaled radius 1.5 around current box
   % keep among neighbors only those within interval

@@ -87,9 +87,9 @@ function T = hypoct(x,occ,lvlmax,ext)
       % subdivide box if it contains too many points
       if xn > occ
         ctr = T.nodes(prnt).ctr;
-        idx = bsxfun(@gt,x(:,xi),ctr');  % which side of center in each dim?
-        idx = 2.^((1:d) - 1)*idx + 1;    % convert d-vector to integer
-        uidx = unique(idx);              % nonempty child boxes
+        idx = x(:,xi) > ctr';          % which side of center in each dim?
+        idx = 2.^((1:d) - 1)*idx + 1;  % convert d-vector to integer
+        uidx = unique(idx);            % nonempty child boxes
 
         % exponentially increase capacity as needed
         nbox_new = nbox + length(uidx);
@@ -154,7 +154,7 @@ function T = hypoct(x,occ,lvlmax,ext)
       % add children of parent-neighbors if adjacent
       idx = [T.nodes(T.nodes(prnt).nbor).chld];
       c = reshape([T.nodes(idx).ctr],d,[])';
-      dist = round(abs(bsxfun(@minus,T.nodes(i).ctr,c))/l);
+      dist = round(abs(T.nodes(i).ctr - c)/l);
       j = idx(max(dist,[],2) <= 1);
       if ~isempty(j), T.nodes(i).nbor = [T.nodes(i).nbor j]; end
     end

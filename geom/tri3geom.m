@@ -17,6 +17,6 @@ function [C,N,A] = tri3geom(V,F)
   V32 = V(:,F(3,:)) - V(:,F(2,:));
   N = cross(V21,V32);
   A = sqrt(sum(N.^2));
-  N = bsxfun(@rdivide,N,A);
+  N = N./A;
   A = 0.5*A;
 end

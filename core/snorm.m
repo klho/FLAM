@@ -49,7 +49,7 @@ function [s,niter] = snorm(n,mv,mva,tol,herm,niter_max)
   % main loop
   while niter < niter_max
     niter = niter + 1;
-    x = bsxfun(@rdivide,x,xnorm);
+    x = x/xnorm;
     s_ = s;
 
     % apply matrix

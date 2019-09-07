@@ -109,8 +109,8 @@ end
 
 % kernel function
 function K = Kfun(x,y)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
   K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2));
 end
 
@@ -124,7 +124,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   N = size(rx,2);

@@ -55,8 +55,8 @@ end
 
 % kernel function
 function K = Kfun(x,y,k)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
   K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
 end
 
@@ -67,7 +67,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   if strcmpi(rc,'r')
     Kpxy = Kfun(rx(:,slf),pxy,k);
     dx = cx(1,nbr) - ctr(1);

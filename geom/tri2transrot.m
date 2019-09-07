@@ -28,7 +28,7 @@ function [trans,rot,V2,V3] = tri2transrot(V,F)
   % generate rotation matrices
   n = size(F,2);
   rot = zeros(2,2,n);
-  rot(:,1,:) = bsxfun(@rdivide,V21,V2);
+  rot(:,1,:) = V21./V2;
   for i = 1:n, rot(:,2,i) = [-rot(2,1,i); rot(1,1,i)]; end
   rot = permute(rot,[2 1 3]);
 

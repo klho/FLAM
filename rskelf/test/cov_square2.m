@@ -119,8 +119,8 @@ end
 
 % kernel function
 function K = Kfun(x,y,scale)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
   dr = scale*sqrt(dx.^2 + dy.^2);  % scaled distance
   K = (1 + sqrt(3)*dr).*exp(-sqrt(3)*dr);
 end
@@ -135,7 +135,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);

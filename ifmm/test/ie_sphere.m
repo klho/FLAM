@@ -113,8 +113,8 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
 
   % generate field due to exterior sources (PDE reference solution)
   m = 16;                 % number of sources
-  src = randn(3,m);                                % random source points on
-  src = 2*bsxfun(@rdivide,src,sqrt(sum(src.^2)));  % outer radius-2 sphere
+  src = randn(3,m);                % random source points on ...
+  src = 2*src./sqrt(sum(src.^2));  % ... outer radius-2 sphere
   q = rand(m,1);          % random charges for each source point
   B = Kfun(x,src,'s')*q;  % field evaluated at surface
 
@@ -125,9 +125,9 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   fprintf('gmres resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err,iter(2),t)
 
   % evaluate field from solved density at interior targets
-  trg = randn(3,m);                                  % random target points on
-  trg = 0.5*bsxfun(@rdivide,trg,sqrt(sum(trg.^2)));  % inner radius-0.5 sphere
-  Y = bsxfun(@times,Kfun(trg,x,'d',nu),area)*X;
+  trg = randn(3,m);                  % random target points on ...
+  trg = 0.5*trg./sqrt(sum(trg.^2));  % ... inner radius-0.5 sphere
+  Y = (Kfun(trg,x,'d',nu).*area)*X;
 
   % compare against exact field
   Z = Kfun(trg,src,'s')*q;
@@ -146,15 +146,14 @@ end
 
 % kernel function
 function K = Kfun(x,y,lp,nu)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
-  dz = bsxfun(@minus,x(3,:)',y(3,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
+  dz = x(3,:)' - y(3,:);
   dr = sqrt(dx.^2 + dy.^2 + dz.^2);
   if strcmpi(lp,'s')      % single-layer: G
     K = 1/(4*pi)./dr;
   elseif strcmpi(lp,'d')  % double-layer: dG/dn
-    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:)) + ...
-            bsxfun(@times,dz,nu(3,:));
+    rdotn = dx.*nu(1,:) + dy.*nu(2,:) + dz.*nu(3,:);
     K = 1/(4*pi).*rdotn./dr.^3;
   end
 end
@@ -164,7 +163,7 @@ function A = Afun_(i,j,x,nu,area,S)
   % quick return if empty
   if isempty(i) || isempty(j), A = zeros(length(i),length(j)); return; end
   % area-weighted point interaction
-  A = bsxfun(@times,Kfun(x(:,i),x(:,j),'d',nu(:,j)),area(j));
+  A = Kfun(x(:,i),x(:,j),'d',nu(:,j)).*area(j);
   % replace near-field with precomputed quadratures
   M = spget(S,i,j); nzidx = M ~= 0; A(nzidx) = M(nzidx);
   % replace diagonal with identity -- note: this is a crude approximation and
@@ -174,7 +173,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,nu,area)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   if strcmpi(rc,'r')
@@ -185,7 +184,7 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,nu,area)
     dz = cx(3,nbr) - ctr(3);
   else
     % from triangles to proxy points: use actual triangle areas
-    Kpxy = bsxfun(@times,Kfun(pxy,cx(:,slf),'d',nu(:,slf)),area(slf));
+    Kpxy = Kfun(pxy,cx(:,slf),'d',nu(:,slf)).*area(slf);
     dx = rx(1,nbr) - ctr(1);
     dy = rx(2,nbr) - ctr(2);
     dz = cx(3,nbr) - ctr(3);

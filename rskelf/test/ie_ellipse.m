@@ -21,7 +21,7 @@ function ie_ellipse(n,occ,p,rank_or_tol,symm,ratio)
   % unit normal
   nu = [cos(theta); ratio*sin(theta)];
   h = sqrt(nu(1,:).^2 + nu(2,:).^2);
-  nu = bsxfun(@rdivide,nu,h);
+  nu = nu./h;
   kappa = ratio./h.^3;  % curvature
   h = 2*pi/n*h;         % arc length
   theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
@@ -81,7 +81,7 @@ function ie_ellipse(n,occ,p,rank_or_tol,symm,ratio)
 
   % evaluate field from solved density at interior targets
   trg = 0.5*[ratio*cos(theta); sin(theta)];  % target points
-  Y = bsxfun(@times,Kfun(trg,x,'d',nu),h)*X;
+  Y = (Kfun(trg,x,'d',nu).*h)*X;
 
   % compare against exact field
   Z = Kfun(trg,src,'s')*q;
@@ -91,13 +91,13 @@ end
 
 % kernel function
 function K = Kfun(x,y,lp,nu)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
   dr = sqrt(dx.^2 + dy.^2);
   if strcmpi(lp,'s')      % single-layer: G
     K = -1/(2*pi)*log(dr);
   elseif strcmpi(lp,'d')  % double-layer: dG/dn
-    rdotn = bsxfun(@times,dx,nu(1,:)) + bsxfun(@times,dy,nu(2,:));
+    rdotn = dx.*nu(1,:) + dy.*nu(2,:);
     K = 1/(2*pi).*rdotn./dr.^2;
   end
 end
@@ -105,7 +105,7 @@ end
 % matrix entries
 function A = Afun_(i,j,x,nu,h,kappa)
   A = Kfun(x(:,i),x(:,j),'d',nu(:,j));
-  if ~isempty(j), A = bsxfun(@times,A,h(j)); end  % trapezoidal rule
+  if ~isempty(j), A = A.*h(j); end  % trapezoidal rule
   % limit = identity + curvature
   [I,J] = ndgrid(i,j);
   idx = I == J;
@@ -114,10 +114,10 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,nu,h)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
-  Kpxy = bsxfun(@times,Kfun(pxy,x(:,slf),'d',nu(:,slf)),h(slf));
+  Kpxy = Kfun(pxy,x(:,slf),'d',nu(:,slf)).*h(slf);
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);
   % proxy points form circle of scaled radius 1.5 around current box

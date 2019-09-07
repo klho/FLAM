@@ -92,8 +92,8 @@ end
 
 % kernel function
 function K = Kfun(x,y,k)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
   K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
 end
 
@@ -111,19 +111,18 @@ function A = Afun_(i,j,x,k,intgrl,sqrtb)
   [A,diagidx] = Afun_ti(i,j,x,k,intgrl);  % translation-invariant part
   if isempty(A), return; end
   % scale by potential/velocity field
-  A = bsxfun(@times,sqrtb(i),bsxfun(@times,A,sqrtb(j)'));
+  A = sqrtb(i).*A.*sqrtb(j)';
   A(diagidx) = A(diagidx) + 1;            % add identity to diagonal
 end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
-  pxy = bsxfun(@plus,proxy*l,ctr');  % scale and translate reference points
+  pxy = proxy*l + ctr';  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, multiplied by row/column potential/velocity field
   % and scaled to match the matrix scale
   N = size(x,2);
-  Kpxy = Kfun(pxy,x(:,slf),k)/N;
-  Kpxy = bsxfun(@times,Kpxy,sqrtb(slf)');
+  Kpxy = Kfun(pxy,x(:,slf),k).*sqrtb(slf)'/N;
   if strcmpi(symm,'n'), Kpxy = [Kpxy; conj(Kpxy)]; end  % assume only 'N' or 'S'
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);
