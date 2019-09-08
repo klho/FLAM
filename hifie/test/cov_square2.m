@@ -13,7 +13,7 @@ function cov_square2(n,occ,p,rank_or_tol,skip,symm,noise,scale,diagmode)
   if nargin < 6 || isempty(symm), symm = 'p'; end  % positive definite
   if nargin < 7 || isempty(noise), noise = 1e-2; end  % nugget effect
   if nargin < 8 || isempty(scale), scale = 100; end  % kernel length scale
-  if nargin < 9 || isempty(diagmode), diagmode = 1; end  % diag extraction mode:
+  if nargin < 9 || isempty(diagmode), diagmode = 2; end  % diag extraction mode:
   % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
   % initialize
