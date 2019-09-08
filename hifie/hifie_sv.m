@@ -1,5 +1,7 @@
-% HIFIE_SV   Solve using hierarchical interpolative factorization for integral
-%            equations.
+% HIFIE_SV  Solve using hierarchical interpolative factorization for integral
+%           equations.
+%
+%    Typical complexity: quasilinear in all dimensions.
 %
 %    Y = HIFIE_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.
@@ -13,9 +15,7 @@
 function Y = hifie_sv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...

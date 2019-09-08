@@ -5,8 +5,8 @@ function D = hifie_spdiag_sv_s(F,spinfo)
   % initialize
   N = F.N;
   n = length(spinfo.i);
-  P = zeros(N,1);
-  D = zeros(N,1);
+  P = zeros(N,1);  % for indexing
+  D = zeros(N,1);  % for output
 
   % loop over all leaf blocks from top to bottom
   for i = n:-1:1
@@ -28,24 +28,20 @@ function D = hifie_spdiag_sv_s(F,spinfo)
 
     % upward sweep
     for j = spinfo.t{i}
-      if j > 0
-        sk = P(F.factors(j).sk);
-        rd = P(F.factors(j).rd);
-        Y(rd,:) = Y(rd,:) - F.factors(j).T.'*Y(sk,:);
-        Y(rd,:) = F.factors(j).L\Y(rd,:);
-        Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
-      end
+      sk = P(F.factors(j).sk);
+      rd = P(F.factors(j).rd);
+      Y(rd,:) = Y(rd,:) - F.factors(j).T.'*Y(sk,:);
+      Y(rd,:) = F.factors(j).L\Y(rd(F.factors(j).p),:);
+      Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
     end
 
     % downward sweep
     for j = spinfo.t{i}(end:-1:1)
-      if j > 0
-        sk = P(F.factors(j).sk);
-        rd = P(F.factors(j).rd);
-        Y(rd,:) = Y(rd,:) - F.factors(j).F*Y(sk,:);
-        Y(rd,:) = F.factors(j).U\Y(rd,:);
-        Y(sk,:) = Y(sk,:) - F.factors(j).T*Y(rd,:);
-      end
+      sk = P(F.factors(j).sk);
+      rd = P(F.factors(j).rd);
+      Y(rd,:) = Y(rd,:) - F.factors(j).F*Y(sk,:);
+      Y(rd,:) = F.factors(j).U\Y(rd,:);
+      Y(sk,:) = Y(sk,:) - F.factors(j).T*Y(rd,:);
     end
 
     % extract diagonal

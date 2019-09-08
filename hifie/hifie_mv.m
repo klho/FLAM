@@ -1,5 +1,7 @@
-% HIFIE_MV   Multiply using hierarchical interpolative factorization for
-%            integral equations.
+% HIFIE_MV  Multiply using hierarchical interpolative factorization for integral
+%           equations.
+%
+%    Typical complexity: quasilinear in all dimensions.
 %
 %    Y = HIFIE_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.
@@ -13,9 +15,7 @@
 function Y = hifie_mv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...

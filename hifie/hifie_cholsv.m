@@ -1,9 +1,11 @@
-% HIFIE_CHOLSV   Solve using generalized Cholesky factor from hierarchical
-%                interpolative factorization for integral equations.
+% HIFIE_CHOLSV  Solve using generalized Cholesky factor from hierarchical
+%               interpolative factorization for integral equations.
+%
+%    Typical complexity: about half that of HIFIE_SV.
 %
 %    Y = HIFIE_CHOLSV(F,X) produces the matrix Y by applying the inverse of the
 %    generalized Cholesky factor C of the factored matrix F = C*C' to the matrix
-%    X. Requires that F be computed with the Hermitian positive-definite option.
+%    X. Requires that F be computed with the Hermitian positive definite option.
 %
 %    Y = HIFIE_CHOLSV(F,X,TRANS) computes Y = C\X if TRANS = 'N' (default),
 %    Y = C.'\X if TRANS = 'T', and Y = C'\X if TRANS = 'C'.
@@ -14,9 +16,7 @@
 function Y = hifie_cholsv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(F.symm,'p'),'FLAM:hifie_cholsv:invalidSymm', ...

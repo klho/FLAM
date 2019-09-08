@@ -5,8 +5,8 @@ function D = hifie_spdiag_sv_h(F,spinfo)
   % initialize
   N = F.N;
   n = length(spinfo.i);
-  P = zeros(N,1);
-  D = zeros(N,1);
+  P = zeros(N,1);  % for indexing
+  D = zeros(N,1);  % for output
 
   % loop over all leaf blocks from top to bottom
   for i = n:-1:1
@@ -28,13 +28,11 @@ function D = hifie_spdiag_sv_h(F,spinfo)
 
     % upward sweep
     for j = spinfo.t{i}
-      if j > 0
-        sk = P(F.factors(j).sk);
-        rd = P(F.factors(j).rd);
-        Y(rd,:) = Y(rd,:) - F.factors(j).T'*Y(sk,:);
-        Y(rd,:) = F.factors(j).L\Y(rd,:);
-        Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
-      end
+      sk = P(F.factors(j).sk);
+      rd = P(F.factors(j).rd);
+      Y(rd,:) = Y(rd,:) - F.factors(j).T'*Y(sk,:);
+      Y(rd,:) = F.factors(j).L\Y(rd(F.factors(j).p),:);
+      Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
     end
 
     % store matrix at top level
@@ -42,13 +40,11 @@ function D = hifie_spdiag_sv_h(F,spinfo)
 
     % apply diagonal factors
     for j = spinfo.t{i}
-      if j > 0
-        rd = P(F.factors(j).rd);
-        Y(rd,:) = F.factors(j).U\Y(rd,:);
-      end
+      rd = P(F.factors(j).rd);
+      Y(rd,:) = F.factors(j).U.\Y(rd,:);
     end
 
-    % extract diagonal from Hermitian downward sweep
+    % extract diagonal
     D(slf) = diag(Z'*Y);
   end
 end

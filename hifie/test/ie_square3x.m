@@ -1,46 +1,32 @@
 % Second-kind integral equation on the unit square, Helmholtz single-layer.
+%
+% This is the same as IE_SQUARE3 but using HIFIE2X.
 
-function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm)
+function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n)
-    n = 128;
-  end
-  if nargin < 2 || isempty(k)
-    k = 2*pi*4;
-  end
-  if nargin < 3 || isempty(occ)
-    occ = 64;
-  end
-  if nargin < 4 || isempty(p)
-    p = 64;
-  end
-  if nargin < 5 || isempty(rank_or_tol)
-    rank_or_tol = 1e-6;
-  end
-  if nargin < 6 || isempty(skip)
-    skip = 2;
-  end
-  if nargin < 7 || isempty(symm)
-    symm = 's';
-  end
+  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
+  if nargin < 2 || isempty(k), k = 2*pi*4; end  % wavenumber
+  if nargin < 3 || isempty(occ), occ = 64; end
+  if nargin < 4 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
+  if nargin < 6 || isempty(skip), skip = 2; end
+  if nargin < 6 || isempty(symm), symm = 's'; end  % symmetric
+  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned GMRES?
 
   % initialize
-  [x1,x2] = ndgrid((1:n)/n);
-  x = [x1(:) x2(:)]';
+  [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
   N = size(x,2);
-  theta = (1:p)*2*pi/p;
-  proxy = 1.5*[cos(theta); sin(theta)];
-  clear x1 x2
+  theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
 
-  % set up potential
+  % set up potential/velocity field
   V = exp(-32*((x(1,:) - 0.5).^2 + (x(2,:) - 0.5).^2))';
-  sqrtb = k*sqrt(V);
+  sqrtb = k*sqrt(V);  % assume nonnegative
 
   % compute diagonal quadratures
   h = 1/n;
   intgrnd = @(x,y)(0.25i*besselh(0,1,k*sqrt(x.^2 + y.^2)));
-  if isoctave()
+  if isoctave()  % no complex integration in Octave
     intgrl_r = 4*dblquad(@(x,y)(real(intgrnd(x,y))),0,h/2,0,h/2);
     intgrl_i = 4*dblquad(@(x,y)(imag(intgrnd(x,y))),0,h/2,0,h/2);
     intgrl = intgrl_r + intgrl_i*1i;
@@ -49,17 +35,16 @@ function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm)
   end
 
   % factor matrix
-  Afun = @(i,j)Afun2(i,j,x,k,intgrl,sqrtb);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun2(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm);
+  Afun = @(i,j)Afun_(i,j,x,k,intgrl,sqrtb);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm);
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  F = hifie2x(Afun,x,occ,rank_or_tol,pxyfun,opts);
-  w = whos('F');
-  fprintf([repmat('-',1,80) '\n'])
-  fprintf('mem: %6.2f (MB)\n',w.bytes/1e6)
+  tic; F = hifie2x(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
+  w = whos('F'); mem = w.bytes/1e6;
+  fprintf('hifie2x time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
-  % set up FFT multiplication
+  % set up reference FFT multiplication
   a = reshape(Afun_ti(1:N,1,x,k,intgrl),n,n);
-  B = zeros(2*n-1,2*n-1);
+  B = zeros(2*n-1,2*n-1);  % zero-pad
   B(  1:n  ,  1:n  ) = a;
   B(  1:n  ,n+1:end) = a( : ,2:n);
   B(n+1:end,  1:n  ) = a(2:n, : );
@@ -67,7 +52,7 @@ function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm)
   B(:,n+1:end) = flipdim(B(:,n+1:end),2);
   B(n+1:end,:) = flipdim(B(n+1:end,:),1);
   G = fft2(B);
-  mv = @(x)mv2(G,x,sqrtb);
+  mv = @(x)mv_(G,x,sqrtb);
   mva = @(x)(conj(mv(conj(x))));
 
   % test accuracy using randomized power method
@@ -75,75 +60,76 @@ function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm)
   X = X/norm(X);
 
   % NORM(A - F)/NORM(A)
-  tic
-  hifie_mv(F,X);
-  t = toc;
-  [e,niter] = snorm(N,@(x)(mv (x) - hifie_mv(F,x,'n')), ...
-                      @(x)(mva(x) - hifie_mv(F,x,'c')));
-  e = e/snorm(N,mv,mva);
-  fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  tic; hifie_mv(F,X); t = toc;  % for timing
+  err = snorm(N,@(x)(mv (x) - hifie_mv(F,x,'n')), ...
+                @(x)(mva(x) - hifie_mv(F,x,'c')));
+  err = err/snorm(N,mv,mva);
+  fprintf('hifie_mv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
-  tic
-  Y = hifie_sv(F,X);
-  t = toc;
-  [e,niter] = snorm(N,@(x)(x - mv (hifie_sv(F,x,'n'))), ...
-                      @(x)(x - mva(hifie_sv(F,x,'c'))));
-  fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  tic; hifie_sv(F,X); t = toc;  % for timing
+  err = snorm(N,@(x)(x - mv (hifie_sv(F,x,'n'))), ...
+                @(x)(x - mva(hifie_sv(F,x,'c'))));
+  fprintf('hifie_sv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % run unpreconditioned GMRES
-  [~,~,~,iter] = gmres(mv,X,[],1e-12,1024);
+  B = mv(X);
+  iter(2) = nan;
+  if doiter, [~,~,~,iter] = gmres(mv,B,[],1e-12,128); end
 
   % run preconditioned GMRES
-  tic
-  [Z,~,~,piter] = gmres(mv,X,[],1e-12,32,@(x)hifie_sv(F,x));
-  t = toc;
-  e1 = norm(Z - Y)/norm(Z);
-  e2 = norm(X - mv(Z))/norm(X);
-  fprintf('gmres: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter(2),iter(2),t)
+  tic; [Y,~,~,piter] = gmres(mv,B,[],1e-12,32,@(x)hifie_sv(F,x)); t = toc;
+  err1 = norm(X - Y)/norm(X);
+  err2 = norm(B - mv(Y))/norm(B);
+  fprintf('gmres:\n')
+  fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
+  fprintf('  precon/unprecon iter: %d / %d\n',piter(2),iter(2))
 end
 
 % kernel function
 function K = Kfun(x,y,k)
-  dx = bsxfun(@minus,x(1,:)',y(1,:));
-  dy = bsxfun(@minus,x(2,:)',y(2,:));
+  dx = x(1,:)' - y(1,:);
+  dy = x(2,:)' - y(2,:);
   K = 0.25i*besselh(0,1,k*sqrt(dx.^2 + dy.^2));
 end
 
-% translation-invariant part of matrix
-function [A,idx] = Afun_ti(i,j,x,k,intgrl)
+% translation-invariant part of matrix, i.e., without potential
+function [A,diagidx] = Afun_ti(i,j,x,k,intgrl)
   N = size(x,2);
-  A = Kfun(x(:,i),x(:,j),k)/N;
+  A = Kfun(x(:,i),x(:,j),k)/N;  % area-weighted point interaction
   [I,J] = ndgrid(i,j);
-  idx = I == J;
-  A(idx) = intgrl;
+  diagidx = I == J;             % indices for diagonal
+  A(diagidx) = intgrl;          % replace diagonal with precomputed values
 end
 
 % matrix entries
-function A = Afun2(i,j,x,k,intgrl,sqrtb)
-  [A,idx] = Afun_ti(i,j,x,k,intgrl);
-  A = bsxfun(@times,sqrtb(i),bsxfun(@times,A,sqrtb(j)'));
-  A(idx) = A(idx) + 1;
+function A = Afun_(i,j,x,k,intgrl,sqrtb)
+  [A,diagidx] = Afun_ti(i,j,x,k,intgrl);  % translation-invariant part
+  if isempty(A), return; end
+  % scale by potential/velocity field
+  A = sqrtb(i).*A.*sqrtb(j)';
+  A(diagidx) = A(diagidx) + 1;            % add identity to diagonal
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun2(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
-  pxy = bsxfun(@plus,proxy*l,ctr');
+function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
+  pxy = proxy*l + ctr';  % scale and translate reference points
+  % proxy interaction is kernel evaluation between proxy points and row/column
+  % points being compressed, multiplied by row/column potential/velocity field
+  % and scaled to match the matrix scale
   N = size(x,2);
-  Kpxy = Kfun(pxy,x(:,slf),k)/N;
-  Kpxy = bsxfun(@times,Kpxy,sqrtb(slf)');
-  if strcmpi(symm,'n')
-    Kpxy = [Kpxy; conj(Kpxy)];
-  end
+  Kpxy = Kfun(pxy,x(:,slf),k).*sqrtb(slf)'/N;
+  if strcmpi(symm,'n'), Kpxy = [Kpxy; conj(Kpxy)]; end  % assume only 'N' or 'S'
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);
+  % proxy points form circle of scaled radius 1.5 around current box
+  % keep among neighbors only those within circle
   dist = sqrt(dx.^2 + dy.^2);
   nbr = nbr(dist/l < 1.5);
 end
 
 % FFT multiplication
-function y = mv2(F,x,sqrtb)
+function y = mv_(F,x,sqrtb)
   N = length(x);
   n = sqrt(N);
   y = ifft2(F.*fft2(reshape(sqrtb.*x,n,n),2*n-1,2*n-1));
