@@ -131,8 +131,8 @@ function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
   Kpxy = Kfun(pxy,x(:,slf),scale);
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);
-  % proxy points form interval of scaled radius 1.5 around current box
-  % keep among neighbors only those within interval
+  % proxy points form circle of scaled radius 1.5 around current box
+  % keep among neighbors only those within circle
   dist = sqrt(dx.^2 + dy.^2);
   nbr = nbr(dist/l < 1.5);
 end
