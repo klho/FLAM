@@ -13,33 +13,8 @@
 %    nodes of a regular (N-1) x (N-1) x (N-1) mesh of the unit cube with leaf
 %    size (OCC-1) x (OCC-1) x (OCC-1).
 %
-%    F = MF3(A,N,OCC,OPTS) also passes various options to the algorithm. Valid
-%    options include:
-%
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf).
-%
-%      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
-%              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
-%              positive definite if SYMM = 'P' (default: SYMM = 'N'). If
-%              SYMM = 'N' or 'S', then local factors are computed using the LU
-%              decomposition; if SYMM = 'H', the LDL decomposition; and if
-%              SYMM = 'P', the Cholesky decomposition. Symmetry can reduce the
-%              computation time by about a factor of two.
-%
-%      - VERB: display status info if VERB = 1 (default: VERB = 0). This prints
-%              to screen a table tracking compression statistics through level.
-%
-%    References:
-%
-%      I.S. Duff, J.K. Reid. The multifrontal solution of indefinite sparse
-%        symmetric linear equations. ACM Trans. Math. Softw. 9 (3): 302-325,
-%        1983.
-%
-%      A. George. Nested dissection of a regular finite element mesh. SIAM J.
-%        Numer. Anal. 10 (2): 345-363, 1973.
-%
-%      B.M. Irons. A frontal solution program for finite element analysis. Int.
-%        J. Numer. Meth. Eng. 2: 5-32, 1970.
+%    F = MF3(A,N,OCC,OPTS) also passes various options to the algorithm. See MFX
+%    for details.
 %
 %    See also MF2, MF_CHOLMV, MF_CHOLSV, MF_DIAG, MF_LOGDET, MF_MV, MF_SPDIAG,
 %    MF_SV, MFX.

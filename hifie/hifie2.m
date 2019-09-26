@@ -11,7 +11,7 @@
 %    that otherwise do not have high contrast between the diagonal and off-
 %    diagonal elements. For second-kind integral equations, see HIFIE2X.
 %
-%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N) in all dimensions.
+%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N).
 %
 %    F = HIFIE2(A,X,OCC,RANK_OR_TOL) produces a factorization F of the matrix A
 %    acting on the points X using tree occupancy parameter OCC and local

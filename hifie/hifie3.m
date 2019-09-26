@@ -7,7 +7,7 @@
 %    that otherwise do not have high contrast between the diagonal and off-
 %    diagonal elements. For second-kind integral equations, see HIFIE3X.
 %
-%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N) in all dimensions.
+%    Typical complexity for N = SIZE(A,1) = SIZE(A,2): O(N).
 %
 %    See also HIFIE2, HIFIE2X, HIFIE3X, HIFIE_CHOLMV, HIFIE_CHOLSV, HIFIE_DIAG,
 %    HIFIE_LOGDET, HIFIE_MV, HIFIE_SPDIAG, HIFIE_SV.
