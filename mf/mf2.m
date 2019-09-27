@@ -90,20 +90,21 @@ function F = mf2(A,n,occ,opts)
       ja = (j - 1)*w;
       jb =  j     *w;
       js = max(1,ja):min(nd,jb);
-      [ii,jj] = ndgrid(is,js);
 
-      % initialize local arrays
-      grd_ = grd(is,js);
-      rem_ = rem(is,js);
-      idx = zeros(size(grd_));
-      idx(rem_) = 1:sum(rem_(:));
-      slf = grd_(rem_);
+      % initialize local data
+      slf = grd(is,js);
+      slf = slf(rem(is,js));
       slf = slf(:)';
+      idx = slf - 1;
+      jj = floor(idx/nd);
+      ii = idx - nd*jj;
+      ii = ii + 1;
+      jj = jj + 1;
 
       % skeletonize, i.e., eliminate interior nodes
       in = ii ~= ia & ii ~= ib & jj ~= ja & jj ~= jb;
-      sk = idx(rem_ & ~in);
-      rd = idx(rem_ &  in);
+      sk = find(~in);
+      rd = find( in);
       sk = sk(:)';
       rd = rd(:)';
 

@@ -170,7 +170,7 @@ function F = mfx(A,x,occ,opts)
 
         % remove those made redundant by neighbor skeletons
         nsk = length(sk);
-        keep = true(length(sk),1);
+        keep = true(nsk,1);
         nbrsk = [];  % neighbor skeletons to share
         for j = 1:nsk
           if ~all(isnbr(p(j)+1:p(j+1))), continue; end  % redundant if interacts
