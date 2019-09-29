@@ -289,7 +289,7 @@ function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
         K = [K1 + K2; Kpxy];
         [sk,rd,T] = id(K,rank_or_tol,0);  % no randomization for better ranks
 
-        % restrict to skeletons
+        % restrict to skeletons for next level
         if d == 2
           t.nodes(j).xi = slf(sk);
         else

@@ -313,7 +313,7 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
            T(psk(k)+1:psk(k+1),prd(k)+1:prd(k+1)) = T_{k};
         end
 
-        % restrict to skeletons
+        % restrict to skeletons for next level
         if d == 3
           t.nodes(j).xi = slf(sk);
         else
