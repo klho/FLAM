@@ -48,8 +48,8 @@
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data. See HYPOCT.
 %
-%      - SKIP: skip the dimension reductions on the first SKIP levels (default:
-%              SKIP = 0).
+%      - SKIP: skip the additional dimension reductions on the first SKIP levels
+%              (default: SKIP = 0).
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
@@ -359,7 +359,7 @@ function F = hifie2(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % print summary
       if opts.verb
-        nrem2 = sum(rem);  % remaining points at end
+        nrem2 = sum(rem);       % remaining points at end
         nblk = pblk(lvl) + nb;  % nonempty up to this level
         fprintf('%3d-%1d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
                 lvl,d,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)

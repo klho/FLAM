@@ -383,7 +383,7 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % print summary
       if opts.verb
-        nrem2 = sum(rem);  % remaining points at end
+        nrem2 = sum(rem);       % remaining points at end
         nblk = pblk(lvl) + nb;  % nonempty up to this level
         fprintf('%3d-%1d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
                 lvl,d,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)

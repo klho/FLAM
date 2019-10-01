@@ -251,7 +251,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
     % print summary
     if opts.verb
-      nrrem2 = sum(rrem); ncrem2 = sum(crem);  % remaining row/cols at end
+      nrrem2 = sum(rrem); ncrem2 = sum(crem);        % remaining row/cols at end
       nblk = pblk(lvl) + t.lvp(lvl+1) - t.lvp(lvl);  % nonempty up to this level
       fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
               lvl,nblk,nrrem1,nrrem2,nrrem1/nblk,nrrem2/nblk,te)
