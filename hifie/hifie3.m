@@ -160,7 +160,8 @@ function F = hifie3(A,x,occ,rank_or_tol,pxyfun,opts)
           i = box2ctr{box};                   % associated centers
           dx = x(1,xi) - ctr(i,1);
           dy = x(2,xi) - ctr(i,2);
-          dist = sqrt(dx.^2 + dy.^2);
+          dz = x(3,xi) - ctr(i,3);
+          dist = sqrt(dx.^2 + dy.^2 + dz.^2);
           [~,near] = max(dist == min(dist));  % nearest center to each point
           P(xi) = box2ctr{box}(near);         % assign points to first nearest
         end
