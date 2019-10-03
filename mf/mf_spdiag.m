@@ -43,9 +43,8 @@ function D = mf_spdiag(F,dinv)
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
       slf = [sk rd];
-      chld = unique([x_{slf}]);  % associated block indices at previous level
 
-      if isempty(chld)  % find neighbors if first elimination
+      if lvl == 1  % find neighbors if first elimination
         nbr = unique([x{slf}]);
         if ~isempty(nbr)
           for j = nbr
@@ -53,7 +52,8 @@ function D = mf_spdiag(F,dinv)
             nbor{j} = [nbor{j} i];
           end
         end
-      else              % update parents of children blocks
+      else         % update parents of children blocks
+        chld = unique([x_{slf}]);  % associated block indices at previous level
         for j = chld, prnt{j} = [prnt{j} i]; end
       end
 
@@ -76,7 +76,7 @@ function D = mf_spdiag(F,dinv)
   x = zeros(N,1);
   for i = n:-1:1
 
-    % fill out ancestry by augmenting from parents
+    % fill out ancestry by augmenting from parents and neighbors
     spinfo.t{i} = unique([i nbor{i} spinfo.t{prnt{i}}]);
 
     % find leaf block for each index
