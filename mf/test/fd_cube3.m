@@ -16,6 +16,7 @@ function fd_cube3(n,k,occ,symm,doiter,diagmode)
 
   % initialize
   N = (n - 1)^3;  % total number of grid points
+  h = 1/n;        % mesh width
 
   % set up sparse matrix
   idx = zeros(n+1,n+1,n+1);  % index mapping to each point, including "ghosts"
@@ -25,13 +26,14 @@ function fd_cube3(n,k,occ,symm,doiter,diagmode)
   rgt = 3:n+1;  % "right"  indices -- interaction with one above
   I = idx(mid,mid,mid); e = ones(size(I));
   % interactions with ...
-  Jl = idx(lft,mid,mid); Sl = -e;                                      % left
-  Jr = idx(rgt,mid,mid); Sr = -e;                                      % right
-  Ju = idx(mid,lft,mid); Su = -e;                                      % up
-  Jd = idx(mid,rgt,mid); Sd = -e;                                      % down
-  Jf = idx(mid,mid,lft); Sf = -e;                                      % front
-  Jb = idx(mid,mid,rgt); Sb = -e;                                      % back
-  Jm = idx(mid,mid,mid); Sm = -(Sl + Sr + Sd + Su + Sb + Sf) - k^2*e;  % middle
+  Jl = idx(lft,mid,mid); Sl = -e;  % ... left
+  Jr = idx(rgt,mid,mid); Sr = -e;  % ... right
+  Ju = idx(mid,lft,mid); Su = -e;  % ... up
+  Jd = idx(mid,rgt,mid); Sd = -e;  % ... down
+  Jf = idx(mid,mid,lft); Sf = -e;  % ... front
+  Jb = idx(mid,mid,rgt); Sb = -e;  % ... back
+  Jm = idx(mid,mid,mid);           % ... middle (self)
+  Sm = -(Sl + Sr + Sd + Su + Sb + Sf) - h^2*k^2*e;
   % combine all interactions
   I = [ I(:);  I(:);  I(:);  I(:);  I(:);  I(:);  I(:)];
   J = [Jl(:); Jr(:); Ju(:); Jd(:); Jf(:); Jb(:); Jm(:)];

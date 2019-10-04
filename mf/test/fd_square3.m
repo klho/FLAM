@@ -26,11 +26,11 @@ function fd_square3(n,k,occ,symm,doiter,diagmode)
   rgt = 3:n+1;  % "right"  indices -- interaction with one above
   I = idx(mid,mid); e = ones(size(I));
   % interactions with ...
-  Jl = idx(lft,mid); Sl = -e;                            % ... left
-  Jr = idx(rgt,mid); Sr = -e;                            % ... right
-  Ju = idx(mid,lft); Su = -e;                            % ... up
-  Jd = idx(mid,rgt); Sd = -e;                            % ... down
-  Jm = idx(mid,mid); Sm = -(Sl + Sr + Su + Sd) - k^2*e;  % ... middle (self)
+  Jl = idx(lft,mid); Sl = -e;                                % ... left
+  Jr = idx(rgt,mid); Sr = -e;                                % ... right
+  Ju = idx(mid,lft); Su = -e;                                % ... up
+  Jd = idx(mid,rgt); Sd = -e;                                % ... down
+  Jm = idx(mid,mid); Sm = -(Sl + Sr + Su + Sd) - h^2*k^2*e;  % ... middle (self)
   % combine all interactions
   I = [ I(:);  I(:);  I(:);  I(:);  I(:)];
   J = [Jl(:); Jr(:); Ju(:); Jd(:); Jm(:)];
