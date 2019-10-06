@@ -13,7 +13,7 @@ function fd_square3(n,k,occ,rank_or_tol,skip,symm,doiter,diagmode)
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
   if nargin < 5 || isempty(skip), skip = 2; end
   if nargin < 6 || isempty(symm), symm = 'h'; end  % positive definite
-  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
+  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned GMRES?
   if nargin < 8 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
   % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
@@ -64,18 +64,18 @@ function fd_square3(n,k,occ,rank_or_tol,skip,symm,doiter,diagmode)
   err = snorm(N,@(x)(x - A*hifde_sv(F,x)),@(x)(x - hifde_sv(F,A*x,'c')));
   fprintf('hifde_sv: %10.4e / %10.4e (s)\n',err,t)
 
-  % run unpreconditioned CG
+  % run unpreconditioned GMRES
   B = A*X;
-  iter = nan;
-  if doiter, [~,~,~,iter] = pcg(@(x)(A*x),B,1e-12,128); end
+  iter(2) = nan;
+  if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,[],1e-12,128); end
 
-  % run preconditioned CG
-  tic; [Y,~,~,piter] = pcg(@(x)(A*x),B,1e-12,32,@(x)hifde_sv(F,x)); t = toc;
+  % run preconditioned GMRES
+  tic; [Y,~,~,piter] = gmres(@(x)(A*x),B,[],1e-12,32,@(x)mf_sv(F,x)); t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - A*Y)/norm(B);
-  fprintf('cg soln/resid err, time: %10.4e / %10.4e / %10.4e (s)\n', ...
-          err1,err2,t)
-  fprintf('cg precon/unprecon iter: %d / %d\n',piter,iter)
+  fprintf('gmres:\n')
+  fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
+  fprintf('  precon/unprecon iter: %d / %d\n',piter(2),iter(2))
 
   % compute log-determinant
   tic
