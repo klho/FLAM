@@ -149,8 +149,8 @@ function D = hifie_diag(F,dinv,opts)
       X = zeros(nrd+nsk+nex);
       % redundant part
       if strcmpi(F.symm,'h')
-        if dinv, X(ird,ird) = diag(1./F.factors(i).U);
-        else,    X(ird,ird) = diag(   F.factors(i).U);
+        if dinv, X(ird,ird) = inv(F.factors(i).U);
+        else,    X(ird,ird) =     F.factors(i).U ;
         end
       else,      X(ird,ird) = eye(nrd);
       end
