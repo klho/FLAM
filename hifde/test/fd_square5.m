@@ -1,57 +1,73 @@
-% Seven-point stencil on the unit cube, constant-coefficient Helmholtz equation,
-% Dirichlet boundary conditions.
+% Five-point stencil on the unit square, constant-coefficient Poisson equation,
+% Dirichlet-Neumann boundary conditions.
 %
-% This is the same as FD_CUBE3 but using HIFDE3X.
+% This is basically the same as FD_SQUARE1 but with Dirichlet boundary
+% conditions along the top and bottom sides of the domain, and Neumann boundary
+% conditions along the left and right sides. The Neumann conditions are imposed
+% as follows:
+%
+%   - At interior points, we have the standard five-point stencil relation
+%     between U(I,J) and its neighbors U(I-1,J), U(I+1,J), U(I,J-1), and
+%     U(I,J+1).
+%
+%   - Near the left boundary, say, U(1,J) depends on the ghost point U(0,J),
+%     which is unknown. However, we can use the Neumann condition in conjunction
+%     with a second-order one-sided difference to express it in terms of U(1,J)
+%     and U(2,J).
+%
+%   - Repeat similarly with the right boundary, being careful to rescale the
+%     boundary rows of the matrix in order to maintain symmetry.
 
-function fd_cube3x(n,k,occ,rank_or_tol,skip,symm,doiter,diagmode)
+function fd_square5(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 32; end  % number of points + 1 in each dim
-  if nargin < 2 || isempty(k), k = 2*pi*4; end  % wavenumber
-  if nargin < 3 || isempty(occ), occ = 64; end
-  if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 5 || isempty(skip), skip = 2; end
-  if nargin < 6 || isempty(symm), symm = 'h'; end  % positive definite
-  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
-  if nargin < 8 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
+  if nargin < 1 || isempty(n), n = 128; end  % number of points + 1 in each dim
+  if nargin < 2 || isempty(occ), occ = 8; end
+  if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
+  if nargin < 4 || isempty(skip), skip = 2; end
+  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
+  if nargin < 6 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
+  if nargin < 7 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
   % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
   % initialize
-  [x1,x2,x3] = ndgrid((1:n-1)/n); x = [x1(:) x2(:) x3(:)]';  % grid points
-  clear x1 x2 x3
-  N = size(x,2);
-  h = 1/n;  % mesh width
+  N = (n - 1)^2;  % total number of grid points
 
   % set up sparse matrix
-  idx = zeros(n+1,n+1,n+1);  % index mapping to each point, including "ghosts"
-  idx(2:n,2:n,2:n) = reshape(1:N,n-1,n-1,n-1);
+  idx = zeros(n+1,n+1);  % index mapping to each point, including "ghost" points
+  idx(2:n,2:n) = reshape(1:N,n-1,n-1);
   mid = 2:n;    % "middle" indices -- interaction with self
   lft = 1:n-1;  % "left"   indices -- interaction with one below
   rgt = 3:n+1;  % "right"  indices -- interaction with one above
-  I = idx(mid,mid,mid); e = ones(size(I));
-  % interactions with ...
-  Jl = idx(lft,mid,mid); Sl = -e;  % ... left
-  Jr = idx(rgt,mid,mid); Sr = -e;  % ... right
-  Ju = idx(mid,lft,mid); Su = -e;  % ... up
-  Jd = idx(mid,rgt,mid); Sd = -e;  % ... down
-  Jf = idx(mid,mid,lft); Sf = -e;  % ... front
-  Jb = idx(mid,mid,rgt); Sb = -e;  % ... back
-  Jm = idx(mid,mid,mid);           % ... middle (self)
-  Sm = -(Sl + Sr + Sd + Su + Sb + Sf) - h^2*k^2*e;
+  % interior interactions with ...
+  I = idx(mid,mid); e = ones(size(I));
+  Jl = idx(lft,mid); Sl = -e;                    % ... left
+  Jr = idx(rgt,mid); Sr = -e;                    % ... right
+  Ju = idx(mid,lft); Su = -e;                    % ... up
+  Jd = idx(mid,rgt); Sd = -e;                    % ... down
+  Jm = idx(mid,mid); Sm = -(Sl + Sr + Su + Sd);  % ... middle (self)
+  % boundary interactions with ...
+  Il = idx(2,mid); Ir = idx(n,mid); e = ones(size(mid));
+  Jl1 = idx(2  ,mid); Sl1 = -4/3*e;  % ... left  side, one over
+  Jl2 = idx(3  ,mid); Sl2 =  1/3*e;  % ... left  side, two over
+  Jr1 = idx(n  ,mid); Sr1 = -4/3*e;  % ... right side, one over
+  Jr2 = idx(n-1,mid); Sr2 =  1/3*e;  % ... right side, two over
   % combine all interactions
-  I = [ I(:);  I(:);  I(:);  I(:);  I(:);  I(:);  I(:)];
-  J = [Jl(:); Jr(:); Ju(:); Jd(:); Jf(:); Jb(:); Jm(:)];
-  S = [Sl(:); Sr(:); Su(:); Sd(:); Sf(:); Sb(:); Sm(:)];
+  I = [  I(:);   I(:);   I(:);   I(:);   I(:);  Il(:);  Il(:);  Ir(:);  Ir(:)];
+  J = [ Jl(:);  Jr(:);  Ju(:);  Jd(:);  Jm(:); Jl1(:); Jl2(:); Jr1(:); Jr2(:)];
+  S = [ Sl(:);  Sr(:);  Su(:);  Sd(:);  Sm(:); Sl1(:); Sl2(:); Sr1(:); Sr2(:)];
   % remove ghost interactions
   idx = find(J > 0); I = I(idx); J = J(idx); S = S(idx);
   A = sparse(I,J,S,N,N);
-  clear idx Jl Sl Jr Sr Ju Su Jd Sd Jf Sf Jb Sb Im Sm I J S
+  A([Il Ir],:) = A([Il Ir],:) * 3/2;  % rescale boundary rows to symmetrize
+  clear idx Jl Sl Jr Sr Ju Su Jd Sd Jm Sm ...
+        Il Ir Jl1 Sl1 Jl2 Sl2 Jr1 Sr1 Jr2 Sr2 I J S
 
   % factor matrix
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  tic; F = hifde3x(A,x,occ,rank_or_tol,opts); t = toc;
+  tic; F = hifde2(A,n,occ,rank_or_tol,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
-  fprintf('hifde3x time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  fprintf('hifde2 time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % test accuracy using randomized power method
   X = rand(N,1);

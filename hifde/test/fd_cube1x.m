@@ -1,146 +1,139 @@
-% Seven-point stencil on the unit cube, constant-coefficient Poisson, Dirichlet
-% boundary conditions.
+% Seven-point stencil on the unit cube, constant-coefficient Poisson equation,
+% Dirichlet boundary conditions.
+%
+% This is the same as FD_CUBE1 but using HIFDE3X.
 
-function fd_cube1x(n,occ,rank_or_tol,skip,symm)
+function fd_cube1x(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n)
-    n = 32;
-  end
-  if nargin < 2 || isempty(occ)
-    occ = 64;
-  end
-  if nargin < 3 || isempty(rank_or_tol)
-    rank_or_tol = 1e-6;
-  end
-  if nargin < 4 || isempty(skip)
-    skip = 2;
-  end
-  if nargin < 5 || isempty(symm)
-    symm = 'p';
-  end
+  if nargin < 1 || isempty(n), n = 32; end  % number of points + 1 in each dim
+  if nargin < 2 || isempty(occ), occ = 64; end
+  if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
+  if nargin < 4 || isempty(skip), skip = 2; end
+  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
+  if nargin < 6 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
+  if nargin < 7 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
+  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
   % initialize
-  [x1,x2,x3] = ndgrid((1:n-1)/n);
-  x = [x1(:) x2(:) x3(:)]';
-  N = size(x,2);
-  h = 1/n;
+  [x1,x2,x3] = ndgrid((1:n-1)/n); x = [x1(:) x2(:) x3(:)]';  % grid points
   clear x1 x2 x3
+  N = size(x,2);
 
-  % set up indices
-  idx = zeros(n+1,n+1,n+1);
+  % set up sparse matrix
+  idx = zeros(n+1,n+1,n+1);  % index mapping to each point, including "ghosts"
   idx(2:n,2:n,2:n) = reshape(1:N,n-1,n-1,n-1);
-  mid = 2:n;
-  lft = 1:n-1;
-  rgt = 3:n+1;
-
-  % interactions with left node
-  Il = idx(mid,mid,mid);
-  Jl = idx(lft,mid,mid);
-  Sl = -1/h^2*ones(size(Il));
-
-  % interactions with right node
-  Ir = idx(mid,mid,mid);
-  Jr = idx(rgt,mid,mid);
-  Sr = -1/h^2*ones(size(Ir));
-
-  % interactions with bottom node
-  Id = idx(mid,mid,mid);
-  Jd = idx(mid,lft,mid);
-  Sd = -1/h^2*ones(size(Id));
-
-  % interactions with top node
-  Iu = idx(mid,mid,mid);
-  Ju = idx(mid,rgt,mid);
-  Su = -1/h^2*ones(size(Iu));
-
-  % interactions with back node
-  Ib = idx(mid,mid,mid);
-  Jb = idx(mid,mid,lft);
-  Sb = -1/h^2*ones(size(Ib));
-
-  % interactions with front node
-  If = idx(mid,mid,mid);
-  Jf = idx(mid,mid,rgt);
-  Sf = -1/h^2*ones(size(If));
-
-  % interactions with self
-  Im = idx(mid,mid,mid);
-  Jm = idx(mid,mid,mid);
-  Sm = -(Sl + Sr + Sd + Su + Sb + Sf);
-
-  % form sparse matrix
-  I = [Il(:); Ir(:); Id(:); Iu(:); Ib(:); If(:); Im(:)];
-  J = [Jl(:); Jr(:); Jd(:); Ju(:); Jb(:); Jf(:); Jm(:)];
-  S = [Sl(:); Sr(:); Sd(:); Su(:); Sb(:); Sf(:); Sm(:)];
-  idx = find(J > 0);
-  I = I(idx);
-  J = J(idx);
-  S = S(idx);
+  mid = 2:n;    % "middle" indices -- interaction with self
+  lft = 1:n-1;  % "left"   indices -- interaction with one below
+  rgt = 3:n+1;  % "right"  indices -- interaction with one above
+  I = idx(mid,mid,mid); e = ones(size(I));
+  % interactions with ...
+  Jl = idx(lft,mid,mid); Sl = -e;                              % left
+  Jr = idx(rgt,mid,mid); Sr = -e;                              % right
+  Ju = idx(mid,lft,mid); Su = -e;                              % up
+  Jd = idx(mid,rgt,mid); Sd = -e;                              % down
+  Jf = idx(mid,mid,lft); Sf = -e;                              % front
+  Jb = idx(mid,mid,rgt); Sb = -e;                              % back
+  Jm = idx(mid,mid,mid); Sm = -(Sl + Sr + Sd + Su + Sb + Sf);  % middle (self)
+  % combine all interactions
+  I = [ I(:);  I(:);  I(:);  I(:);  I(:);  I(:);  I(:)];
+  J = [Jl(:); Jr(:); Ju(:); Jd(:); Jf(:); Jb(:); Jm(:)];
+  S = [Sl(:); Sr(:); Su(:); Sd(:); Sf(:); Sb(:); Sm(:)];
+  % remove ghost interactions
+  idx = find(J > 0); I = I(idx); J = J(idx); S = S(idx);
   A = sparse(I,J,S,N,N);
-  clear idx Il Jl Sl Ir Jr Sr Id Jd Sd Iu Ju Su Ib Jb Sb If Jf Sf Im Jm Sm I J S
+  clear idx Jl Sl Jr Sr Ju Su Jd Sd Jf Sf Jb Sb Im Sm I J S
 
   % factor matrix
   opts = struct('skip',skip,'symm',symm,'verb',1);
-  F = hifde3x(A,x,occ,rank_or_tol,opts);
-  w = whos('F');
-  fprintf([repmat('-',1,80) '\n'])
-  fprintf('mem: %6.2f (MB)\n', w.bytes/1e6)
+  tic; F = hifde3x(A,x,occ,rank_or_tol,opts); t = toc;
+  w = whos('F'); mem = w.bytes/1e6;
+  fprintf('hifde3x time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % test accuracy using randomized power method
   X = rand(N,1);
   X = X/norm(X);
 
   % NORM(A - F)/NORM(A)
-  tic
-  hifde_mv(F,X);
-  t = toc;
-  [e,niter] = snorm(N,@(x)(A*x - hifde_mv(F,x)),[],[],1);
-  e = e/snorm(N,@(x)(A*x),[],[],1);
-  fprintf('mv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  tic; hifde_mv(F,X); t = toc;  % for timing
+  err = snorm(N,@(x)(A*x - hifde_mv(F,x)),[],[],1);
+  err = err/snorm(N,@(x)(A*x),[],[],1);
+  fprintf('hifde_mv: %10.4e / %10.4e (s)\n',err,t)
 
   % NORM(INV(A) - INV(F))/NORM(INV(A)) <= NORM(I - A*INV(F))
-  tic
-  Y = hifde_sv(F,X);
-  t = toc;
-  [e,niter] = snorm(N,@(x)(x - A*hifde_sv(F,x)),@(x)(x - hifde_sv(F,A*x,'c')));
-  fprintf('sv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+  tic; hifde_sv(F,X); t = toc;  % for timing
+  err = snorm(N,@(x)(x - A*hifde_sv(F,x)),@(x)(x - hifde_sv(F,A*x,'c')));
+  fprintf('hifde_sv: %10.4e / %10.4e (s)\n',err,t)
 
+  % test Cholesky accuracy -- error is w.r.t. compressed apply/solve
   if strcmpi(symm,'p')
     % NORM(F - C*C')/NORM(F)
-    tic
-    hifde_cholmv(F,X);
-    t = toc;
-    [e,niter] = snorm(N,@(x)(hifde_mv(F,x) ...
-                           - hifde_cholmv(F,hifde_cholmv(F,x,'c'))),[],[],1);
-    e = e/snorm(N,@(x)(hifde_mv(F,x)),[],[],1);
-    fprintf('cholmv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+    tic; hifde_cholmv(F,X); t = toc;  % for timing
+    err = snorm(N,@(x)(hifde_mv(F,x) ...
+                     - hifde_cholmv(F,hifde_cholmv(F,x,'c'))),[],[],1);
+    err = err/snorm(N,@(x)(hifde_mv(F,x)),[],[],1);
+    fprintf('hifde_cholmv: %10.4e / %10.4e (s)\n',err,t)
 
     % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
-    tic
-    hifde_cholsv(F,X);
-    t = toc;
-    [e,niter] = snorm(N,@(x)(hifde_sv(F,x) ...
-                           - hifde_cholsv(F,hifde_cholsv(F,x),'c')),[],[],1);
-    e = e/snorm(N,@(x)(hifde_sv(F,x)),[],[],1);
-    fprintf('cholsv: %10.4e / %4d / %10.4e (s)\n',e,niter,t)
+    tic; hifde_cholsv(F,X); t = toc;  % for timing
+    err = snorm(N,@(x)(hifde_sv(F,x) ...
+                     - hifde_cholsv(F,hifde_cholsv(F,x),'c')),[],[],1);
+    err = err/snorm(N,@(x)(hifde_sv(F,x)),[],[],1);
+    fprintf('hifde_cholsv: %10.4e / %10.4e (s)\n',err,t)
   end
 
-  % run CG
-  [~,~,~,iter] = pcg(@(x)(A*x),X,1e-12,128);
+  % run unpreconditioned CG
+  B = A*X;
+  iter = nan;
+  if doiter, [~,~,~,iter] = pcg(@(x)(A*x),B,1e-12,128); end
 
-  % run PCG
-  tic
-  [Z,~,~,piter] = pcg(@(x)(A*x),X,1e-12,32,@(x)hifde_sv(F,x));
-  t = toc;
-  e1 = norm(Z - Y)/norm(Z);
-  e2 = norm(X - A*Z)/norm(X);
-  fprintf('cg: %10.4e / %10.4e / %4d (%4d) / %10.4e (s)\n',e1,e2, ...
-          piter,iter,t)
+  % run preconditioned CG
+  tic; [Y,~,~,piter] = pcg(@(x)(A*x),B,1e-12,32,@(x)hifde_sv(F,x)); t = toc;
+  err1 = norm(X - Y)/norm(X);
+  err2 = norm(B - A*Y)/norm(B);
+  fprintf('cg soln/resid err, time: %10.4e / %10.4e / %10.4e (s)\n', ...
+          err1,err2,t)
+  fprintf('cg precon/unprecon iter: %d / %d\n',piter,iter)
 
   % compute log-determinant
   tic
   ld = hifde_logdet(F);
   t = toc;
-  fprintf('logdet: %22.16e / %10.4e (s)\n',ld,t)
+  fprintf('hifde_logdet: %22.16e / %10.4e (s)\n',ld,t)
+
+  if diagmode > 0
+    % prepare for diagonal extraction
+    opts = struct('verb',1);
+    m = min(N,128);  % number of entries to check against
+    r = randperm(N); r = r(1:m);
+    % reference comparison from compressed solve against coordinate vectors
+    X = zeros(N,m);
+    for i = 1:m, X(r(i),i) = 1; end
+    E = zeros(m,1);  % solution storage
+    if diagmode == 1, fprintf('hifde_diag:\n')
+    else,             fprintf('hifde_spdiag:\n')
+    end
+
+    % extract diagonal
+    tic;
+    if diagmode == 1, D = hifde_diag(F,0,opts);
+    else,             D = hifde_spdiag(F);
+    end
+    t = toc;
+    Y = hifde_mv(F,X);
+    for i = 1:m, E(i) = Y(r(i),i); end
+    err = norm(D(r) - E)/norm(E);
+    fprintf('  fwd: %10.4e / %10.4e (s)\n',err,t)
+
+    % extract diagonal of inverse
+    tic;
+    if diagmode == 1, D = hifde_diag(F,1,opts);
+    else,             D = hifde_spdiag(F,1);
+    end
+    t = toc;
+    Y = hifde_sv(F,X);
+    for i = 1:m, E(i) = Y(r(i),i); end
+    err = norm(D(r) - E)/norm(E);
+    fprintf('  inv: %10.4e / %10.4e (s)\n',err,t)
+  end
 end

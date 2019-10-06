@@ -1,5 +1,7 @@
-% HIFDE_CHOLSV   Solve using generalized Cholesky factor from hierarchical
-%                interpolative factorization for differential equations.
+% HIFDE_CHOLSV  Solve using generalized Cholesky factor from hierarchical
+%               interpolative factorization for differential equations.
+%
+%    Typical complexity: about half that of HIFDE_SV.
 %
 %    Y = HIFDE_CHOLSV(F,X) produces the matrix Y by applying the inverse of the
 %    generalized Cholesky factor C of the factored matrix F = C*C' to the matrix
@@ -14,9 +16,7 @@
 function Y = hifde_cholsv(F,X,trans)
 
   % set default parameters
-  if nargin < 3 || isempty(trans)
-    trans = 'n';
-  end
+  if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
   assert(strcmpi(F.symm,'p'),'FLAM:hifde_cholsv:invalidSymm', ...
@@ -26,10 +26,7 @@ function Y = hifde_cholsv(F,X,trans)
          'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t')
-    Y = conj(hifde_cholsv(F,conj(X),'c'));
-    return
-  end
+  if strcmpi(trans,'t'), Y = conj(hifde_cholsv(F,conj(X),'c')); return; end
 
   % initialize
   n = F.lvp(end);
@@ -41,9 +38,7 @@ function Y = hifde_cholsv(F,X,trans)
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;
       T = F.factors(i).T;
-      if ~isempty(T)
-        Y(rd,:) = Y(rd,:) - F.factors(i).T'*Y(sk,:);
-      end
+      if ~isempty(T), Y(rd,:) = Y(rd,:) - T'*Y(sk,:); end
       Y(rd,:) = F.factors(i).L\Y(rd,:);
       Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
     end
@@ -54,9 +49,7 @@ function Y = hifde_cholsv(F,X,trans)
       T = F.factors(i).T;
       Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
       Y(rd,:) = F.factors(i).L'\Y(rd,:);
-      if ~isempty(T)
-        Y(sk,:) = Y(sk,:) - F.factors(i).T*Y(rd,:);
-      end
+      if ~isempty(T), Y(sk,:) = Y(sk,:) - T*Y(rd,:); end
     end
   end
 end

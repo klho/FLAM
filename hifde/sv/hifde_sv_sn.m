@@ -1,6 +1,6 @@
 % HIFDE_SV_SN  Dispatch for HIFDE_SV with F.SYMM = 'S' and TRANS = 'N'.
 %
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_MV.
+%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_SV.
 
 function Y = hifde_sv_sn(F,X)
 
@@ -13,10 +13,8 @@ function Y = hifde_sv_sn(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     T = F.factors(i).T;
-    if ~isempty(T)
-      Y(rd,:) = Y(rd,:) - T.'*Y(sk,:);
-    end
-    Y(rd,:) = F.factors(i).L\Y(rd,:);
+    if ~isempty(T), Y(rd,:) = Y(rd,:) - T.'*Y(sk,:); end
+    Y(rd,:) = F.factors(i).L\Y(rd(F.factors(i).p),:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
   end
 
@@ -27,8 +25,6 @@ function Y = hifde_sv_sn(F,X)
     T = F.factors(i).T;
     Y(rd,:) = Y(rd,:) - F.factors(i).F*Y(sk,:);
     Y(rd,:) = F.factors(i).U\Y(rd,:);
-    if ~isempty(T)
-      Y(sk,:) = Y(sk,:) - T*Y(rd,:);
-    end
+    if ~isempty(T), Y(sk,:) = Y(sk,:) - T*Y(rd,:); end
   end
 end

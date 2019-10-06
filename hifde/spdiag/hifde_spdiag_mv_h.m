@@ -5,8 +5,8 @@ function D = hifde_spdiag_mv_h(F,spinfo)
   % initialize
   N = F.N;
   n = length(spinfo.i);
-  P = zeros(N,1);
-  D = zeros(N,1);
+  P = zeros(N,1);  % for indexing
+  D = zeros(N,1);  % for output
 
   % loop over all leaf blocks from top to bottom
   for i = n:-1:1
@@ -14,7 +14,7 @@ function D = hifde_spdiag_mv_h(F,spinfo)
     % find active indices for current block
     rem = spinfo.t{i};
     rem = unique([[F.factors(rem).sk] [F.factors(rem).rd]]);
-    nrem = length(rem);
+    nrem = length(rem);  % total storage needed
     P(rem) = 1:nrem;
 
     % allocate active submatrix for current block
@@ -28,16 +28,12 @@ function D = hifde_spdiag_mv_h(F,spinfo)
 
     % upward sweep
     for j = spinfo.t{i}
-      if j > 0
-        sk = P(F.factors(j).sk);
-        rd = P(F.factors(j).rd);
-        T = F.factors(j).T;
-        if ~isempty(T)
-          Y(sk,:) = Y(sk,:) + T*Y(rd,:);
-        end
-        Y(rd,:) = F.factors(j).L'*Y(rd,:);
-        Y(rd,:) = Y(rd,:) + F.factors(j).E'*Y(sk,:);
-      end
+      sk = P(F.factors(j).sk);
+      rd = P(F.factors(j).rd);
+      T = F.factors(j).T;
+      if ~isempty(T), Y(sk,:) = Y(sk,:) + T*Y(rd,:); end
+      Y(rd,:) = F.factors(j).L'*Y(rd(F.factors(j).p),:);
+      Y(rd,:) = Y(rd,:) + F.factors(j).E'*Y(sk,:);
     end
 
     % store matrix at top level
@@ -45,13 +41,11 @@ function D = hifde_spdiag_mv_h(F,spinfo)
 
     % apply diagonal factors
     for j = spinfo.t{i}
-      if j > 0
-        rd = P(F.factors(j).rd);
-        Y(rd,:) = F.factors(j).U*Y(rd,:);
-      end
+      rd = P(F.factors(j).rd);
+      Y(rd,:) = F.factors(j).U.*Y(rd,:);
     end
 
-    % extract diagonal from Hermitian downward sweep
+    % extract diagonal
     D(slf) = diag(Z'*Y);
   end
 end

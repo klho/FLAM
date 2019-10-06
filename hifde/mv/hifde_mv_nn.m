@@ -13,9 +13,7 @@ function Y = hifde_mv_nn(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     T = F.factors(i).T;
-    if ~isempty(T)
-      Y(sk,:) = Y(sk,:) + T*Y(rd,:);
-    end
+    if ~isempty(T), Y(sk,:) = Y(sk,:) + T*Y(rd,:); end
     Y(rd,:) = F.factors(i).U*Y(rd,:);
     Y(rd,:) = Y(rd,:) + F.factors(i).F*Y(sk,:);
   end
@@ -26,9 +24,7 @@ function Y = hifde_mv_nn(F,X)
     rd = F.factors(i).rd;
     T = F.factors(i).T;
     Y(sk,:) = Y(sk,:) + F.factors(i).E*Y(rd,:);
-    Y(rd,:) = F.factors(i).L*Y(rd,:);
-    if ~isempty(T)
-      Y(rd,:) = Y(rd,:) + T'*Y(sk,:);
-    end
+    Y(rd(F.factors(i).p),:) = F.factors(i).L*Y(rd,:);
+    if ~isempty(T), Y(rd,:) = Y(rd,:) + T'*Y(sk,:); end
   end
 end

@@ -1,6 +1,6 @@
 % HIFDE_SV_P   Dispatch for HIFDE_SV with F.SYMM = 'P'.
 %
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_MV.
+%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_SV.
 
 function Y = hifde_sv_p(F,X)
 
@@ -13,9 +13,7 @@ function Y = hifde_sv_p(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     T = F.factors(i).T;
-    if ~isempty(T)
-      Y(rd,:) = Y(rd,:) - T'*Y(sk,:);
-    end
+    if ~isempty(T), Y(rd,:) = Y(rd,:) - T'*Y(sk,:); end
     Y(rd,:) = F.factors(i).L\Y(rd,:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
   end
@@ -25,11 +23,8 @@ function Y = hifde_sv_p(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     T = F.factors(i).T;
-    U = F.factors(i).L';
     Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
-    Y(rd,:) = U\Y(rd,:);
-    if ~isempty(T)
-      Y(sk,:) = Y(sk,:) - T*Y(rd,:);
-    end
+    Y(rd,:) = F.factors(i).L'\Y(rd,:);
+    if ~isempty(T), Y(sk,:) = Y(sk,:) - T*Y(rd,:); end
   end
 end
