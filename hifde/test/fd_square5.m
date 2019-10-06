@@ -110,9 +110,10 @@ function fd_square5(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
   tic; [Y,~,~,piter] = pcg(@(x)(A*x),B,1e-12,32,@(x)hifde_sv(F,x)); t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - A*Y)/norm(B);
-  fprintf('cg soln/resid err, time: %10.4e / %10.4e / %10.4e (s)\n', ...
+  fprintf('cg:\n')
+  fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n', ...
           err1,err2,t)
-  fprintf('cg precon/unprecon iter: %d / %d\n',piter,iter)
+  fprintf('  precon/unprecon iter: %d / %d\n',piter,iter)
 
   % compute log-determinant
   tic
