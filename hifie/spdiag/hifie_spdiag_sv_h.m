@@ -41,7 +41,7 @@ function D = hifie_spdiag_sv_h(F,spinfo)
     % apply diagonal factors
     for j = spinfo.t{i}
       rd = P(F.factors(j).rd);
-      Y(rd,:) = F.factors(j).U.\Y(rd,:);
+      Y(rd,:) = F.factors(j).U\Y(rd,:);
     end
 
     % extract diagonal

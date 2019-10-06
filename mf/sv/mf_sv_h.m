@@ -14,7 +14,7 @@ function Y = mf_sv_h(F,X)
     rd = F.factors(i).rd;
     Y(rd,:) = F.factors(i).L\Y(rd(F.factors(i).p),:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
-    Y(rd,:) = F.factors(i).U.\Y(rd,:);
+    Y(rd,:) = F.factors(i).U\Y(rd,:);
   end
 
   % downward sweep

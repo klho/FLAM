@@ -16,7 +16,7 @@ function Y = hifde_sv_h(F,X)
     if ~isempty(T), Y(rd,:) = Y(rd,:) - T'*Y(sk,:); end
     Y(rd,:) = F.factors(i).L\Y(rd(F.factors(i).p),:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
-    Y(rd,:) = F.factors(i).U.\Y(rd,:);
+    Y(rd,:) = F.factors(i).U\Y(rd,:);
   end
 
   % downward sweep

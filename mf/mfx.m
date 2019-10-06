@@ -199,8 +199,8 @@ function F = mfx(A,x,occ,opts)
         G = L\K(rd(p),sk);
       elseif strcmpi(opts.symm,'h')
         [L,U,p] = ldl(K(rd,rd),'vector');
-        U = diag(U);
-        E = (K(sk,rd(p))/L')./U.';
+        U = sparse(U);
+        E = (K(sk,rd(p))/L')/U.';
         G = [];
       elseif strcmpi(opts.symm,'p')
         L = chol(K(rd,rd),'lower');
@@ -209,7 +209,7 @@ function F = mfx(A,x,occ,opts)
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), X = -E*(U.*E');
+      if     strcmpi(opts.symm,'h'), X = -E*(U*E');
       elseif strcmpi(opts.symm,'p'), X = -E*E';
       else,                          X = -E*G;
       end

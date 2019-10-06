@@ -15,7 +15,7 @@ function Y = rskelf_mv_h(F,X)
     Y(sk,:) = Y(sk,:) + F.factors(i).T*Y(rd,:);
     Y(rd,:) = F.factors(i).L'*Y(rd(F.factors(i).p),:);
     Y(rd,:) = Y(rd,:) + F.factors(i).E'*Y(sk,:);
-    Y(rd,:) = F.factors(i).U.*Y(rd,:);
+    Y(rd,:) = F.factors(i).U*Y(rd,:);
   end
 
   % downward sweep
