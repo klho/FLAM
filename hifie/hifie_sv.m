@@ -17,11 +17,6 @@ function Y = hifie_sv(F,X,trans)
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
-  % check inputs
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:hifie_sv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-
   % apply matrix inverse
   Y = rskelf_sv(F,X,trans);
 end

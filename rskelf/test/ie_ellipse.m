@@ -94,9 +94,9 @@ function K = Kfun(x,y,lp,nu)
   dx = x(1,:)' - y(1,:);
   dy = x(2,:)' - y(2,:);
   dr = sqrt(dx.^2 + dy.^2);
-  if strcmpi(lp,'s')      % single-layer: G
+  if lp == 's'      % single-layer: G
     K = -1/(2*pi)*log(dr);
-  elseif strcmpi(lp,'d')  % double-layer: dG/dn
+  elseif lp == 'd'  % double-layer: dG/dn
     rdotn = dx.*nu(1,:) + dy.*nu(2,:);
     K = 1/(2*pi).*rdotn./dr.^2;
   end

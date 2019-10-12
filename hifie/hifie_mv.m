@@ -17,11 +17,6 @@ function Y = hifie_mv(F,X,trans)
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
-  % check inputs
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:hifie_mv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-
   % apply matrix
   Y = rskelf_mv(F,X,trans);
 end

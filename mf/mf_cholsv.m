@@ -17,21 +17,19 @@ function Y = mf_cholsv(F,X,trans)
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
-  assert(strcmpi(F.symm,'p'),'FLAM:mf_cholsv:invalidSymm', ...
+  assert(F.symm == 'p','FLAM:mf_cholsv:invalidSymm', ...
          'Symmetry parameter must be ''P''.')
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:mf_cholsv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
+  trans = chktrans(trans);
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t'), Y = conj(mf_cholsv(F,conj(X),'c')); return; end
+  if trans == 't', Y = conj(mf_cholsv(F,conj(X),'c')); return; end
 
   % initialize
   n = F.lvp(end);
   Y = X;
 
   % upward/downward sweep
-  if strcmpi(trans,'n')
+  if trans == 'n'
     for i = 1:n
       sk = F.factors(i).sk;
       rd = F.factors(i).rd;

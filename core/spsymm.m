@@ -12,9 +12,9 @@
 %   See also SPSYMM2.
 
 function A = spsymm(A,symm)
-  if isempty(A) || strcmpi(symm,'n'), return; end
+  if isempty(A) || symm == 'n', return; end
   D = diag(diag(A));
-  if strcmpi(symm,'s'), A = A + A.' - D;
-  else,                 A = A + A'  - D;
+  if symm == 's', A = A + A.' - D;
+  else,           A = A + A'  - D;
   end
 end

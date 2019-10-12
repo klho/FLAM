@@ -33,7 +33,7 @@ function A = rskel_xsp(F)
     for i = F.lvpd(lvl)+1:F.lvpd(lvl+1), nz = nz + numel(F.D(i).D); end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmpi(F.symm,'n')
+      if F.symm == 'n'
         crem(F.U(i).crd) = 0;
         nz = nz + numel(F.U(i).rT) + numel(F.U(i).cT);
       else
@@ -41,8 +41,8 @@ function A = rskel_xsp(F)
         nz = nz + numel(F.U(i).rT);
       end
     end
-    if strcmpi(F.symm,'n'), nz = nz + 2*(sum(rrem) + sum(crem));
-    else,                   nz = nz +    sum(rrem) + sum(crem);
+    if F.symm == 'n', nz = nz + 2*(sum(rrem) + sum(crem));
+    else,             nz = nz +    sum(rrem) + sum(crem);
     end
   end
   I = zeros(nz,1);
@@ -60,8 +60,8 @@ function A = rskel_xsp(F)
     pcrem1 = cumsum(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmpi(F.symm,'n'), crem(F.U(i).crd) = 0;
-      else,                   crem(F.U(i).rrd) = 0;
+      if F.symm == 'n', crem(F.U(i).crd) = 0;
+      else,             crem(F.U(i).rrd) = 0;
       end
     end
     prrem2 = cumsum(rrem);
@@ -90,7 +90,7 @@ function A = rskel_xsp(F)
     end
 
     % embed interpolation identity matrices
-    if strcmpi(F.symm,'n')
+    if F.symm == 'n'
       I(nz+1:nz+rk) = M + prrem1(find(rrem));
       J(nz+1:nz+rk) = N + cn + prrem2(find(rrem));
       S(nz+1:nz+rk) = ones(rk,1);
@@ -106,22 +106,22 @@ function A = rskel_xsp(F)
       rrd = F.U(i).rrd;
       rsk = F.U(i).rsk;
       rT  = F.U(i).rT;
-      if strcmpi(F.symm,'n')
+      if F.symm == 'n'
         crd = F.U(i).crd;
         csk = F.U(i).csk;
         cT  = F.U(i).cT;
-      elseif strcmpi(F.symm,'s')
+      elseif F.symm == 's'
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT.';
-      elseif strcmpi(F.symm,'h')
+      elseif F.symm == 'h'
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
         cT  = F.U(i).rT';
       end
 
       % row interpolation
-      if strcmpi(F.symm,'n')
+      if F.symm == 'n'
         [j,k] = ndgrid(rrd,rsk);
         m = numel(rT);
         I(nz+1:nz+m) = M + prrem1(j(:));
@@ -142,7 +142,7 @@ function A = rskel_xsp(F)
     % embed identity matrices
     M = M + rn;
     N = N + cn;
-    if strcmpi(F.symm,'n')
+    if F.symm == 'n'
       I(nz+1:nz+ck) = M + (1:ck);
       J(nz+1:nz+ck) = N + rk + (1:ck);
       S(nz+1:nz+ck) = -ones(ck,1);
@@ -159,7 +159,7 @@ function A = rskel_xsp(F)
   end
 
   % assemble sparse matrix
-  if ~strcmpi(F.symm,'n')
+  if F.symm ~= 'n'
     idx = I >= J;
     I = I(idx);
     J = J(idx);

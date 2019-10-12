@@ -51,7 +51,7 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  dolu = strcmpi(F.symm,'n');  % LU or LDL?
+  dolu = F.symm == 'n';  % LU or LDL?
   if ~dolu && isoctave()
     warning('No LDL in Octave; using LU.')
     dolu = 1;
@@ -142,7 +142,7 @@ end
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale)
   pxy = proxy*l + ctr';  % scale and translate reference points
   N = size(rx,2);
-  if strcmpi(rc,'r')
+  if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy,scale);
     dr = cx(nbr) - ctr;
   else
@@ -167,8 +167,8 @@ function Y = sv_(F,X,trans)
   N = size(X,1);
   X = [X; zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
-    if strcmpi(trans,'n'), Y = F.U \(F.L \(F.P *X));
-    else,                  Y = F.P'*(F.L'\(F.U'\X));
+    if trans == 'n', Y = F.U \(F.L \(F.P *X));
+    else,            Y = F.P'*(F.L'\(F.U'\X));
     end
   else
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));

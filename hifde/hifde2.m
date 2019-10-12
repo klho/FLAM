@@ -36,11 +36,8 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
          'Maximum tree depth must be at least 1.')
   assert(opts.skip >= 0,'FLAM:hifde2:invalidSkip', ...
          'Skip parameter must be nonnegative.')
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:hifde2:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'h') && isoctave()
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'h' && isoctave()
     warning('FLAM:hifde2:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
   end
@@ -179,7 +176,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
 
           % compress off-diagonal block
           K = spget(A,nbr,slf);
-          if strcmpi(opts.symm,'n'), K = [K; spget(A,slf,nbr)']; end
+          if opts.symm == 'n', K = [K; spget(A,slf,nbr)']; end
           [sk,rd,T] = id(K,rank_or_tol);
 
           % move on if no compression
@@ -210,30 +207,30 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
         % compute factors
         K = spget(A,slf,slf);
         if ~isempty(T)
-          if strcmpi(opts.symm,'s'), K(rd,:) = K(rd,:) - T.'*K(sk,:);
-          else,                      K(rd,:) = K(rd,:) - T' *K(sk,:);
+          if opts.symm == 's', K(rd,:) = K(rd,:) - T.'*K(sk,:);
+          else,                K(rd,:) = K(rd,:) - T' *K(sk,:);
           end
           K(:,rd) = K(:,rd) - K(:,sk)*T;
         end
-        if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+        if opts.symm == 'n' || opts.symm == 's'
           [L,U,p] = lu(K(rd,rd),'vector');
           E = K(sk,rd)/U;
           G = L\K(rd(p),sk);
-        elseif strcmpi(opts.symm,'h')
+        elseif opts.symm == 'h'
           [L,U,p] = ldl(K(rd,rd),'vector');
           U = sparse(U);
           E = (K(sk,rd(p))/L')/U.';
           G = [];
-        elseif strcmpi(opts.symm,'p')
+        elseif opts.symm == 'p'
           L = chol(K(rd,rd),'lower');
           E = K(sk,rd)/L';
           U = []; p = []; G = [];
         end
 
         % update self-interaction
-        if     strcmpi(opts.symm,'h'), X = -E*(U*E');
-        elseif strcmpi(opts.symm,'p'), X = -E*E';
-        else,                          X = -E*G;
+        if     opts.symm == 'h', X = -E*(U*E');
+        elseif opts.symm == 'p', X = -E*E';
+        else,                    X = -E*G;
         end
         [I_,J_] = ndgrid(slf(sk));
         [I,J,V,nz] = sppush3(I,J,V,nz,I_,J_,X);

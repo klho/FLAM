@@ -89,7 +89,7 @@ function D = hifie_diag(F,dinv,opts)
 
     % construct requirement matrix
     idx = 1:nz;
-    if ~strcmpi(F.symm,'n'), idx = find(I(idx) >= J(idx)); end
+    if F.symm ~= 'n', idx = find(I(idx) >= J(idx)); end
     if isoctave(), keep{lvl+1} = sparse(I(idx),J(idx),true(size(idx)),N,N);
     else, keep{lvl+1} = logical(sparse(I(idx),J(idx),ones(size(idx)),N,N));
     end
@@ -124,7 +124,7 @@ function D = hifie_diag(F,dinv,opts)
       L = F.factors(i).L;
       p = F.factors(i).p;
       E = F.factors(i).E;
-      if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
+      if F.symm == 'n' || F.symm == 's'
         U = F.factors(i).U;
         G = F.factors(i).F;
       else
@@ -147,7 +147,7 @@ function D = hifie_diag(F,dinv,opts)
       iex = nrd+nsk+(1:nex);
       X = zeros(nrd+nsk+nex);
       % redundant part
-      if strcmpi(F.symm,'h')
+      if F.symm == 'h'
         if dinv, X(ird,ird) = inv(F.factors(i).U);
         else,    X(ird,ird) =     F.factors(i).U ;
         end
@@ -165,10 +165,10 @@ function D = hifie_diag(F,dinv,opts)
         X(ird,:) = U\(X(ird,:) - G*X(isk,:));
         if ~isempty(p)
           X(:,ird(p)) = X(:,ird);
-          if strcmpi(F.symm,'h'), X(ird(p),:) = X(ird,:); end
+          if F.symm == 'h', X(ird(p),:) = X(ird,:); end
         end
-        if strcmpi(F.symm,'s'), X(:,isk) = X(:,isk) - X(:,ird)*T.';
-        else,                   X(:,isk) = X(:,isk) - X(:,ird)*T' ;
+        if F.symm == 's', X(:,isk) = X(:,isk) - X(:,ird)*T.';
+        else,             X(:,isk) = X(:,isk) - X(:,ird)*T' ;
         end
         X(isk,:) = X(isk,:) - T*X(ird,:);
       else
@@ -177,12 +177,12 @@ function D = hifie_diag(F,dinv,opts)
         X(:,ird) = X(:,ird)*U;
         X(ird,:) = L*X(ird,:);
         if ~isempty(p)
-          if strcmpi(F.symm,'h'), X(:,ird(p)) = X(:,ird); end
+          if F.symm == 'h', X(:,ird(p)) = X(:,ird); end
           X(ird(p),:) = X(ird,:);
         end
         X(:,ird) = X(:,ird) + X(:,isk)*T;
-        if strcmpi(F.symm,'s'), X(ird,:) = X(ird,:) + T.'*X(isk,:);
-        else,                   X(ird,:) = X(ird,:) + T' *X(isk,:);
+        if F.symm == 's', X(ird,:) = X(ird,:) + T.'*X(isk,:);
+        else,             X(ird,:) = X(ird,:) + T' *X(isk,:);
         end
       end
       X(ise,ise) = X(ise,ise) - Xse;  % to be stored as update

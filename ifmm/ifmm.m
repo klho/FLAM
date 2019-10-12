@@ -97,15 +97,13 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
   % check inputs
-  assert(strcmpi(opts.store,'n') || strcmpi(opts.store,'s') || ...
-         strcmpi(opts.store,'r') || strcmpi(opts.store,'a'), ...
+  opts.store = lower(opts.store);
+  assert(strcmp(opts.store,'n') || strcmp(opts.store,'s') || ...
+         strcmp(opts.store,'r') || strcmp(opts.store,'a'), ...
          'FLAM:ifmm:invalidStore', ...
          'Storage parameter must be one of ''N'', ''S'', ''R'', or ''A''.')
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:ifmm:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'p'), opts.symm = 'h'; end
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'p', opts.symm = 'h'; end
 
   % print header
   if opts.verb
@@ -195,8 +193,8 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         mnb = 2*mnb;
       end
       F.B(nb).is = rslf;
-      if strcmpi(opts.symm,'n'), F.B(nb).js = cslf; end
-      if ~strcmpi(opts.store,'n'), F.B(nb).D = A(rslf,cslf); end
+      if opts.symm == 'n', F.B(nb).js = cslf; end
+      if opts.store ~= 'n', F.B(nb).D = A(rslf,cslf); end
 
       % move on if no (a priori) near-field compression
       if ~opts.near, continue; end
@@ -214,7 +212,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       [rsk,rrd,rT] = id(K,rank_or_tol);
 
       % compress column space
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         Kpxy = zeros(0,length(cslf));
         if isempty(pxyfun), rnbr = setdiff(find(rrem),rslf);
         else, [Kpxy,rnbr] = pxyfun('c',rx,cx,cslf,rdir,l,t.nodes(i).ctr);
@@ -246,7 +244,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       % restrict to skeletons
       t.nodes(i).rxi = rslf(rsk);
       rrem(rslf(rrd)) = 0;
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         t.nodes(i).cxi = cslf(csk);
         crem(cslf(crd)) = 0;
       else
@@ -283,13 +281,13 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       end
       F.B(nb).is = rslf;
       F.B(nb).ie = rdir;
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         F.B(nb).js = cslf;
         F.B(nb).je = cdir;
       end
-      if strcmpi(opts.store,'r') || strcmpi(opts.store,'a')
+      if opts.store == 'r' || opts.store == 'a'
         F.B(nb).Bo = A(rdir,cslf);
-        if strcmpi(opts.symm,'n'), F.B(nb).Bi = A(rslf,cdir); end
+        if opts.symm == 'n', F.B(nb).Bi = A(rslf,cdir); end
       end
     end
   end
@@ -336,7 +334,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       [rsk,rrd,rT] = id(K',rank_or_tol);
 
       % compress column space
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         if isempty(pxyfun)
           rfar = setdiff(find(rrem),[rslf rnbr]);
           K = A(rfar,cslf);
@@ -369,7 +367,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       % restrict to skeletons for next level
       t.nodes(i).rxi = rslf(rsk);
       rrem(rslf(rrd)) = 0;
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         t.nodes(i).cxi = cslf(csk);
         crem(cslf(crd)) = 0;
       else
@@ -416,13 +414,13 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       end
       F.B(nb).is = rslf;
       F.B(nb).ie = rint;
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         F.B(nb).js = cslf;
         F.B(nb).je = cint;
       end
-      if strcmpi(opts.store,'a')
+      if opts.store == 'a'
         F.B(nb).Bo = A(rint,cslf);
-        if strcmpi(opts.symm,'n'), F.B(nb).Bi = A(rslf,cint); end
+        if opts.symm == 'n', F.B(nb).Bi = A(rslf,cint); end
       end
     end
     F.lvpb(nlvl+2) = nb;

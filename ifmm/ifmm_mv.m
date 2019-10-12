@@ -21,12 +21,10 @@ function Y = ifmm_mv(F,X,A,trans)
   if nargin < 4 || isempty(trans), trans = 'n'; end
 
   % check inputs
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:ifmm_mv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
+  trans = chktrans(trans);
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t'), Y = conj(ifmm_mv(F,conj(X),A,'c')); return; end
+  if trans == 't', Y = conj(ifmm_mv(F,conj(X),A,'c')); return; end
 
   % initialize
   M = F.M;
@@ -44,20 +42,20 @@ function Y = ifmm_mv(F,X,A,trans)
     pcrem1 = cumsum(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
-      if strcmpi(F.symm,'n'), crem(F.U(i).crd) = 0;
-      else,                   crem(F.U(i).rrd) = 0;
+      if F.symm == 'n', crem(F.U(i).crd) = 0;
+      else,             crem(F.U(i).rrd) = 0;
       end
     end
     prrem2 = cumsum(rrem);
     pcrem2 = cumsum(crem);
-    if strcmpi(trans,'n'), Z{lvl+1} = Z{lvl}(pcrem1(find(crem)),:);
-    else,                  Z{lvl+1} = Z{lvl}(prrem1(find(rrem)),:);
+    if trans == 'n', Z{lvl+1} = Z{lvl}(pcrem1(find(crem)),:);
+    else,            Z{lvl+1} = Z{lvl}(prrem1(find(rrem)),:);
     end
 
     % apply interpolation operators
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      if strcmpi(F.symm,'n')
-        if strcmpi(trans,'n')
+      if F.symm == 'n'
+        if trans == 'n'
           rd = pcrem1(F.U(i).crd);
           sk = pcrem2(F.U(i).csk);
           T = F.U(i).cT;
@@ -66,13 +64,13 @@ function Y = ifmm_mv(F,X,A,trans)
           sk = prrem2(F.U(i).rsk);
           T = F.U(i).rT';
         end
-      elseif strcmpi(F.symm,'s')
+      elseif F.symm == 's'
         rd = pcrem1(F.U(i).rrd);
         sk = pcrem2(F.U(i).rsk);
-        if strcmpi(trans,'n'), T = F.U(i).rT.';
-        else,                  T = F.U(i).rT';
+        if trans == 'n', T = F.U(i).rT.';
+        else,            T = F.U(i).rT';
         end
-      elseif strcmpi(F.symm,'h')
+      elseif F.symm == 'h'
         rd = pcrem1(F.U(i).rrd);
         sk = pcrem2(F.U(i).rsk);
         T = F.U(i).rT';
@@ -82,24 +80,24 @@ function Y = ifmm_mv(F,X,A,trans)
   end
 
   % downward sweep
-  if strcmpi(trans,'n'), Y{nlvl+1} = zeros(sum(rrem),size(X,2));
-  else,                  Y{nlvl+1} = zeros(sum(crem),size(X,2));
+  if trans == 'n', Y{nlvl+1} = zeros(sum(rrem),size(X,2));
+  else,            Y{nlvl+1} = zeros(sum(crem),size(X,2));
   end
   for lvl = nlvl:-1:1
     prrem2 = cumsum(rrem);
     pcrem2 = cumsum(crem);
-    if strcmpi(trans,'n'), rem_ = rrem;
-    else,                  rem_ = crem;
+    if trans == 'n', rem_ = rrem;
+    else,            rem_ = crem;
     end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 1;
-      if strcmpi(F.symm,'n'), crem(F.U(i).crd) = 1;
-      else,                   crem(F.U(i).rrd) = 1;
+      if F.symm == 'n', crem(F.U(i).crd) = 1;
+      else,             crem(F.U(i).rrd) = 1;
       end
     end
     prrem1 = cumsum(rrem);
     pcrem1 = cumsum(crem);
-    if strcmpi(trans,'n')
+    if trans == 'n'
       Y{lvl} = zeros(sum(rrem),size(X,2));
       Y{lvl}(prrem1(find(rem_)),:) = Y{lvl+1};
     else
@@ -109,8 +107,8 @@ function Y = ifmm_mv(F,X,A,trans)
 
     % apply interpolation operators
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      if strcmpi(F.symm,'n')
-        if strcmpi(trans,'n')
+      if F.symm == 'n'
+        if trans == 'n'
           rd  = prrem1(F.U(i).rrd);
           sk1 = prrem1(F.U(i).rsk);
           sk2 = prrem2(F.U(i).rsk);
@@ -121,14 +119,14 @@ function Y = ifmm_mv(F,X,A,trans)
           sk2 = pcrem2(F.U(i).csk);
           T = F.U(i).cT';
         end
-      elseif strcmpi(F.symm,'s')
+      elseif F.symm == 's'
         rd  = prrem1(F.U(i).rrd);
         sk1 = prrem1(F.U(i).rsk);
         sk2 = prrem2(F.U(i).rsk);
-        if strcmpi(trans,'n'), T = F.U(i).rT;
-        else,                  T = conj(F.U(i).rT);
+        if trans == 'n', T = F.U(i).rT;
+        else,            T = conj(F.U(i).rT);
         end
-      elseif strcmpi(F.symm,'h')
+      elseif F.symm == 'h'
         rd  = prrem1(F.U(i).rrd);
         sk1 = prrem1(F.U(i).rsk);
         sk2 = prrem2(F.U(i).rsk);
@@ -142,7 +140,7 @@ function Y = ifmm_mv(F,X,A,trans)
     for i = F.lvpb(lvl)+1:F.lvpb(lvl+1)
       is = F.B(i).is;
       ie = F.B(i).ie;
-      if strcmpi(F.symm,'n')
+      if F.symm == 'n'
         js = F.B(i).js;
         je = F.B(i).je;
       else
@@ -152,29 +150,29 @@ function Y = ifmm_mv(F,X,A,trans)
 
       % get self-interactions
       if lvl == 1
-        if strcmpi(F.store,'n'), D = A(is,js);
-        else,                    D = F.B(i).D;
+        if F.store == 'n', D = A(is,js);
+        else,              D = F.B(i).D;
         end
 
       % get external interactions
       else
-        near = lvl == 2 && strcmpi(F.store,'r');  % near field stored?
-        if strcmpi(F.store,'a') || near, Bo = F.B(i).Bo;
-        else,                            Bo = A(ie,js);
+        near = lvl == 2 && F.store == 'r';  % near field stored?
+        if F.store == 'a' || near, Bo = F.B(i).Bo;
+        else,                      Bo = A(ie,js);
         end
-        if strcmpi(F.symm,'n')
-          if strcmpi(F.store,'a') || near, Bi = F.B(i).Bi;
-          else,                            Bi = A(is,je);
+        if F.symm == 'n'
+          if F.store == 'a' || near, Bi = F.B(i).Bi;
+          else,                      Bi = A(is,je);
           end
-        elseif strcmpi(F.symm,'s'),        Bi = Bo.';
-        elseif strcmpi(F.symm,'h'),        Bi = Bo';
+        elseif F.symm == 's',        Bi = Bo.';
+        elseif F.symm == 'h',        Bi = Bo';
         end
       end
 
       % apply matrices
       is_ = is; js_ = js;
       ie_ = ie; je_ = je;
-      if strcmpi(trans,'n')
+      if trans == 'n'
         is = prrem1(is_); js = pcrem1(js_);
         io = prrem1(ie_); jo = pcrem1(js_);
         ii = prrem1(is_); ji = pcrem1(je_);

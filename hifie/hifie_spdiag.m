@@ -64,19 +64,19 @@ function D = hifie_spdiag(F,dinv)
   spinfo.t = spinfo.t(spinfo.i);
 
   % dispatch to eliminate overhead
-  if strcmpi(F.symm,'n')
+  if F.symm == 'n'
     if dinv, D = hifie_spdiag_sv_n(F,spinfo);
     else,    D = hifie_spdiag_mv_n(F,spinfo);
     end
-  elseif strcmpi(F.symm,'s')
+  elseif F.symm == 's'
     if dinv, D = hifie_spdiag_sv_s(F,spinfo);
     else,    D = hifie_spdiag_mv_s(F,spinfo);
     end
-  elseif strcmpi(F.symm,'h')
+  elseif F.symm == 'h'
     if dinv, D = hifie_spdiag_sv_h(F,spinfo);
     else,    D = hifie_spdiag_mv_h(F,spinfo);
     end
-  elseif strcmpi(F.symm,'p')
+  elseif F.symm == 'p'
     if dinv, D = hifie_spdiag_sv_p(F,spinfo);
     else,    D = hifie_spdiag_mv_p(F,spinfo);
     end

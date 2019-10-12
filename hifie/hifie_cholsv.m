@@ -18,13 +18,6 @@ function Y = hifie_cholsv(F,X,trans)
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
-  % check inputs
-  assert(strcmpi(F.symm,'p'),'FLAM:hifie_cholsv:invalidSymm', ...
-         'Symmetry parameter must be ''P''.')
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:hifie_cholsv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-
   % apply Cholesky inverse
   Y = rskelf_cholsv(F,X,trans);
 end

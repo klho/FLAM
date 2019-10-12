@@ -103,11 +103,8 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
   % check inputs
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:rskelf:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'h') && isoctave()
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'h' && isoctave()
     warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
   end
@@ -187,7 +184,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % compress off-diagonal block
       K = full(A(nbr,slf));
-      if strcmpi(opts.symm,'n'), K = [K; full(A(slf,nbr))']; end
+      if opts.symm == 'n', K = [K; full(A(slf,nbr))']; end
       K = [K; Kpxy];
       [sk,rd,T] = id(K,rank_or_tol);
 
@@ -196,29 +193,29 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % compute factors
       K = M{i};
-      if strcmpi(opts.symm,'s'), K(rd,:) = K(rd,:) - T.'*K(sk,:);
-      else,                      K(rd,:) = K(rd,:) - T' *K(sk,:);
+      if opts.symm == 's', K(rd,:) = K(rd,:) - T.'*K(sk,:);
+      else,                K(rd,:) = K(rd,:) - T' *K(sk,:);
       end
       K(:,rd) = K(:,rd) - K(:,sk)*T;
-      if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+      if opts.symm == 'n' || opts.symm == 's'
         [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
         G = L\K(rd(p),sk);
-      elseif strcmpi(opts.symm,'h')
+      elseif opts.symm == 'h'
         [L,U,p] = ldl(K(rd,rd),'vector');
         U = sparse(U);
         E = (K(sk,rd(p))/L')/U.';
         G = [];
-      elseif strcmpi(opts.symm,'p')
+      elseif opts.symm == 'p'
         L = chol(K(rd,rd),'lower');
         E = K(sk,rd)/L';
         U = []; p = []; G = [];
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), X = E*(U*E');
-      elseif strcmpi(opts.symm,'p'), X = E*E';
-      else,                          X = E*G;
+      if     opts.symm == 'h', X = E*(U*E');
+      elseif opts.symm == 'p', X = E*E';
+      else,                    X = E*G;
       end
       M{i} = M{i}(sk,sk) - X;
 

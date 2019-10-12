@@ -18,13 +18,6 @@ function Y = hifie_cholmv(F,X,trans)
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
-  % check inputs
-  assert(strcmpi(F.symm,'p'),'FLAM:hifie_cholmv:invalidSymm', ...
-         'Symmetry parameter must be ''P''.')
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:hifie_cholmv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
-
   % apply Cholesky factor
   Y = rskelf_cholmv(F,X,trans);
 end

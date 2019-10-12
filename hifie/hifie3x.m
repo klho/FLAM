@@ -25,11 +25,8 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
   % check inputs
   assert(opts.skip >= 0,'FLAM:hifie3x:invalidSkip', ...
          'Skip parameter must be nonnegative.')
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:hifie3x:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'h') && isoctave()
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'h' && isoctave()
     warning('FLAM:hifie3x:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
   end
@@ -251,9 +248,9 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
 
         % compute interaction matrix
         K1 = full(A(nbr,slf));
-        if strcmpi(opts.symm,'n'), K1 = [K1; full(A(slf,nbr))']; end
+        if opts.symm == 'n', K1 = [K1; full(A(slf,nbr))']; end
         K2 = spget(M,nbr,slf);
-        if strcmpi(opts.symm,'n'), K2 = [K2; spget(M,slf,nbr)']; end
+        if opts.symm == 'n', K2 = [K2; spget(M,slf,nbr)']; end
         K = [K1 + K2; Kpxy];
 
         % scale compression tolerance
@@ -329,29 +326,29 @@ function F = hifie3x(A,x,occ,rank_or_tol,pxyfun,opts)
 
         % compute factors
         K = full(A(slf,slf)) + spget(M,slf,slf);
-        if strcmpi(opts.symm,'s'), K(rd,:) = K(rd,:) - T.'*K(sk,:);
-        else,                      K(rd,:) = K(rd,:) - T' *K(sk,:);
+        if opts.symm == 's', K(rd,:) = K(rd,:) - T.'*K(sk,:);
+        else,                K(rd,:) = K(rd,:) - T' *K(sk,:);
         end
         K(:,rd) = K(:,rd) - K(:,sk)*T;
-        if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+        if opts.symm == 'n' || opts.symm == 's'
           [L,U,p] = lu(K(rd,rd),'vector');
           E = K(sk,rd)/U;
           G = L\K(rd(p),sk);
-        elseif strcmpi(opts.symm,'h')
+        elseif opts.symm == 'h'
           [L,U,p] = ldl(K(rd,rd),'vector');
           U = sparse(U);
           E = (K(sk,rd(p))/L')/U.';
           G = [];
-        elseif strcmpi(opts.symm,'p')
+        elseif opts.symm == 'p'
           L = chol(K(rd,rd),'lower');
           E = K(sk,rd)/L';
           U = []; p = []; G = [];
         end
 
         % update self-interaction
-        if     strcmpi(opts.symm,'h'), X = -E*(U*E');
-        elseif strcmpi(opts.symm,'p'), X = -E*E';
-        else,                          X = -E*G;
+        if     opts.symm == 'h', X = -E*(U*E');
+        elseif opts.symm == 'p', X = -E*E';
+        else,                    X = -E*G;
         end
         [I_,J_] = ndgrid(slf(sk));
         [I,J,V,nz] = sppush3(I,J,V,nz,I_,J_,X);

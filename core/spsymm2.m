@@ -11,8 +11,8 @@
 %   See also SPSYMM.
 
 function [A,B] = spsymm2(A,B,symm)
-  if strcmpi(symm,'n'), return; end
-  if strcmpi(symm,'s'), A = A + B.'; B = A.';
-  else,                 A = A + B' ; B = A' ;
+  if symm == 'n', return; end
+  if symm == 's', A = A + B.'; B = A.';
+  else,           A = A + B' ; B = A' ;
   end
 end

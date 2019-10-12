@@ -58,7 +58,7 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   fprintf('rskel_xsp time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  dolu = strcmpi(F.symm,'n');  % LU or LDL?
+  dolu = F.symm == 'n';  % LU or LDL?
   % note: extended sparse matrix is not SPD even if original matrix is
   if ~dolu && isoctave()
     warning('No LDL in Octave; using LU.')
@@ -114,7 +114,7 @@ end
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,A)
   % only neighbor interactions -- no far field
   Kpxy = zeros(0,length(slf));
-  if strcmpi(rc,'r'), Kpxy = Kpxy'; end
+  if rc == 'r', Kpxy = Kpxy'; end
   % keep only neighbors with nonzero interaction
   nbr = sort(nbr);
   [I,~] = find(A(:,slf)); I = unique(I);
@@ -126,8 +126,8 @@ function Y = sv_(F,X,trans)
   N = size(X,1);
   X = [X; zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
-    if strcmpi(trans,'n'), Y = F.U \(F.L \(F.P *X));
-    else,                  Y = F.P'*(F.L'\(F.U'\X));
+    if trans == 'n', Y = F.U \(F.L \(F.P *X));
+    else,            Y = F.P'*(F.L'\(F.U'\X));
     end
   else
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));

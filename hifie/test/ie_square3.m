@@ -124,7 +124,7 @@ function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
   % and scaled to match the matrix scale
   N = size(x,2);
   Kpxy = Kfun(pxy,x(:,slf),k).*sqrtb(slf)'/N;
-  if strcmpi(symm,'n'), Kpxy = [Kpxy; conj(Kpxy)]; end  % assume only 'N' or 'S'
+  if symm == 'n', Kpxy = [Kpxy; conj(Kpxy)]; end  % assume only 'N' or 'S'
   dx = x(1,nbr) - ctr(1);
   dy = x(2,nbr) - ctr(2);
   % proxy points form circle of scaled radius 1.5 around current box

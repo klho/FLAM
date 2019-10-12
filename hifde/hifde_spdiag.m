@@ -90,15 +90,15 @@ function D = hifde_spdiag(F,dinv)
   spinfo.t = spinfo.t(spinfo.i);
 
   % dispatch to eliminate overhead
-  if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
+  if F.symm == 'n' || F.symm == 's'
     if dinv, D = hifde_spdiag_sv_n(F,spinfo);
     else,    D = hifde_spdiag_mv_n(F,spinfo);
     end
-  elseif strcmpi(F.symm,'h')
+  elseif F.symm == 'h'
     if dinv, D = hifde_spdiag_sv_h(F,spinfo);
     else,    D = hifde_spdiag_mv_h(F,spinfo);
     end
-  elseif strcmpi(F.symm,'p')
+  elseif F.symm == 'p'
     if dinv, D = hifde_spdiag_sv_p(F,spinfo);
     else,    D = hifde_spdiag_mv_p(F,spinfo);
     end

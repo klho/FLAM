@@ -78,7 +78,7 @@ function ie_square3(n,k,occ,p,rank_or_tol,symm,doiter)
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  dolu = strcmpi(F.symm,'n');  % LU or LDL?
+  dolu = F.symm == 'n';  % LU or LDL?
   if ~dolu
     if isoctave(), warning('No LDL in Octave; using LU.');
     else,          warning('No complex sparse LDL in MATLAB; using LU.');
@@ -147,7 +147,7 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k,sqrtb)
   % points being compressed, multiplied by row/column potential/velocity field
   % and scaled to match the matrix scale
   N = size(rx,2);
-  if strcmpi(rc,'r')
+  if rc == 'r'
     Kpxy = sqrtb(slf).*Kfun(rx(:,slf),pxy,k)/N;
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
@@ -176,8 +176,8 @@ function Y = sv_(F,X,trans)
   N = size(X,1);
   X = [X; zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
-    if strcmpi(trans,'n'), Y = F.U \(F.L \(F.P *X));
-    else,                  Y = F.P'*(F.L'\(F.U'\X));
+    if trans == 'n', Y = F.U \(F.L \(F.P *X));
+    else,            Y = F.P'*(F.L'\(F.U'\X));
     end
   else
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));

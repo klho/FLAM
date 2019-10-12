@@ -73,11 +73,8 @@ function F = mfx(A,x,occ,opts)
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
   % check inputs
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:mfx:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'h') && isoctave()
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'h' && isoctave()
     warning('FLAM:mfx:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
   end
@@ -130,7 +127,7 @@ function F = mfx(A,x,occ,opts)
     nz = 0;
 
     % form matrix transpose for fast row access
-    if strcmpi(opts.symm,'n'), Ac = A'; end
+    if opts.symm == 'n', Ac = A'; end
 
     % pull up skeletons from children
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
@@ -147,7 +144,7 @@ function F = mfx(A,x,occ,opts)
       idx = ~ismemb(I_,sslf);
       I_ = I_(idx);
       J_ = J_(idx);
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         [Ic,Jc] = find(Ac(:,slf));
         idx = ~ismemb(Ic,sslf);
         Ic = Ic(idx);
@@ -193,25 +190,25 @@ function F = mfx(A,x,occ,opts)
 
       % compute factors
       K = spget(A,slf,slf);
-      if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+      if opts.symm == 'n' || opts.symm == 's'
         [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
         G = L\K(rd(p),sk);
-      elseif strcmpi(opts.symm,'h')
+      elseif opts.symm == 'h'
         [L,U,p] = ldl(K(rd,rd),'vector');
         U = sparse(U);
         E = (K(sk,rd(p))/L')/U.';
         G = [];
-      elseif strcmpi(opts.symm,'p')
+      elseif opts.symm == 'p'
         L = chol(K(rd,rd),'lower');
         E = K(sk,rd)/L';
         U = []; p = []; G = [];
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), X = -E*(U*E');
-      elseif strcmpi(opts.symm,'p'), X = -E*E';
-      else,                          X = -E*G;
+      if     opts.symm == 'h', X = -E*(U*E');
+      elseif opts.symm == 'p', X = -E*E';
+      else,                    X = -E*G;
       end
       [I_,J_] = ndgrid(slf(sk));
       [I,J,V,nz] = sppush3(I,J,V,nz,I_,J_,X);

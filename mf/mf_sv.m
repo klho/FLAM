@@ -16,19 +16,17 @@ function Y = mf_sv(F,X,trans)
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % check inputs
-  assert(strcmpi(trans,'n') || strcmpi(trans,'t') || strcmpi(trans,'c'), ...
-         'FLAM:mf_sv:invalidTrans', ...
-         'Transpose parameter must be one of ''N'', ''T'', or ''C''.')
+  trans = chktrans(trans);
 
   % handle transpose by conjugation
-  if strcmpi(trans,'t'), Y = conj(mf_sv(F,conj(X),'c')); return; end
+  if trans == 't', Y = conj(mf_sv(F,conj(X),'c')); return; end
 
   % dispatch to eliminate overhead
-  if strcmpi(F.symm,'n') || strcmpi(F.symm,'s')
-    if strcmpi(trans,'n'), Y = mf_sv_nn(F,X);
-    else,                  Y = mf_sv_nc(F,X);
+  if F.symm == 'n' || F.symm == 's'
+    if trans == 'n', Y = mf_sv_nn(F,X);
+    else,            Y = mf_sv_nc(F,X);
     end
-  elseif strcmpi(F.symm,'h'), Y = mf_sv_h(F,X);
-  elseif strcmpi(F.symm,'p'), Y = mf_sv_p(F,X);
+  elseif F.symm == 'h', Y = mf_sv_h(F,X);
+  elseif F.symm == 'p', Y = mf_sv_p(F,X);
   end
 end

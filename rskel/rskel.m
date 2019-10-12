@@ -103,11 +103,8 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
   % check inputs
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:rskel:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'p'), opts.symm = 'h'; end
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'p', opts.symm = 'h'; end
 
   % print header
   if opts.verb
@@ -209,7 +206,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       [rsk,rrd,rT] = id(K,rank_or_tol);
 
       % compress column space
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         Kpxy = zeros(0,length(cslf));
         if lvl > 2
           if isempty(pxyfun), rnbr = setdiff(find(rrem),rslf);
@@ -237,7 +234,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       % restrict to skeletons for next level
       t.nodes(i).rxi = rslf(rsk);
       rrem(rslf(rrd)) = 0;
-      if strcmpi(opts.symm,'n')
+      if opts.symm == 'n'
         t.nodes(i).cxi = cslf(csk);
         crem(cslf(crd)) = 0;
       else

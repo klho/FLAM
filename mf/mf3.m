@@ -32,11 +32,8 @@ function F = mf3(A,n,occ,opts)
   assert(occ > 0,'FLAM:mf3:invalidOcc','Leaf occupancy must be positive.')
   assert(opts.lvlmax >= 1,'FLAM:mf2:invalidLvlmax', ...
          'Maximum tree depth must be at least 1.')
-  assert(strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s') || ...
-         strcmpi(opts.symm,'h') || strcmpi(opts.symm,'p'), ...
-         'FLAM:mf3:invalidSymm', ...
-         'Symmetry parameter must be one of ''N'', ''S'', ''H'', or ''P''.')
-  if strcmpi(opts.symm,'h') && isoctave()
+  opts.symm = chksymm(opts.symm);
+  if opts.symm == 'h' && isoctave()
     warning('FLAM:mf3:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
   end
@@ -120,25 +117,25 @@ function F = mf3(A,n,occ,opts)
 
       % compute factors
       K = spget(A,slf,slf);
-      if strcmpi(opts.symm,'n') || strcmpi(opts.symm,'s')
+      if opts.symm == 'n' || opts.symm == 's'
         [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
         G = L\K(rd(p),sk);
-      elseif strcmpi(opts.symm,'h')
+      elseif opts.symm == 'h'
         [L,U,p] = ldl(K(rd,rd),'vector');
         U = sparse(U);
         E = (K(sk,rd(p))/L')/U.';
         G = [];
-      elseif strcmpi(opts.symm,'p')
+      elseif opts.symm == 'p'
         L = chol(K(rd,rd),'lower');
         E = K(sk,rd)/L';
         U = []; p = []; G = [];
       end
 
       % update self-interaction
-      if     strcmpi(opts.symm,'h'), X = -E*(U*E');
-      elseif strcmpi(opts.symm,'p'), X = -E*E';
-      else,                          X = -E*G;
+      if     opts.symm == 'h', X = -E*(U*E');
+      elseif opts.symm == 'p', X = -E*E';
+      else,                    X = -E*G;
       end
       [I_,J_] = ndgrid(slf(sk));
       [I,J,V,nz] = sppush3(I,J,V,nz,I_,J_,X);

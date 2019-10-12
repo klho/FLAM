@@ -57,7 +57,7 @@ function ie_circle(n,occ,p,rank_or_tol,symm)
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  dolu = strcmpi(F.symm,'n');  % LU or LDL?
+  dolu = F.symm == 'n';  % LU or LDL?
   if ~dolu && isoctave()
     warning('No LDL in Octave; using LU.')
     dolu = 1;
@@ -102,9 +102,9 @@ function K = Kfun(x,y,lp)
   dx = x(1,:)' - y(1,:);
   dy = x(2,:)' - y(2,:);
   dr = sqrt(dx.^2 + dy.^2);
-  if strcmpi(lp,'s')      % single-layer: G
+  if lp == 's'      % single-layer: G
     K = -1/(2*pi)*log(dr);
-  elseif strcmpi(lp,'d')  % double-layer: dG/dn
+  elseif lp == 'd'  % double-layer: dG/dn
     rdotn = dx.*y(1,:) + dy.*y(2,:);
     K = 1/(2*pi).*rdotn./dr.^2;
   end
@@ -124,7 +124,7 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   N = size(rx,2);
-  if strcmpi(rc,'r')
+  if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy,'s')*(2*pi/N);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
@@ -149,8 +149,8 @@ function Y = sv_(F,X,trans)
   N = size(X,1);
   X = [X; zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
-    if strcmpi(trans,'n'), Y = F.U \(F.L \(F.P *X));
-    else,                  Y = F.P'*(F.L'\(F.U'\X));
+    if trans == 'n', Y = F.U \(F.L \(F.P *X));
+    else,            Y = F.P'*(F.L'\(F.U'\X));
     end
   else
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));

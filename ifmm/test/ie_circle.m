@@ -77,9 +77,9 @@ function K = Kfun(x,y,lp)
   dx = x(1,:)' - y(1,:);
   dy = x(2,:)' - y(2,:);
   dr = sqrt(dx.^2 + dy.^2);
-  if strcmpi(lp,'s')      % single-layer: G
+  if lp == 's'      % single-layer: G
     K = -1/(2*pi)*log(sqrt(dr));
-  elseif strcmpi(lp,'d')  % double-layer: dG/dn
+  elseif lp == 'd'  % double-layer: dG/dn
     rdotn = dx.*y(1,:) + dy.*y(2,:);
     K = 1/(2*pi).*rdotn./dr.^2;
   end
@@ -99,7 +99,7 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   N = size(rx,2);
-  if strcmpi(rc,'r')
+  if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy,'s')*(2*pi/N);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);

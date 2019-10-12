@@ -157,9 +157,9 @@ function K = Kfun(x,y,lp,nu)
   dy = x(2,:)' - y(2,:);
   dz = x(3,:)' - y(3,:);
   dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  if strcmpi(lp,'s')      % single-layer: G
+  if lp == 's'      % single-layer: G
     K = 1/(4*pi)./dr;
-  elseif strcmpi(lp,'d')  % double-layer: dG/dn
+  elseif lp == 'd'  % double-layer: dG/dn
     rdotn = dx.*nu(1,:) + dy.*nu(2,:) + dz.*nu(3,:);
     K = 1/(4*pi).*rdotn./dr.^3;
   end
@@ -202,13 +202,13 @@ function [Kpxy,nbr] = pxyfun_ifmm_(rc,rx,cx,slf,nbr,l,ctr,proxy,nu,area)
   pxy = proxy*l + ctr';  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
-  if strcmpi(rc,'r')
+  if rc == 'r'
     % from proxy points to centroids: use average triangle area
     N = size(rx,2);
     Kpxy = Kfun(rx(:,slf),pxy,'s')*(4*pi/N);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
-  elseif strcmpi(rc,'c')
+  else
     % from triangles to proxy points: use actual triangle areas
     Kpxy = Kfun(pxy,cx(:,slf),'d',nu(:,slf)).*area(slf);
     dx = rx(1,nbr) - ctr(1);

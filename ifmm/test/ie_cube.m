@@ -93,7 +93,7 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   N = size(rx,2);
-  if strcmpi(rc,'r')
+  if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy)/N;
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
