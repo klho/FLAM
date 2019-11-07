@@ -1,6 +1,4 @@
 % MF_SV_H  Dispatch for MF_SV with F.SYMM = 'H'.
-%
-%    See also MF2, MF3, MF_MV, MFX.
 
 function Y = mf_sv_h(F,X)
 

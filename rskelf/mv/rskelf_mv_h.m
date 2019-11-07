@@ -1,6 +1,4 @@
 % RSKELF_MV_H  Dispatch for RSKELF_MV with F.SYMM = 'H'.
-%
-%    See also RSKELF, RSKELF_MV.
 
 function Y = rskelf_mv_h(F,X)
 

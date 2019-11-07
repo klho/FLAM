@@ -1,6 +1,4 @@
 % HIFDE_MV_NN  Dispatch for HIFDE_MV with F.SYMM = 'N' and TRANS = 'N'.
-%
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_MV.
 
 function Y = hifde_mv_nn(F,X)
 

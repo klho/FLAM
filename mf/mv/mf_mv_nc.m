@@ -1,6 +1,4 @@
 % MF_MV_NC  Dispatch for MF_MV with F.SYMM = 'N' and TRANS = 'C'.
-%
-%    See also MF2, MF3, MF_MV, MFX.
 
 function Y = mf_mv_nc(F,X)
 

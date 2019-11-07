@@ -1,6 +1,4 @@
 % RSKELF_SV_SC  Dispatch for RSKELF_SV with F.SYMM = 'S' and TRANS = 'C'.
-%
-%    See also RSKELF, RSKELF_SV.
 
 function Y = rskelf_sv_sc(F,X)
 

@@ -1,6 +1,4 @@
 % RSKELF_MV_NN  Dispatch for RSKELF_MV with F.SYMM = 'N' and TRANS = 'N'.
-%
-%    See also RSKELF, RSKELF_MV.
 
 function Y = rskelf_mv_nn(F,X)
 

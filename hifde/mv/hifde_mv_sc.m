@@ -1,6 +1,4 @@
 % HIFDE_MV_SC  Dispatch for HIFDE_MV with F.SYMM = 'S' and TRANS = 'C'.
-%
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_MV.
 
 function Y = hifde_mv_sc(F,X)
 

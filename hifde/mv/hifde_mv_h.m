@@ -1,6 +1,4 @@
 % HIFDE_MV_H   Dispatch for HIFDE_MV with F.SYMM = 'H'.
-%
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_MV.
 
 function Y = hifde_mv_h(F,X)
 

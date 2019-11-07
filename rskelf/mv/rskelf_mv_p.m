@@ -1,6 +1,4 @@
 % RSKELF_MV_P  Dispatch for RSKELF_MV with F.SYMM = 'P'.
-%
-%    See also RSKELF, RSKELF_MV.
 
 function Y = rskelf_mv_p(F,X)
 

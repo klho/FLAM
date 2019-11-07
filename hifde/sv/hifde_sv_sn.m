@@ -1,6 +1,4 @@
 % HIFDE_SV_SN  Dispatch for HIFDE_SV with F.SYMM = 'S' and TRANS = 'N'.
-%
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_SV.
 
 function Y = hifde_sv_sn(F,X)
 

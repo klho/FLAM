@@ -1,6 +1,4 @@
 % MF_SV_NN  Dispatch for MF_SV with F.SYMM = 'N' and TRANS = 'N'.
-%
-%    See also MF2, MF3, MF_MV, MFX.
 
 function Y = mf_sv_nn(F,X)
 

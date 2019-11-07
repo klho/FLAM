@@ -1,6 +1,4 @@
 % HIFDE_SV_P   Dispatch for HIFDE_SV with F.SYMM = 'P'.
-%
-%    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_SV.
 
 function Y = hifde_sv_p(F,X)
 

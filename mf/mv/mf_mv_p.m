@@ -1,6 +1,4 @@
 % MF_MV_P  Dispatch for MF_MV with F.SYMM = 'P'.
-%
-%    See also MF2, MF3, MF_MV, MFX.
 
 function Y = mf_mv_p(F,X)
 
