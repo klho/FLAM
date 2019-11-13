@@ -8,7 +8,7 @@
 %
 %      P(I,X) = (A(I)*X + B(I))*P(I-1,X) - C(I)*P(I-2,X)
 %
-%    for I = 1, 2, 3, ... with P(-1,X) = 0 and P(0,X) = X; and MU is the zeroth
+%    for I = 1, 2, 3, ... with P(-1,X) = 0 and P(0,X) = 1; and MU is the zeroth
 %    moment of the weight function with respect to which P is orthogonal.
 %
 %    References:
