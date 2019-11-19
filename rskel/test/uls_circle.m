@@ -82,9 +82,9 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,store,doiter)
   ls = @(X)ls_(A,R,X,N,tau);  % least squares solve function
 
   % test pseudoinverse apply accuracy
-  B = ifmm_mv(G,X,Afun);  % random right-hand side in range
+  B = ifmm_mv(G,X,Afun);                 % random right-hand side in range
   C = [B; zeros(nc-M,1)];
-  tic; [Y,cres,niter] = ls(C); t = toc;
+  tic; [Y,cres,niter] = ls(C); t = toc;  % least squares solve
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - ifmm_mv(G,Y,Afun))/norm(B);
   fprintf('ls:\n')
