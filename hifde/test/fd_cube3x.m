@@ -91,7 +91,9 @@ function fd_cube3x(n,k,occ,rank_or_tol,skip,symm,doiter,diagmode)
   if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,[],1e-12,128); end
 
   % run preconditioned GMRES
-  tic; [Y,~,~,piter] = gmres(@(x)(A*x),B,[],1e-12,32,@(x)mf_sv(F,x)); t = toc;
+  tic;
+  [Y,~,~,piter] = gmres(@(x)(A*x),B,[],1e-12,32,@(x)hifde_sv(F,x));
+  t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - A*Y)/norm(B);
   fprintf('gmres:\n')
