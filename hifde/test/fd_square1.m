@@ -78,14 +78,14 @@ function fd_square1(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
     tic; hifde_cholmv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(hifde_mv(F,x) ...
                      - hifde_cholmv(F,hifde_cholmv(F,x,'c'))),[],[],1);
-    err = err/snorm(N,@(x)(hifde_mv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)hifde_mv(F,x),[],[],1);
     fprintf('hifde_cholmv: %10.4e / %10.4e (s)\n',err,t)
 
     % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
     tic; hifde_cholsv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(hifde_sv(F,x) ...
                      - hifde_cholsv(F,hifde_cholsv(F,x),'c')),[],[],1);
-    err = err/snorm(N,@(x)(hifde_sv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)hifde_sv(F,x),[],[],1);
     fprintf('hifde_cholsv: %10.4e / %10.4e (s)\n',err,t)
   end
 

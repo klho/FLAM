@@ -59,7 +59,7 @@ function uls_circle(m,n,delta,occ,p,rank_or_tol,store,doiter)
   tic; rskel_mv(F,X); t = toc;  % for timing
   err = snorm(N,@(x)(ifmm_mv(G,x,Afun,'n') - rskel_mv(F,x,'n')), ...
                 @(x)(ifmm_mv(G,x,Afun,'c') - rskel_mv(F,x,'c')));
-  err = err/snorm(N,@(x)(ifmm_mv(G,x,Afun,'n')),@(x)(ifmm_mv(G,x,Afun,'c')));
+  err = err/snorm(N,@(x)ifmm_mv(G,x,Afun,'n'),@(x)ifmm_mv(G,x,Afun,'c'));
   fprintf('rskel_mv err/time: %10.4e / %10.4e (s)\n',err,t)
   tic; ifmm_mv(G,X,Afun); t = toc;
   fprintf('ifmm_mv time: %10.4e (s)\n',t)

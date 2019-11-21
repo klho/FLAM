@@ -53,7 +53,7 @@ function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm,doiter)
   B(n+1:end,:) = flipdim(B(n+1:end,:),1);
   G = fft2(B);
   mv = @(x)mv_(G,x,sqrtb);
-  mva = @(x)(conj(mv(conj(x))));
+  mva = @(x)conj(mv(conj(x)));
 
   % test accuracy using randomized power method
   X = rand(N,1) + 1i*rand(N,1);

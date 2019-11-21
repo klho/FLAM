@@ -57,14 +57,14 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
     tic; rskelf_cholmv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(rskelf_mv(F,x) ...
                          - rskelf_cholmv(F,rskelf_cholmv(F,x,'c'))),[],[],1);
-    err = err/snorm(N,@(x)(rskelf_mv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)rskelf_mv(F,x),[],[],1);
     fprintf('rskelf_cholmv: %10.4e / %10.4e (s)\n',err,t)
 
     % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
     tic; rskelf_cholsv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(rskelf_sv(F,x) ...
                          - rskelf_cholsv(F,rskelf_cholsv(F,x),'c')),[],[],1);
-    err = err/snorm(N,@(x)(rskelf_sv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)rskelf_sv(F,x),[],[],1);
     fprintf('rskelf_cholsv: %10.4e / %10.4e (s)\n',err,t)
   end
 

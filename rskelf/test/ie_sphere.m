@@ -108,7 +108,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   tic; rskelf_mv(F,X); t = toc;  % for timing
   err = snorm(N,@(x)(ifmm_mv(G,x,Afun,'n') - rskelf_mv(F,x,'n')), ...
                 @(x)(ifmm_mv(G,x,Afun,'c') - rskelf_mv(F,x,'c')));
-  err = err/snorm(N,@(x)(ifmm_mv(G,x,Afun,'n')),@(x)(ifmm_mv(G,x,Afun,'c')));
+  err = err/snorm(N,@(x)ifmm_mv(G,x,Afun,'n'),@(x)ifmm_mv(G,x,Afun,'c'));
   fprintf('rskelf_mv err/time: %10.4e / %10.4e (s)\n',err,t)
   tic; ifmm_mv(G,X,Afun); t = toc;
   fprintf('ifmm_mv time: %10.4e (s)\n',t)

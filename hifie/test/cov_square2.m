@@ -66,14 +66,14 @@ function cov_square2(n,occ,p,rank_or_tol,skip,symm,noise,scale,diagmode)
     tic; hifie_cholmv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(hifie_mv(F,x) ...
                          - hifie_cholmv(F,hifie_cholmv(F,x,'c'))),[],[],1);
-    err = err/snorm(N,@(x)(hifie_mv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)hifie_mv(F,x),[],[],1);
     fprintf('hifie_cholmv: %10.4e / %10.4e (s)\n',err,t)
 
     % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
     tic; hifie_cholsv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(hifie_sv(F,x) ...
                          - hifie_cholsv(F,hifie_cholsv(F,x),'c')),[],[],1);
-    err = err/snorm(N,@(x)(hifie_sv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)hifie_sv(F,x),[],[],1);
     fprintf('hifie_cholsv: %10.4e / %10.4e (s)\n',err,t)
   end
 

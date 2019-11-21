@@ -69,13 +69,13 @@ function fd_cube3(n,k,occ,symm,doiter,diagmode)
     % NORM(F - C*C')/NORM(F)
     tic; mf_cholmv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(mf_mv(F,x) - mf_cholmv(F,mf_cholmv(F,x,'c'))),[],[],1);
-    err = err/snorm(N,@(x)(mf_mv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)mf_mv(F,x),[],[],1);
     fprintf('mf_cholmv: %10.4e / %10.4e (s)\n',err,t)
 
     % NORM(INV(F) - INV(C')*INV(C))/NORM(INV(F))
     tic; mf_cholsv(F,X); t = toc;  % for timing
     err = snorm(N,@(x)(mf_sv(F,x) - mf_cholsv(F,mf_cholsv(F,x),'c')),[],[],1);
-    err = err/snorm(N,@(x)(mf_sv(F,x)),[],[],1);
+    err = err/snorm(N,@(x)mf_sv(F,x),[],[],1);
     fprintf('mf_cholsv: %10.4e / %10.4e (s)\n',err,t)
   end
 
