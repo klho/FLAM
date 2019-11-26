@@ -21,7 +21,7 @@ function cov_cube1(n,occ,p,rank_or_tol,skip,symm,noise,scale,diagmode)
   clear x1 x2 x3
   N = size(x,2);
   % proxy points -- a few concentric rings
-  proxy_ = trisphere_subdiv(p);  % base ring
+  proxy_ = trisphere_subdiv(p,'v');  % base ring
   proxy = [];  % accumulate several rings
   for r = linspace(1.5,2.5,p), proxy = [proxy r*proxy_]; end
   % reference proxy points are for unit box [-1, 1]^3
