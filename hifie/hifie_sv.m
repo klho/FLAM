@@ -1,7 +1,7 @@
 % HIFIE_SV  Solve using hierarchical interpolative factorization for integral
 %           equations.
 %
-%    Typical complexity: quasilinear in all dimensions.
+%    Typical complexity: same as HIFIE_MV.
 %
 %    Y = HIFIE_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.

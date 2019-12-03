@@ -1,7 +1,7 @@
 % HIFDE_SV  Solve using hierarchical interpolative factorization for
 %           differential equations.
 %
-%    Typical complexity: quasilinear in all dimensions.
+%    Typical complexity: same as HIFDE_MV.
 %
 %    Y = HIFDE_SV(F,X) produces the matrix Y by applying the inverse of the
 %    factored matrix F to the matrix X.
