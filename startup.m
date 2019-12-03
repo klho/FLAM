@@ -1,1 +1,1 @@
-addpath(genpath_ex(fileparts(mfilename('fullpath'))));
+addpath(genpath_ex(pwd));
