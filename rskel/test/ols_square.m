@@ -1,12 +1,12 @@
 % Overdetermined least squares on the unit square, thin-plate splines.
 %
-% This is the direct analogue of OLS_LINE in 2D.
+% This is the direct analogue of OLS_LINE for quasi-uniform points in 2D.
 
-function ols_square(m,n,lambda,occ,p,rank_or_tol,store,doiter)
+function ols_square(M,N,lambda,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 16384; end  % number of row points
-  if nargin < 2 || isempty(n), n = 64; end     % number of col points in one dim
+  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
+  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
   if nargin < 3 || isempty(lambda), lambda = 0.1; end  % regularization
   if nargin < 4 || isempty(occ), occ = 128; end
   if nargin < 5 || isempty(p), p = 64; end  % half number of proxy points
@@ -15,10 +15,11 @@ function ols_square(m,n,lambda,occ,p,rank_or_tol,store,doiter)
   if nargin < 8 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
 
   % initialize
-  rx = rand(2,m);                                               % row points
-  [x1,x2] = ndgrid((1:n)/n); cx = [x1(:) x2(:)]'; clear x1 x2;  % col points
-  M = size(rx,2);
-  N = size(cx,2);
+  m = ceil(sqrt(M)); [x1,x2] = ndgrid((1:m)/m); rx = [x1(:) x2(:)]';
+  r = randperm(size(rx,2)); rx = rx(:,r(1:M));  % row points
+  n = ceil(sqrt(N)); [x1,x2] = ndgrid((1:n)/n); cx = [x1(:) x2(:)]';
+  r = randperm(size(cx,2)); cx = cx(:,r(1:N));  % col points
+  clear x1 x2
   % proxy points -- two concentric rings (thin-plate splines are Green's
   % function for biharmonic equation; no Green's theorem)
   theta = (1:p)*2*pi/p;
@@ -115,6 +116,7 @@ function K = Kfun(x,y)
   dy = x(2,:)' - y(2,:);
   dr = sqrt(dx.^2 + dy.^2);
   K = dr.^2.*log(dr);
+  K(dr == 0) = 0;  % limit
 end
 
 % matrix entries

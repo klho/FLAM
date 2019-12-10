@@ -1,10 +1,10 @@
 % Overdetermined least squares on the unit line, thin-plate splines.
 %
 % This example solves a Tikhonov-regularized overdetermined least squares
-% problem arising from thin-plate spline kernel fitting of values at random
-% points on the unit line by sources on an equispaced grid. The resulting
-% matrix is rectangular (tall-and-skinny) and real; we use an FMM as a fast
-% computational reference.
+% problem arising from thin-plate spline kernel fitting of values at equispaced
+% points on the unit line by sources on an another equispaced grid. The
+% resulting matrix is rectangular (tall-and-skinny) and real; we use an FMM as a
+% fast computational reference.
 %
 % This demo does the following in order:
 %
@@ -14,11 +14,11 @@
 %   - check pseudoinverse solve error/time
 %   - compare LSQR/CG with/without initial guess from approximate solve
 
-function ols_line(m,n,lambda,occ,p,rank_or_tol,store,doiter)
+function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 16384; end  % number of row points
-  if nargin < 2 || isempty(n), n =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
+  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
   if nargin < 3 || isempty(lambda), lambda = 0.01; end  % regularization
   if nargin < 4 || isempty(occ), occ = 128; end
   if nargin < 5 || isempty(p), p = 8; end  % half number of proxy points
@@ -27,8 +27,8 @@ function ols_line(m,n,lambda,occ,p,rank_or_tol,store,doiter)
   if nargin < 8 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
 
   % initialize
-  rx = rand(1,m); M = size(rx,2);  % row points
-  cx = (1:n)/n; N = size(cx,2);    % col points
+  rx = (1:M)/M;                                         % row points
+  cx = (1:N)/N;                                         % col points
   proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
   % reference proxy points are for unit box [-1, 1]
 
@@ -120,6 +120,7 @@ end
 function K = Kfun(x,y)
   dr = abs(x' - y);
   K = dr.^2.*log(dr);
+  K(dr == 0) = 0;  % limit
 end
 
 % matrix entries

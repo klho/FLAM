@@ -44,7 +44,7 @@ function fd_square(n,occ,rank_or_tol,skip,symm,doiter)
   clear idx Im Jm Sm Il Jl Sl Ir Jr Sr Iu Ju Su Id Jd Sd I J S
 
   % factor matrix
-  Afun = @(i,j)Afun_(i,j,A);
+  Afun = @(i,j)spget(A,i,j);
   pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,A);
   opts = struct('skip',skip,'symm',symm,'verb',1);
   tic; F = hifie2(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
@@ -79,11 +79,6 @@ function fd_square(n,occ,rank_or_tol,skip,symm,doiter)
   fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n', ...
           err1,err2,t)
   fprintf('  precon/unprecon iter: %d / %d\n',piter,iter)
-end
-
-% matrix entries
-function A = Afun_(i,j,S)
-  A = spget(S,i,j);
 end
 
 % proxy function

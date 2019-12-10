@@ -4,10 +4,10 @@
 % dyadically refined grid. The resulting geometry is highly non-uniform and
 % provides a good test for adaptivity.
 
-function mv_expline(n,occ,p,rank_or_tol,near,store,symm)
+function mv_expline(N,occ,p,rank_or_tol,near,store,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 64; end  % number of points
+  if nargin < 1 || isempty(N), N = 64; end  % number of points
   if nargin < 2 || isempty(occ), occ = 32; end
   if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
@@ -16,7 +16,7 @@ function mv_expline(n,occ,p,rank_or_tol,near,store,symm)
   if nargin < 7 || isempty(symm), symm = 's'; end  % symmetric
 
   % initialize
-  x = 2.^(-(1:n)); N = size(x,2);  % grid points
+  x = 2.^(-(1:N));                                      % row/col points
   proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
   % reference proxy points are for unit box [-1, 1]
 

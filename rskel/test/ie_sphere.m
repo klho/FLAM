@@ -13,7 +13,7 @@
 function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 20480; end  % number of triangles
+  if nargin < 1 || isempty(n), n = 20480; end  % approx number of triangles
   if nargin < 2 || isempty(nquad), nquad = 4; end  % quadrature order
   if nargin < 3 || isempty(occ), occ = 2048; end
   if nargin < 4 || isempty(p), p = 512; end  % number of proxy points

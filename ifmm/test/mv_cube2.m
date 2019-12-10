@@ -3,11 +3,11 @@
 % This is basically the same as MV_CUBE1 but using the Helmholtz kernel. The
 % associated matrix is rectangular and complex.
 
-function mv_cube2(m,n,k,occ,p,rank_or_tol,near,store)
+function mv_cube2(M,N,k,occ,p,rank_or_tol,near,store)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 16384; end  % number of row points
-  if nargin < 2 || isempty(n), n =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
+  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
   if nargin < 3 || isempty(k), k = 2*pi*4; end  % wavenumber
   if nargin < 4 || isempty(occ), occ = 512; end
   if nargin < 5 || isempty(p), p = 512; end  % number of proxy points
@@ -16,8 +16,8 @@ function mv_cube2(m,n,k,occ,p,rank_or_tol,near,store)
   if nargin < 8 || isempty(store), store = 'n'; end  % no storage
 
   % initialize
-  rx = rand(3,m); M = size(rx,2);  % row points
-  cx = rand(3,n); N = size(cx,2);  % col points
+  rx = rand(3,M);  % row points
+  cx = rand(3,N);  % col points
   % proxy points are quasi-uniform sampling of scaled 1.5-radius sphere
   proxy = trisphere_subdiv(p,'v'); r = randperm(size(proxy,2));
   proxy = proxy(:,r(1:p));  % reference proxy points are for unit box [-1, 1]^3

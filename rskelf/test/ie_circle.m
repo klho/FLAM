@@ -11,18 +11,17 @@
 %   - check multiply/solve error/time
 %   - check PDE solve error by applying to known solution
 
-function ie_circle(n,occ,p,rank_or_tol,symm)
+function ie_circle(N,occ,p,rank_or_tol,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end  % number of points
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 64; end  % number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
   if nargin < 5 || isempty(symm), symm = 'h'; end  % symmetric/Hermitian
 
   % initialize
-  theta = (1:n)*2*pi/n; x = [cos(theta); sin(theta)];  % discretization points
-  N = size(x,2);
+  theta = (1:N)*2*pi/N; x = [cos(theta); sin(theta)];  % discretization points
   theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
   % reference proxy points are for unit box [-1, 1]^2
 

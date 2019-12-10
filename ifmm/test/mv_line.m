@@ -9,10 +9,10 @@
 %   - check multiply error/time
 %   - check adjoint multiply error/time
 
-function mv_line(n,occ,p,rank_or_tol,near,store,symm)
+function mv_line(N,occ,p,rank_or_tol,near,store,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end  % number of points
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
@@ -21,7 +21,7 @@ function mv_line(n,occ,p,rank_or_tol,near,store,symm)
   if nargin < 7 || isempty(symm), symm = 's'; end  % symmetric
 
   % initialize
-  x = rand(1,n); N = size(x,2);                         % source points
+  x = rand(1,N);                                        % row/col points
   proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
   % reference proxy points are for unit box [-1, 1]
 

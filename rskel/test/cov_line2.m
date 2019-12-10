@@ -2,10 +2,10 @@
 %
 % This is basically the same as COV_LINE1 but using the Matern 3/2 kernel.
 
-function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
+function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end  % number of points
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
@@ -14,7 +14,7 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   if nargin < 7 || isempty(scale), scale = 100; end  % kernel length scale
 
   % initialize
-  x = (1:n)/n; N = size(x,2);  % grid points
+  x = (1:N)/N;                                          % grid points
   proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
   % reference proxy points are for unit box [-1, 1]
 
@@ -27,10 +27,10 @@ function cov_line2(n,occ,p,rank_or_tol,symm,noise,scale)
   fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % set up reference FFT multiplication
-  a = Afun(1:n,1);
-  B = zeros(2*n-1,1);  % zero-pad
-  B(1:n) = a;
-  B(n+1:end) = flipud(a(2:n));
+  a = Afun(1:N,1);
+  B = zeros(2*N-1,1);  % zero-pad
+  B(1:N) = a;
+  B(N+1:end) = flipud(a(2:N));
   G = fft(B);
   mv = @(x)mv_(G,x);
 

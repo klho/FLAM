@@ -22,10 +22,10 @@
 %   - compute log-determinant
 %   - do diagonal inversion (i.e., selected inversion for the diagonal)
 
-function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
+function cov_line1(N,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end  % number of points
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
@@ -36,7 +36,7 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
   % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
   % initialize
-  x = (1:n)/n; N = size(x,2);                           % grid points
+  x = (1:N)/N;                                          % grid points
   proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
   % reference proxy points are for unit box [-1, 1]
 
@@ -49,10 +49,10 @@ function cov_line1(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
   fprintf('rskelf time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % set up reference FFT multiplication
-  a = Afun(1:n,1);
-  B = zeros(2*n-1,1);  % zero-pad
-  B(1:n) = a;
-  B(n+1:end) = flipud(a(2:n));
+  a = Afun(1:N,1);
+  B = zeros(2*N-1,1);  % zero-pad
+  B(1:N) = a;
+  B(N+1:end) = flipud(a(2:N));
   G = fft(B);
   mv = @(x)mv_(G,x);
 

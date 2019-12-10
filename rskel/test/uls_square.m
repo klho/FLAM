@@ -2,7 +2,7 @@
 %
 % This example solves an undetermined least squares problem arising from data
 % fitting at random points in the unit square by Laplace kernel radial basis
-% functions on an equispaced grid. The matrix is rectangular (short-and-fat) and
+% functions on an quasi-uniform grid. The matrix is rectangular (short-and-fat) and
 % real; we use an FMM as a fast computational reference.
 %
 % This demo does the following in order:
@@ -13,11 +13,11 @@
 %   - check pseudoinverse solve error/time
 %   - compare LSQR/CG with/without initial guess from approximate solve
 
-function uls_square(m,n,occ,p,rank_or_tol,store,doiter)
+function uls_square(M,N,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 8192; end  % number of row points
-  if nargin < 2 || isempty(n), n = 128; end   % number of col points in one dim
+  if nargin < 1 || isempty(M), M =  8192; end  % number of row points
+  if nargin < 2 || isempty(N), N = 16384; end  % number of col points
   if nargin < 3 || isempty(occ), occ = 128; end
   if nargin < 4 || isempty(p), p = 64; end  % number of proxy points
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
@@ -25,10 +25,9 @@ function uls_square(m,n,occ,p,rank_or_tol,store,doiter)
   if nargin < 7 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
 
   % initialize
-  rx = rand(2,m);                                               % row points
-  [x1,x2] = ndgrid((1:n)/n); cx = [x1(:) x2(:)]'; clear x1 x2;  % col points
-  M = size(rx,2);
-  N = size(cx,2);
+  rx = rand(2,M);                                              % row points
+  n = ceil(sqrt(N)); [x1,x2] = ndgrid((1:n)/n); cx = [x1(:) x2(:)]';
+  r = randperm(size(cx,2)); cx = cx(:,r(1:N)); clear x1 x2;    % col points
   theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
   % reference proxy points are for unit box [-1, 1]^2
 

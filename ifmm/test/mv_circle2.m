@@ -3,11 +3,11 @@
 % This is basically the same as MV_CIRCLE1 but using the Helmholtz kernel. The
 % associated matrix is rectangular and complex.
 
-function mv_circle2(m,n,k,occ,p,rank_or_tol,near,store)
+function mv_circle2(M,N,k,occ,p,rank_or_tol,near,store)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 16384; end  % number of row points
-  if nargin < 2 || isempty(n), n =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
+  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
   if nargin < 3 || isempty(k), k = 2*pi*8; end  % wavenumber
   if nargin < 4 || isempty(occ), occ = 128; end
   if nargin < 5 || isempty(p), p = 64; end  % number of proxy points
@@ -16,10 +16,8 @@ function mv_circle2(m,n,k,occ,p,rank_or_tol,near,store)
   if nargin < 8 || isempty(store), store = 'n'; end  % no storage
 
   % initialize
-  theta = 2*pi*rand(1,m); rx = [cos(theta); sin(theta)];  % row points
-  theta = 2*pi*rand(1,n); cx = [cos(theta); sin(theta)];  % col points
-  M = size(rx,2);
-  N = size(cx,2);
+  theta = 2*pi*rand(1,M); rx = [cos(theta); sin(theta)];       % row points
+  theta = 2*pi*rand(1,N); cx = [cos(theta); sin(theta)];       % col points
   theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
   % reference proxy points are for unit box [-1, 1]^2
 

@@ -3,11 +3,11 @@
 % This is basically the same as MV_SPHERE1 but using the Helmholtz kernel. The
 % associated matrix is rectangular and complex.
 
-function mv_sphere2(m,n,k,occ,p,rank_or_tol,near,store)
+function mv_sphere2(M,N,k,occ,p,rank_or_tol,near,store)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 16384; end  % number of row points
-  if nargin < 2 || isempty(n), n =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
+  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
   if nargin < 3 || isempty(k), k = 2*pi*4; end  % wavenumber
   if nargin < 4 || isempty(occ), occ = 256; end
   if nargin < 5 || isempty(p), p = 512; end  % number of proxy points
@@ -16,10 +16,8 @@ function mv_sphere2(m,n,k,occ,p,rank_or_tol,near,store)
   if nargin < 8 || isempty(store), store = 'n'; end  % no storage
 
   % initialize
-  rx = randn(3,m); rx = rx./sqrt(sum(rx.^2));  % row points
-  cx = randn(3,n); cx = cx./sqrt(sum(cx.^2));  % col points
-  M = size(rx,2);
-  N = size(cx,2);
+  rx = randn(3,M); rx = rx./sqrt(sum(rx.^2));  % row points
+  cx = randn(3,N); cx = cx./sqrt(sum(cx.^2));  % col points
   % proxy points are quasi-uniform sampling of scaled 1.5-radius sphere
   proxy = trisphere_subdiv(p,'v'); r = randperm(size(proxy,2));
   proxy = proxy(:,r(1:p));  % reference proxy points are for unit box [-1, 1]^3

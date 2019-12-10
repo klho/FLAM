@@ -2,10 +2,10 @@
 %
 % This is basically the same as COV_CIRCLE1 but using the Matern 3/2 kernel.
 
-function cov_circle2(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
+function cov_circle2(N,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end  % number of points
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 16; end  % sqrt number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
@@ -16,8 +16,7 @@ function cov_circle2(n,occ,p,rank_or_tol,symm,noise,scale,diagmode)
   % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
 
   % initialize
-  theta = (1:n)*2*pi/n; x = [cos(theta); sin(theta)];  % row/col points
-  N = size(x,2);
+  theta = (1:N)*2*pi/N; x = [cos(theta); sin(theta)];  % row/col points
   % proxy points -- a few concentric rings
   theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];  % base ring
   proxy = [];  % accumulate several rings

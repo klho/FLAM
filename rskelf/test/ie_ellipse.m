@@ -4,10 +4,10 @@
 % is an ellipse with user-specified aspect ratio. Note that the matrix is no
 % longer Toeplitz.
 
-function ie_ellipse(n,occ,p,rank_or_tol,symm,ratio)
+function ie_ellipse(N,occ,p,rank_or_tol,symm,ratio)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end  % number of points
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 64; end  % number of proxy points
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
@@ -15,9 +15,8 @@ function ie_ellipse(n,occ,p,rank_or_tol,symm,ratio)
   if nargin < 6 || isempty(ratio), ratio = 2; end
 
   % initialize
-  theta = (1:n)*2*pi/n;
+  theta = (1:N)*2*pi/N;
   x = [ratio*cos(theta); sin(theta)];  % discretization points
-  N = size(x,2);
   % unit normal
   nu = [cos(theta); ratio*sin(theta)];
   h = sqrt(nu(1,:).^2 + nu(2,:).^2);

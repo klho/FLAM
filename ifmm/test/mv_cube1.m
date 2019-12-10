@@ -10,11 +10,11 @@
 %   - check multiply error/time
 %   - check adjoint multiply error/time
 
-function mv_cube1(m,n,occ,p,rank_or_tol,near,store)
+function mv_cube1(M,N,occ,p,rank_or_tol,near,store)
 
   % set default parameters
-  if nargin < 1 || isempty(m), m = 16384; end  % number of row points
-  if nargin < 2 || isempty(n), n =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
+  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
   if nargin < 3 || isempty(occ), occ = 512; end
   if nargin < 4 || isempty(p), p = 512; end  % number of proxy points
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
@@ -22,8 +22,8 @@ function mv_cube1(m,n,occ,p,rank_or_tol,near,store)
   if nargin < 7 || isempty(store), store = 'n'; end  % no storage
 
   % initialize
-  rx = rand(3,m); M = size(rx,2);  % row points
-  cx = rand(3,n); N = size(cx,2);  % col points
+  rx = rand(3,M);  % row points
+  cx = rand(3,N);  % col points
   % proxy points are quasi-uniform sampling of scaled 1.5-radius sphere
   proxy = trisphere_subdiv(p,'v'); r = randperm(size(proxy,2));
   proxy = proxy(:,r(1:p));  % reference proxy points are for unit box [-1, 1]^3
