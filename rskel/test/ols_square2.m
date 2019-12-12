@@ -1,13 +1,16 @@
-% Overdetermined least squares on the unit square, thin-plate splines.
+% Overdetermined least squares on the unit square, regularized Laplace kernel.
 %
-% This is the direct analogue of OLS_LINE for quasi-uniform points in 2D.
+% This is like OLS_SQUARE1 except now we use regularized Laplace sources instead
+% of thin-plate splines. This seems to better match the expected asymptotics for
+% method-of-fundamental-solution problems.
 
-function ols_square(M,N,lambda,occ,p,rank_or_tol,store,doiter)
+function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
   if nargin < 1 || isempty(M), M = 16384; end  % number of row points
   if nargin < 2 || isempty(N), N =  8192; end  % number of col points
-  if nargin < 3 || isempty(lambda), lambda = 0.1; end  % regularization
+  if nargin < 3 || isempty(delta), delta = 1e-3; end  % kernel regularization
+  if nargin < 4 || isempty(lambda), lambda = 0.1; end  % Tikhonov regularization
   if nargin < 4 || isempty(occ), occ = 128; end
   if nargin < 5 || isempty(p), p = 64; end  % half number of proxy points
   if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
@@ -27,8 +30,8 @@ function ols_square(M,N,lambda,occ,p,rank_or_tol,store,doiter)
   % reference proxy points are for unit box [-1, 1]^2
 
   % compress matrix using RSKEL
-  Afun = @(i,j)Afun_(i,j,rx,cx);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
+  Afun = @(i,j)Afun_(i,j,rx,cx,delta);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,delta);
   opts = struct('verb',1);
   tic; F = rskel(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -111,28 +114,27 @@ function ols_square(M,N,lambda,occ,p,rank_or_tol,store,doiter)
 end
 
 % kernel function
-function K = Kfun(x,y)
+function K = Kfun(x,y,delta)
   dx = x(1,:)' - y(1,:);
   dy = x(2,:)' - y(2,:);
   dr = sqrt(dx.^2 + dy.^2);
-  K = dr.^2.*log(dr);
-  K(dr == 0) = 0;  % limit
+  K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2 + delta^2));  % regularized
 end
 
 % matrix entries
-function A = Afun_(i,j,rx,cx)
-  A = Kfun(rx(:,i),cx(:,j));
+function A = Afun_(i,j,rx,cx,delta)
+  A = Kfun(rx(:,i),cx(:,j),delta);
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
+function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,delta)
   pxy = proxy*l + ctr';  % scale and translate reference points
   if rc == 'r'
-    Kpxy = Kfun(rx(:,slf),pxy);
+    Kpxy = Kfun(rx(:,slf),pxy,delta);
     dx = cx(1,nbr) - ctr(1);
     dy = cx(2,nbr) - ctr(2);
   else
-    Kpxy = Kfun(pxy,cx(:,slf));
+    Kpxy = Kfun(pxy,cx(:,slf),delta);
     dx = rx(1,nbr) - ctr(1);
     dy = rx(2,nbr) - ctr(2);
   end
