@@ -22,7 +22,7 @@ function ie_ellipse(N,occ,p,rank_or_tol,symm,ratio)
   h = sqrt(nu(1,:).^2 + nu(2,:).^2);
   nu = nu./h;
   kappa = ratio./h.^3;  % curvature
-  h = 2*pi/n*h;         % arc length
+  h = 2*pi/N*h;         % arc length
   theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
   % reference proxy points are for unit box [-1, 1]^2
 
