@@ -87,9 +87,9 @@ function T = hypoct(x,occ,lvlmax,ext)
       % subdivide box if it contains too many points
       if xn > occ
         ctr = T.nodes(prnt).ctr;
-        idx = x(:,xi) > ctr';          % which side of center in each dim?
-        idx = 2.^((1:d) - 1)*idx + 1;  % convert d-vector to integer
-        uidx = unique(idx);            % nonempty child boxes
+        idx = x(:,xi) > ctr';      % which side of center in each dim?
+        idx = 2.^((1:d) - 1)*idx;  % convert d-vector to integer
+        uidx = unique(idx);        % nonempty child boxes
 
         % exponentially increase capacity as needed
         nbox_new = nbox + length(uidx);
@@ -103,10 +103,10 @@ function T = hypoct(x,occ,lvlmax,ext)
         % store child box data
         for i = uidx
           nbox = nbox + 1;
-          s = struct( 'ctr', ctr + l*(bitget(i-1,1:d) - 0.5), ...
-                       'xi', xi(idx == i),                    ...
-                     'prnt', prnt,                            ...
-                     'chld', [],                              ...
+          s = struct( 'ctr', ctr + l*(bitget(i,1:d) - 0.5), ...
+                       'xi', xi(idx == i),                  ...
+                     'prnt', prnt,                          ...
+                     'chld', [],                            ...
                      'nbor', []);
           T.nodes(nbox) = s;
           T.nodes(prnt).chld = [T.nodes(prnt).chld nbox];
