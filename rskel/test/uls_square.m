@@ -2,8 +2,8 @@
 %
 % This example solves an undetermined least squares problem arising from data
 % fitting at random points in the unit square by Laplace kernel radial basis
-% functions on an quasi-uniform grid. The matrix is rectangular (short-and-fat) and
-% real; we use an FMM as a fast computational reference.
+% functions on an quasi-uniform grid. The matrix is rectangular (short-and-fat)
+% and real; we use an FMM as a fast computational reference.
 %
 % This demo does the following in order:
 %
