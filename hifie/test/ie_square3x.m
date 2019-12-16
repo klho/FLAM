@@ -113,7 +113,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
-  pxy = proxy*l + ctr';  % scale and translate reference points
+  pxy = proxy*l + ctr;  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, multiplied by row/column potential/velocity field
   % and scaled to match the matrix scale

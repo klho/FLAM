@@ -81,36 +81,36 @@ function F = hifie2_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
         if lvl > t.nlvl - opts.skip, continue; end  % continue if in skip stage
 
         % generate edge centers
-        ctr = zeros(4*nbox,2);
+        ctr = zeros(2,4*nbox);
         box2ctr = cell(nbox,1);
         for i = t.lvp(lvl)+1:t.lvp(lvl+1)  % cells on this level
           j = i - t.lvp(lvl);              % local cell index
           idx = 4*(j-1)+1:4*j;             % edge indices
-          off = [0 -1; -1  0; 0 1; 1 0];   % offset from cell center
-          ctr(idx,:) = t.nodes(i).ctr + 0.5*l*off;  % edge centers
+          off = [0 -1; -1  0; 0 1; 1 0]';  % offset from cell center
+          ctr(:,idx) = t.nodes(i).ctr + 0.5*l*off;  % edge centers
           box2ctr{j} = idx;                % mapping from each cell to its edges
         end
 
         % restrict to unique shared centers
         idx = round(2*(ctr - t.nodes(1).ctr)/l);  % displacement from root
-        [~,i,j] = unique(idx,'rows');             % unique indices
+        [~,i,j] = unique(idx','rows');            % unique indices
         p = find(histc(j,1:max(j)) > 1);          % shared indices
-        ctr = ctr(i(p),:);                        % remaining centers
-        idx = zeros(size(idx,1),1);  % mapping from each index to ...
+        ctr = ctr(:,i(p));                        % remaining centers
+        idx = zeros(size(idx,2),1);  % mapping from each index to ...
         idx(p) = 1:length(p);        % ... remaining index or none
         for box = 1:nbox, box2ctr{box} = nonzeros(idx(j(box2ctr{box})))'; end
 
         % initialize center data structure
-        nb = size(ctr,1);
+        nb = size(ctr,2);
         e = cell(nb,1);
-        blocks = struct('ctr',e,'xi',e,'prnt',e,'nbr1',e,'nbr2',e);
+        blocks = struct('ctr',e,'xi',e,'prnt',e,'pnbr',e,'nbr',e);
 
         % sort points by centers
         for box = 1:nbox
           xi = [t.nodes(t.lvp(lvl)+box).xi];  % points in this cell
           i = box2ctr{box};                   % associated centers
-          dx = x(1,xi) - ctr(i,1);
-          dy = x(2,xi) - ctr(i,2);
+          dx = x(1,xi) - ctr(1,i)';
+          dy = x(2,xi) - ctr(2,i)';
           dist = sqrt(dx.^2 + dy.^2);
           [~,near] = max(dist == min(dist));  % nearest center to each point
           P(xi) = box2ctr{box}(near);         % assign points to first nearest
@@ -130,10 +130,10 @@ function F = hifie2_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
         % restrict to nonempty centers
         cnt = histc(P(rem),1:nb);
         idx = cnt > 0;
-        ctr = ctr(idx,:);
+        ctr = ctr(:,idx);
         blocks = blocks(idx);
         nb = length(blocks);   % number of nonempty centers
-        for i = 1:nb, blocks(i).ctr = ctr(i,:); end
+        for i = 1:nb, blocks(i).ctr = ctr(:,i); end
         p = cumsum(cnt == 0);  % how many empty boxes before this one?
         for box = 1:nbox
           box2ctr{box} = box2ctr{box}(idx(box2ctr{box}));  % nonempty only
@@ -145,18 +145,18 @@ function F = hifie2_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
         for box = 1:nbox
           slf = box2ctr{box};
           nbr = t.nodes(t.lvp(lvl)+box).nbor;  % neighbors for this cell
-          nbr1 = nbr(nbr <= t.lvp(lvl));       % nbr1 = higher-level cells
-          for i = slf, blocks(i).nbr1 = [blocks(i).nbr1 nbr1]; end
-          nbr2 = nbr(nbr > t.lvp(lvl)) - t.lvp(lvl);  % nbr2 = same-level ...
-          nbr2 = unique([slf box2ctr{nbr2}]);         %        ... centers
-          dx = abs(round((ctr(slf,1) - ctr(nbr2,1)')/l))';
-          dy = abs(round((ctr(slf,2) - ctr(nbr2,2)')/l))';
+          pnbr = nbr(nbr <= t.lvp(lvl));       % pnbr = higher-level cells
+          for i = slf, blocks(i).nbrp = [blocks(i).pnbr pnbr]; end
+          nbr = nbr(nbr > t.lvp(lvl)) - t.lvp(lvl);  % nbr = same-level ...
+          nbr = unique([slf box2ctr{nbr}]);          %       ... centers
+          dx = abs(round((ctr(1,slf)' - ctr(1,nbr))/l))';
+          dy = abs(round((ctr(2,slf)' - ctr(2,nbr))/l))';
           near = dx <= 1 & dy <= 1;  % check if actually neighbors by geometry
           for i = 1:length(slf)
             j = slf(i);
             if proc(j), continue; end    % already processed
-            k = nbr2(near(:,i));
-            blocks(j).nbr2 = k(k ~= j);  % don't include self
+            k = nbr(near(:,i));
+            blocks(j).nbr = k(k ~= j);  % don't include self
             proc(j) = true;
           end
         end
@@ -179,7 +179,7 @@ function F = hifie2_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
           nbr = [t.nodes(blk.nbor).xi];
         else
           blk = blocks(i);
-          nbr = [[t.nodes(blk.nbr1).xi] [blocks(blk.nbr2).xi]];
+          nbr = [[t.nodes(blk.pnbr).xi] [blocks(blk.nbr).xi]];
         end
         slf = blk.xi;
         nslf = length(slf);

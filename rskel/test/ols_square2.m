@@ -128,7 +128,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,delta)
-  pxy = proxy*l + ctr';  % scale and translate reference points
+  pxy = proxy*l + ctr;  % scale and translate reference points
   if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy,delta);
     dx = cx(1,nbr) - ctr(1);

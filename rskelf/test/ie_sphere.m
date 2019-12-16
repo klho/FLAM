@@ -178,7 +178,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,nu,area)
-  pxy = proxy*l + ctr';  % scale and translate reference points
+  pxy = proxy*l + ctr;  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   N = size(x,2);  % from proxy points to centroids: use average triangle area
@@ -197,7 +197,7 @@ end
 
 % proxy function for IFMM
 function [Kpxy,nbr] = pxyfun_ifmm_(rc,rx,cx,slf,nbr,l,ctr,proxy,nu,area)
-  pxy = proxy*l + ctr';  % scale and translate reference points
+  pxy = proxy*l + ctr;  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, scaled to match the matrix scale
   if rc == 'r'

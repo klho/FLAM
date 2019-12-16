@@ -64,7 +64,7 @@ function T = hypoct(x,occ,lvlmax,ext)
   if isempty(ext), ext = [min(x,[],2) max(x,[],2)]; end
   l = max(ext(:,2) - ext(:,1));
   ctr = 0.5*(ext(:,1) + ext(:,2));
-  s = struct('ctr',ctr','xi',1:n,'prnt',[],'chld',[],'nbor',[]);
+  s = struct('ctr',ctr,'xi',1:n,'prnt',[],'chld',[],'nbor',[]);
   T = struct('nlvl',1,'lvp',[0 1],'lrt',l,'nodes',s);
   nlvl = 1; nbox = 1;  % number of levels and boxes
   mlvl = 1; mbox = 1;  % total allocated capacity
@@ -87,7 +87,7 @@ function T = hypoct(x,occ,lvlmax,ext)
       % subdivide box if it contains too many points
       if xn > occ
         ctr = T.nodes(prnt).ctr;
-        idx = x(:,xi) > ctr';      % which side of center in each dim?
+        idx = x(:,xi) > ctr;       % which side of center in each dim?
         idx = 2.^((1:d) - 1)*idx;  % convert d-vector to integer
         uidx = unique(idx);        % nonempty child boxes
 
@@ -103,10 +103,10 @@ function T = hypoct(x,occ,lvlmax,ext)
         % store child box data
         for i = uidx
           nbox = nbox + 1;
-          s = struct( 'ctr', ctr + l*(bitget(i,1:d) - 0.5), ...
-                       'xi', xi(idx == i),                  ...
-                     'prnt', prnt,                          ...
-                     'chld', [],                            ...
+          s = struct( 'ctr', ctr + l*(bitget(i,1:d) - 0.5)', ...
+                       'xi', xi(idx == i),                   ...
+                     'prnt', prnt,                           ...
+                     'chld', [],                             ...
                      'nbor', []);
           T.nodes(nbox) = s;
           T.nodes(prnt).chld = [T.nodes(prnt).chld nbox];
@@ -153,10 +153,11 @@ function T = hypoct(x,occ,lvlmax,ext)
 
       % add children of parent-neighbors if adjacent
       idx = [T.nodes(T.nodes(prnt).nbor).chld];
-      c = reshape([T.nodes(idx).ctr],d,[])';
-      dist = round(abs(T.nodes(i).ctr - c)/l);
-      j = idx(max(dist,[],2) <= 1);
-      if ~isempty(j), T.nodes(i).nbor = [T.nodes(i).nbor j]; end
+      if ~isempty(idx)
+        dist = round(abs(T.nodes(i).ctr - [T.nodes(idx).ctr])/l);
+        j = idx(max(dist,[],1) <= 1);
+        if ~isempty(j), T.nodes(i).nbor = [T.nodes(i).nbor j]; end
+      end
     end
   end
 end
