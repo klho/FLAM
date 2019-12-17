@@ -220,27 +220,27 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         if lvl > t.nlvl - opts.skip, continue; end  % continue if in skip stage
 
         % generate edge centers
-        ctr = zeros(4*nbox,2);
+        ctr = zeros(2,4*nbox);
         box2ctr = cell(nbox,1);
         for i = t.lvp(lvl)+1:t.lvp(lvl+1)  % cells on this level
           j = i - t.lvp(lvl);              % local cell index
           idx = 4*(j-1)+1:4*j;             % edge indices
-          off = [0 -1; -1  0; 0 1; 1 0];   % offset from cell center
-          ctr(idx,:) = t.nodes(i).ctr + 0.5*l*off;  % edge centers
+          off = [0 -1; -1  0; 0 1; 1 0]';  % offset from cell center
+          ctr(:,idx) = t.nodes(i).ctr + 0.5*l*off;  % edge centers
           box2ctr{j} = idx;                % mapping from each cell to its edges
         end
 
         % restrict to unique shared centers
         idx = round(2*(ctr - t.nodes(1).ctr)/l);  % displacement from root
-        [~,i,j] = unique(idx,'rows');             % unique indices
+        [~,i,j] = unique(idx','rows');            % unique indices
         p = find(histc(j,1:max(j)) > 1);          % shared indices
-        ctr = ctr(i(p),:);                        % remaining centers
-        idx = zeros(size(idx,1),1);  % mapping from each index to ...
+        ctr = ctr(:,i(p));                        % remaining centers
+        idx = zeros(size(idx,2),1);  % mapping from each index to ...
         idx(p) = 1:length(p);        % ... remaining index or none
         for box = 1:nbox, box2ctr{box} = nonzeros(idx(j(box2ctr{box})))'; end
 
         % initialize center data structure
-        nb = size(ctr,1);
+        nb = size(ctr,2);
         e = cell(nb,1);
         blk = struct('ctr',e,'xi',e,'prnt',e);
 
@@ -248,8 +248,8 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         for box = 1:nbox
           xi = [t.nodes(t.lvp(lvl)+box).xi];  % points in this cell
           i = box2ctr{box};                   % associated centers
-          dx = x(1,xi) - ctr(i,1);
-          dy = x(2,xi) - ctr(i,2);
+          dx = x(1,xi) - ctr(1,i)';
+          dy = x(2,xi) - ctr(2,i)';
           dist = sqrt(dx.^2 + dy.^2);
           [~,near] = max(dist == min(dist));  % nearest center to each point
           P(xi) = box2ctr{box}(near);         % assign points to first nearest
@@ -269,7 +269,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         % restrict to nonempty centers
         cnt = histc(P(rem),1:nb);
         idx = cnt > 0;
-        ctr = ctr(idx,:);
+        ctr = ctr(:,idx);
         blk = blk(idx);
         nb = length(blk);   % number of nonempty centers
         p = cumsum(cnt == 0);  % how many empty boxes before this one?
@@ -280,7 +280,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
         % remove duplicate points
         for i = 1:nb
-          blk(i).ctr = ctr(i,:);
+          blk(i).ctr = ctr(:,i);
           [blk(i).xi,idx] = unique(blk(i).xi,'first');
           blk(i).prnt = blk(i).prnt(idx);
         end
