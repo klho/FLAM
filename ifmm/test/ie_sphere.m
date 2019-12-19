@@ -119,10 +119,11 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   B = Kfun(x,src,'s')*q;  % field evaluated at surface
 
   % solve for surface density
-  tic; [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,[],1e-6,32); t = toc;
+  tic; [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-6,32); t = toc;
   r = randperm(N); r = r(1:min(N,128));
   err = norm(B(r) - Afun(r,1:N)*X)/norm(B(r));
-  fprintf('gmres resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err,iter(2),t)
+  fprintf('gmres resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err, ...
+          (iter(1)+1)*iter(2),t)
 
   % evaluate field from solved density at interior targets
   trg = randn(3,m);                  % random target points on ...

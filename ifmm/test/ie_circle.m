@@ -57,9 +57,10 @@ function ie_circle(N,occ,p,rank_or_tol,near,store,symm)
   B = Kfun(x,src,'s')*q;  % field evaluated at boundary
 
   % solve for boundary density
-  tic; [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,[],1e-12,32); t = toc;
+  tic; [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-12,32); t = toc;
   err = norm(B - mv(X))/norm(B);
-  fprintf('gmres resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err,iter(2),t)
+  fprintf('gmres resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err, ...
+          (iter(1)+1)*iter(2),t)
 
   % evaluate field from solved density at interior targets
   trg = 0.5*[cos(theta); sin(theta)];  % target points

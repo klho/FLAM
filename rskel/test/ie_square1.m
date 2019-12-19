@@ -95,16 +95,17 @@ function ie_square1(n,occ,p,rank_or_tol,symm,doiter)
 
   % run unpreconditioned GMRES
   B = mv(X);
-  iter(2) = nan;
-  if doiter, [~,~,~,iter] = gmres(mv,B,[],1e-12,128); end
+  iter(1:2) = nan;
+  if doiter, [~,~,~,iter] = gmres(mv,B,32,1e-12,32); end
 
   % run preconditioned GMRES
-  tic; [Y,~,~,piter] = gmres(mv,B,[],1e-12,32,@(x)sv(x,'n')); t = toc;
+  tic; [Y,~,~,piter] = gmres(mv,B,32,1e-12,32,@(x)sv(x,'n')); t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - mv(Y))/norm(B);
   fprintf('gmres:\n')
   fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
-  fprintf('  precon/unprecon iter: %d / %d\n',piter(2),iter(2))
+  fprintf('  precon/unprecon iter: %d / %d\n',(piter(1)+1)*piter(2), ...
+          (iter(1)+1)*iter(2))
 end
 
 % kernel function

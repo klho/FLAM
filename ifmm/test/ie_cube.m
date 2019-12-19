@@ -63,12 +63,12 @@ function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
 
   % run GMRES
   B = mv(X);
-  tic; [Y,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,[],1e-12,32); t = toc;
+  tic; [Y,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-12,32); t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - mv(Y))/norm(B);
   fprintf('gmres:\n')
   fprintf('  soln/resid err: %10.4e / %10.4e\n',err1,err2)
-  fprintf('  iter/time: %d / %10.4e (s)\n',iter(2),t)
+  fprintf('  iter/time: %d / %10.4e (s)\n',(iter(1)+1)*iter(2),t)
 end
 
 % kernel function

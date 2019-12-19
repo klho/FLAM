@@ -81,16 +81,17 @@ function fd_cube3(n,k,occ,symm,doiter,diagmode)
 
   % run unpreconditioned GMRES
   B = A*X;
-  iter(2) = nan;
-  if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,[],1e-12,128); end
+  iter(1:2) = nan;
+  if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,32,1e-12,32); end
 
   % run preconditioned GMRES
-  tic; [Y,~,~,piter] = gmres(@(x)(A*x),B,[],1e-12,32,@(x)mf_sv(F,x)); t = toc;
+  tic; [Y,~,~,piter] = gmres(@(x)(A*x),B,32,1e-12,32,@(x)mf_sv(F,x)); t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - A*Y)/norm(B);
   fprintf('gmres:\n')
   fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
-  fprintf('  precon/unprecon iter: %d / %d\n',piter(2),iter(2))
+  fprintf('  precon/unprecon iter: %d / %d\n',(piter(1)+1)*piter(2), ...
+          (iter(1)+1)*iter(2))
 
   % compute log-determinant
   tic
