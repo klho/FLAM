@@ -63,7 +63,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1
-    l = t.lrt/2^(lvl - 1);
+    l = t.l(:,lvl);
     nbox = t.lvp(lvl+1) - t.lvp(lvl);
 
     % pull up skeletons from children
@@ -89,7 +89,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
             idx = 6*(j-1)+1:6*j;             % face indices
             off = [0 0 -1; 0 -1 0; -1 0 0;   % offset from cell center
                    0 0  1; 0  1 0;  1 0 0]';
-            ctr(:,idx) = t.nodes(i).ctr + 0.5*l*off;  % face centers
+            ctr(:,idx) = t.nodes(i).ctr + 0.5*l.*off;  % face centers
             box2ctr{j} = idx;  % mapping from each cell to its faces
           end
 
@@ -103,15 +103,15 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
             off = [ 0 -1 -1;  0 -1 1; 0  1 -1; 0 1 1;  % offset from cell center
                    -1  0 -1; -1  0 1; 1  0 -1; 1 0 1;
                    -1 -1  0; -1  1 0; 1 -1  0; 1 1 0]';
-            ctr(:,idx) = t.nodes(i).ctr + 0.5*l*off;  % edge centers
+            ctr(:,idx) = t.nodes(i).ctr + 0.5*l.*off;  % edge centers
             box2ctr{j} = idx;  % mapping from each cell to its edges
           end
         end
 
         % restrict to unique shared centers
-        idx = round(2*(ctr - t.nodes(1).ctr)/l);  % displacement from root
-        [~,i,j] = unique(idx','rows');            % unique indices
-        p = find(histc(j,1:max(j)) > 1);          % shared indices
+        idx = round(2*(ctr - t.nodes(1).ctr)./l);  % displacement from root
+        [~,i,j] = unique(idx','rows');             % unique indices
+        p = find(histc(j,1:max(j)) > 1);           % shared indices
         % for edges, further restrict to those shared diagonally across boxes
         if d == 1
           np = length(p);             % number of shared centers
@@ -122,10 +122,10 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
           for ip = 1:np               % loop over shared centers
             % centers of corresponding parent boxes
             c = [t.nodes(t.lvp(lvl)+k(q(p(ip))+1:q(p(ip)+1))).ctr];
-            dx = c(1,:)' - c(1,:);    % distance between boxes
-            dy = c(2,:)' - c(2,:);
-            dz = c(3,:)' - c(3,:);
-            dist = round((abs(dx) + abs(dy) + abs(dz))/l);  % convert to integer
+            dx = abs(c(1,:)' - c(1,:))/l(1);  % scaled distance between boxes
+            dy = abs(c(2,:)' - c(2,:))/l(2);
+            dz = abs(c(3,:)' - c(3,:))/l(3);
+            dist = round(dx + dy + dz);              % convert to integer
             if any(dist(:) == 2), keep(ip) = 1; end  % diagonal -> dist = 2
           end
           p = p(keep);
@@ -183,11 +183,11 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
           nbr = t.nodes(t.lvp(lvl)+box).nbor;  % neighbors for this cell
           pnbr = nbr(nbr <= t.lvp(lvl));       % pnbr = higher-level cells
           for i = slf, blocks(i).pnbr = [blocks(i).pnbr pnbr]; end
-          nbr = nbr(nbr > t.lvp(lvl)) - t.lvp(lvl);  % nbr2 = same-level ...
-          nbr = unique([slf box2ctr{nbr}]);          %        ... centers
-          dx = abs(round((ctr(1,slf)' - ctr(1,nbr))/l))';
-          dy = abs(round((ctr(2,slf)' - ctr(2,nbr))/l))';
-          dz = abs(round((ctr(3,slf)' - ctr(3,nbr))/l))';
+          nbr = nbr(nbr > t.lvp(lvl)) - t.lvp(lvl);  % nbr = same-level ...
+          nbr = unique([slf box2ctr{nbr}]);          %       ... centers
+          dx = abs(round((ctr(1,slf)' - ctr(1,nbr))/l(1)))';
+          dy = abs(round((ctr(2,slf)' - ctr(2,nbr))/l(2)))';
+          dz = abs(round((ctr(3,slf)' - ctr(3,nbr))/l(3)))';
           near = dx <= 1 & dy <= 1 & dz <= 1;  % check if actually neighbors
           for i = 1:length(slf)
             j = slf(i);

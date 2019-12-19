@@ -150,7 +150,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
     ts = tic;
     nlvl = nlvl + 1;
     nrem1 = sum(rem);  % remaining points at start
-    l = t.lrt/2^(lvl - 1);
+    l = t.l(:,lvl);
 
     % pull up skeletons from children
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)

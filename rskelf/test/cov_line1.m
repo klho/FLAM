@@ -145,12 +145,11 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = proxy*l + ctr;  % scale and translate reference points
+  pxy = proxy.*l + ctr;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(slf),scale);
   % proxy points form interval of scaled radius 1.5 around current box
   % keep among neighbors only those within interval
-  dist = abs(x(nbr) - ctr);
-  nbr = nbr(dist/l < 1.5);
+  nbr = nbr(abs(x(nbr) - ctr)/l < 1.5);
 end
 
 % FFT multiplication

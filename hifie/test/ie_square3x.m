@@ -11,8 +11,8 @@ function ie_square3x(n,k,occ,p,rank_or_tol,skip,symm,doiter)
   if nargin < 4 || isempty(p), p = 64; end  % number of proxy points
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
   if nargin < 6 || isempty(skip), skip = 2; end
-  if nargin < 6 || isempty(symm), symm = 's'; end  % symmetric
-  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned GMRES?
+  if nargin < 7 || isempty(symm), symm = 's'; end  % symmetric
+  if nargin < 8 || isempty(doiter), doiter = 1; end  % unpreconditioned GMRES?
 
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
@@ -113,19 +113,16 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,k,sqrtb,symm)
-  pxy = proxy*l + ctr;  % scale and translate reference points
+  pxy = proxy.*l + ctr;  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, multiplied by row/column potential/velocity field
   % and scaled to match the matrix scale
   N = size(x,2);
   Kpxy = Kfun(pxy,x(:,slf),k).*sqrtb(slf)'/N;
   if symm == 'n', Kpxy = [Kpxy; conj(Kpxy)]; end  % assume only 'N' or 'S'
-  dx = x(1,nbr) - ctr(1);
-  dy = x(2,nbr) - ctr(2);
-  % proxy points form circle of scaled radius 1.5 around current box
-  % keep among neighbors only those within circle
-  dist = sqrt(dx.^2 + dy.^2);
-  nbr = nbr(dist/l < 1.5);
+  % proxy points form ellipse of scaled "radius" 1.5 around current box
+  % keep among neighbors only those within ellipse
+  nbr = nbr(sum(((x(:,nbr) - ctr)./l).^2) < 1.5^2);
 end
 
 % FFT multiplication

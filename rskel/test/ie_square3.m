@@ -142,24 +142,21 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k,sqrtb)
-  pxy = proxy*l + ctr;  % scale and translate reference points
+  pxy = proxy.*l + ctr;  % scale and translate reference points
   % proxy interaction is kernel evaluation between proxy points and row/column
   % points being compressed, multiplied by row/column potential/velocity field
   % and scaled to match the matrix scale
   N = size(rx,2);
   if rc == 'r'
     Kpxy = sqrtb(slf).*Kfun(rx(:,slf),pxy,k)/N;
-    dx = cx(1,nbr) - ctr(1);
-    dy = cx(2,nbr) - ctr(2);
+    dr = cx(:,nbr) - ctr;
   else
     Kpxy = Kfun(pxy,cx(:,slf),k).*sqrtb(slf)'/N;
-    dx = rx(1,nbr) - ctr(1);
-    dy = rx(2,nbr) - ctr(2);
+    dr = rx(:,nbr) - ctr;
   end
-  % proxy points form circle of scaled radius 1.5 around current box
-  % keep among neighbors only those within circle
-  dist = sqrt(dx.^2 + dy.^2);
-  nbr = nbr(dist/l < 1.5);
+  % proxy points form ellipse of scaled "radius" 1.5 around current box
+  % keep among neighbors only those within ellipse
+  nbr = nbr(sum((dr./l).^2) < 1.5^2);
 end
 
 % FFT multiplication

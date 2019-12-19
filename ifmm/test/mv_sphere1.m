@@ -73,20 +73,15 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy)
-  pxy = proxy*l + ctr;  % scale and translate reference points
+  pxy = proxy.*l + ctr;  % scale and translate reference points
   if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy);
-    dx = cx(1,nbr) - ctr(1);
-    dy = cx(2,nbr) - ctr(2);
-    dz = cx(3,nbr) - ctr(3);
+    dr = cx(:,nbr) - ctr;
   else
     Kpxy = Kfun(pxy,cx(:,slf));
-    dx = rx(1,nbr) - ctr(1);
-    dy = rx(2,nbr) - ctr(2);
-    dz = rx(3,nbr) - ctr(3);
+    dr = rx(:,nbr) - ctr;
   end
-  % proxy points form sphere of scaled radius 1.5 around current box
-  % keep among neighbors only those within sphere
-  dist = sqrt(dx.^2 + dy.^2 + dz.^2);
-  nbr = nbr(dist/l < 1.5);
+    % proxy points form ellipsoid of scaled "radius" 1.5 around current box
+  % keep among neighbors only those within ellipsoid
+  nbr = nbr(sum((dr./l).^2) < 1.5^2);
 end

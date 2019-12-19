@@ -131,7 +131,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1
-    l = t.lrt/2^(lvl - 1);
+    l = t.l(:,lvl);
     nbox = t.lvp(lvl+1) - t.lvp(lvl);
 
     % pull up skeletons from children
@@ -226,15 +226,15 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
           j = i - t.lvp(lvl);              % local cell index
           idx = 4*(j-1)+1:4*j;             % edge indices
           off = [0 -1; -1  0; 0 1; 1 0]';  % offset from cell center
-          ctr(:,idx) = t.nodes(i).ctr + 0.5*l*off;  % edge centers
+          ctr(:,idx) = t.nodes(i).ctr + 0.5*l.*off;  % edge centers
           box2ctr{j} = idx;                % mapping from each cell to its edges
         end
 
         % restrict to unique shared centers
-        idx = round(2*(ctr - t.nodes(1).ctr)/l);  % displacement from root
-        [~,i,j] = unique(idx','rows');            % unique indices
-        p = find(histc(j,1:max(j)) > 1);          % shared indices
-        ctr = ctr(:,i(p));                        % remaining centers
+        idx = round(2*(ctr - t.nodes(1).ctr)./l);  % displacement from root
+        [~,i,j] = unique(idx','rows');             % unique indices
+        p = find(histc(j,1:max(j)) > 1);           % shared indices
+        ctr = ctr(:,i(p));                         % remaining centers
         idx = zeros(size(idx,2),1);  % mapping from each index to ...
         idx(p) = 1:length(p);        % ... remaining index or none
         for box = 1:nbox, box2ctr{box} = nonzeros(idx(j(box2ctr{box})))'; end

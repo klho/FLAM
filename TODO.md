@@ -8,6 +8,6 @@ Here are some ideas for potential new features:
 
 - Port Victor Minden's `srskelf` (https://github.com/victorminden/strong-skel) and "modernize" as appropriate on merging into FLAM. This is essentially the factorization version of the FMM and achieves empirical linear complexity in all dimensions just like `hifie`, but with tighter rank control and a cleaner tree structure. `srskelf` can be considered the current state of the art for recursive skeletonization methods.
 
-- Add support for domain periodicity. This requires generalizing `hypoct` to use "mostly" hypercubic nodes.
+- Add support for domain periodicity. This requires generalizing how `hypoct` defines neighbors.
 
 - Implement sublinear-time updating as outlined [V. Minden, A. Damle, K.L. Ho, L. Ying. A technique for updating hierarchical skeletonization-based factorizations of integral operators. Multiscale Model. Simul. 14 (1): 42–64, 2016](http://dx.doi.org/10.1137/15M1024500). Note that this would not really work in Octave due to copy-on-write unless we adopt a handle-based approach to storing the factorizations.

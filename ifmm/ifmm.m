@@ -171,7 +171,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   ts = tic;
   nrrem1 = sum(rrem); ncrem1 = sum(crem);  % remaining row/cols at start
   for lvl = 1:t.nlvl
-    l = t.lrt/2^(lvl - 1);
+    l = t.l(:,lvl);
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
       rslf = t.nodes(i).rxi;
       cslf = t.nodes(i).cxi;
@@ -308,7 +308,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     ts = tic;
     nlvl = nlvl + 1;
     nrrem1 = sum(rrem); ncrem1 = sum(crem);  % remaining row/cols at start
-    l = t.lrt/2^(lvl - 1);
+    l = t.l(:,lvl);
 
     % pull up skeletons from children
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
