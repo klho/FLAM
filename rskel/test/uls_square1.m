@@ -13,7 +13,7 @@
 %   - check pseudoinverse solve error/time
 %   - compare LSQR/CG with/without initial guess from approximate solve
 
-function uls_square(M,N,occ,p,rank_or_tol,store,doiter)
+function uls_square1(M,N,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
   if nargin < 1 || isempty(M), M =  8192; end  % number of row points

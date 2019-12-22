@@ -1,21 +1,20 @@
-% Overdetermined least squares on the unit square, regularized Laplace kernel.
+% Underdetermined least squares on the unit square, regularized Laplace kernel.
 %
-% This is like OLS_SQUARE1 except now we use regularized Laplace sources instead
-% of thin-plate splines. This seems to better match the expected asymptotics for
-% method-of-fundamental-solution problems.
+% This is like ULS_SQUARE1 except now we use regularized Laplace sources to
+% match against data on a quasi-uniform grid. This seems to better match the
+% expected asymptotics for method-of-fundamental-solution problems.
 
-function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
+function uls_square2(M,N,delta,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
-  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M =  8192; end  % number of row points
+  if nargin < 2 || isempty(N), N = 16384; end  % number of col points
   if nargin < 3 || isempty(delta), delta = 1e-3; end  % kernel regularization
-  if nargin < 4 || isempty(lambda), lambda = 0.1; end  % Tikhonov regularization
-  if nargin < 5 || isempty(occ), occ = 128; end
-  if nargin < 6 || isempty(p), p = 64; end  % half number of proxy points
-  if nargin < 7 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 8 || isempty(store), store = 'a'; end  % FMM storage mode
-  if nargin < 9 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
+  if nargin < 4 || isempty(occ), occ = 128; end
+  if nargin < 5 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
+  if nargin < 7 || isempty(store), store = 'a'; end  % FMM storage mode
+  if nargin < 8 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
 
   % initialize
   m = ceil(sqrt(M)); [x1,x2] = ndgrid((1:m)/m); rx = [x1(:) x2(:)]';
@@ -23,10 +22,7 @@ function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
   n = ceil(sqrt(N)); [x1,x2] = ndgrid((1:n)/n); cx = [x1(:) x2(:)]';
   r = randperm(size(cx,2)); cx = cx(:,r(1:N));  % col points
   clear x1 x2
-  % proxy points -- two concentric rings (thin-plate splines are Green's
-  % function for biharmonic equation; no Green's theorem)
-  theta = (1:p)*2*pi/p;
-  proxy = 1.5*[cos(theta); sin(theta)]; proxy = [proxy 2*proxy];
+  theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
   % reference proxy points are for unit box [-1, 1]^2
 
   % compress matrix using RSKEL
@@ -61,7 +57,7 @@ function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
   tau = eps^(-1/3);
   tic
   A = rskel_xsp(F);
-  A = [tau*A(M+1:end,:); A(1:M,:); lambda*speye(N) sparse(N,size(A,2)-N)];
+  A = [tau*A; speye(N) sparse(N,size(A,2)-N)];
   t = toc;
   w = whos('A'); mem = w.bytes/1e6;
   fprintf('rskel_xsp:\n')
@@ -71,11 +67,13 @@ function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
   tic; R = qr(A,0); t = toc;
   w = whos('R'); mem = w.bytes/1e6;
   fprintf('  qr time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
-  ls = @(X)ls_(A,R,X,M,N,tau);  % least squares solve function
+  nc = size(A,1) - N;         % number of constraints
+  ls = @(X)ls_(A,R,X,N,tau);  % least squares solve function
 
   % test pseudoinverse apply accuracy
   B = ifmm_mv(G,X,Afun);                 % random right-hand side in range
-  tic; [Y,cres,niter] = ls(B); t = toc;  % least squares solve
+  C = [B; zeros(nc-M,1)];
+  tic; [Y,cres,niter] = ls(C); t = toc;  % least squares solve
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - ifmm_mv(G,Y,Afun))/norm(B);
   fprintf('ls:\n')
@@ -85,20 +83,19 @@ function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
 
   iter = nan;
   if ~isoctave()
-    C = [B; zeros(N,1)];
-    mv = @(x,trans)mv_lsqr(G,x,trans,Afun,M,lambda);
+    mv = @(x,trans)mv_lsqr(G,x,trans,Afun);
 
     % run LSQR
-    if doiter, [~,~,~,iter] = lsqr(mv,C,1e-6,128); end
+    if doiter, [~,~,~,iter] = lsqr(mv,B,1e-6,128); end
 
     % run LSQR with initial guess from pseudoinverse
-    tic; [Z,~,~,piter] = lsqr(mv,C,1e-6,32,[],[],Y); t = toc;
+    tic; [Z,~,~,piter] = lsqr(mv,B,1e-6,32,[],[],Y); t = toc;
     fprintf('lsqr:\n')
   else
     warning('No LSQR in Octave.')
 
     C = ifmm_mv(G,B,Afun,'c');
-    mv = @(x)mv_cg(G,x,Afun,lambda);
+    mv = @(x)mv_cg(G,x,Afun);
 
     % run CG (on normal equations)
     if doiter, [~,~,~,iter] = pcg(mv,C,1e-6,128); end
@@ -117,7 +114,6 @@ end
 function K = Kfun(x,y,delta)
   dx = x(1,:)' - y(1,:);
   dy = x(2,:)' - y(2,:);
-  dr = sqrt(dx.^2 + dy.^2);
   K = -1/(2*pi)*log(sqrt(dx.^2 + dy.^2 + delta^2));  % regularized
 end
 
@@ -148,26 +144,23 @@ function x = lsfun(A,R,b)
 end
 
 % equality-constrained least squares solve
-function [Y,cres,niter] = ls_(A,R,X,M,N,tau)
+function [Y,cres,niter] = ls_(A,R,X,N,tau)
   p = size(X,2);
-  X = [X; zeros(N,p)];     % for regularization
-  nc = size(A,1) - M - N;  % number of constraints
+  nc = size(A,1) - N;  % number of constraints
   % deferred correction for iterated weighted least squares
-  [Y,cres,niter] = lsedc(@(b)lsfun(A,R,b),A(nc+1:end,:),X,A(1:nc,:)/tau, ...
-                         zeros(nc,p),tau);
+  [Y,cres,niter] = lsedc(@(b)lsfun(A,R,b),A(nc+1:end,:),zeros(N,p), ...
+                         A(1:nc,:)/tau,X,tau);
   Y = Y(1:N,:);
 end
 
 % matrix multiply for LSQR
-function y = mv_lsqr(F,x,trans,Afun,M,lambda)
-  if strcmpi(trans,'notransp')
-    y = [ifmm_mv(F,x,Afun,'n'); lambda*x];
-  elseif strcmpi(trans,'transp')
-    y = ifmm_mv(F,x(1:M),Afun,'c') + lambda*x(M+1:end);
+function y = mv_lsqr(F,x,trans,Afun)
+  if     strcmpi(trans,'notransp'), y = ifmm_mv(F,x,Afun,'n');
+  elseif strcmpi(trans,  'transp'), y = ifmm_mv(F,x,Afun,'c');
   end
 end
 
 % matrix multiply for CG
-function y = mv_cg(F,x,Afun,lambda)
-  y = ifmm_mv(F,ifmm_mv(F,x,Afun,'n'),Afun,'c') + lambda^2*x;
+function y = mv_cg(F,x,Afun)
+  y = ifmm_mv(F,ifmm_mv(F,x,Afun,'n'),Afun,'c');
 end
