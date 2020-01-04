@@ -43,7 +43,7 @@ function [sk,rd,T] = hifie_idx(K,K1,K2,rank_or_tol)
   nrd = zeros(ngrp,1);
   for k = 1:ngrp
     K_ = K(:,grp{k});
-    [sk_{k},rd_{k},T_{k}] = id(K_,ratio*rank_or_tol,0);  % no randomization
+    [sk_{k},rd_{k},T_{k}] = id(K_,ratio*rank_or_tol);
     nsk(k) = length(sk_{k});
     nrd(k) = length(rd_{k});
   end

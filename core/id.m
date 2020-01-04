@@ -12,10 +12,6 @@
 %    [SK,RD,T] = ID(A,RANK_OR_TOL) sets K = RANK_OR_TOL if RANK_OR_TOL >= 1 and
 %    TOL = RANK_OR_TOL if RANK_OR_TOL < 1.
 %
-%    [SK,RD,T] = ID(A,RANK_OR_TOL,SRAND) uses random sampling if A is
-%    sufficiently tall-and-skinny and SRAND = 1 (default) to first project down
-%    to a reduced subspace before computing the ID.
-%
 %    [SK,RD] = ID(A,...) skips the computation of the interpolation matrix T.
 %
 %    References:
@@ -25,10 +21,7 @@
 %
 %    See also QR.
 
-function [sk,rd,T] = id(A,rank_or_tol,srand)
-
-  % set default parameters
-  if nargin < 3 || isempty(srand), srand = 1; end
+function [sk,rd,T] = id(A,rank_or_tol)
 
   % check inputs
   assert(rank_or_tol >= 0,'FLAM:id:invalidRankOrTol', ...
@@ -44,8 +37,11 @@ function [sk,rd,T] = id(A,rank_or_tol,srand)
     return
   end
 
-  % sample against Gaussian matrix if too rectangular
-  if srand && m > 2*n, A = randn(n+16,m)*A; end
+  % reduce row size if too rectangular
+  if m > 8*n
+    [Q,~] = qr(A,0);
+    A = Q'*A;
+  end
 
   % compute ID
   [~,R,P] = qr(A,0);
