@@ -1,7 +1,7 @@
 % HIFDE_MV  Multiply using hierarchical interpolative factorization for
 %           differential equations.
 %
-%    Typical complexity: quasilinear in all dimensions.
+%    Typical complexity: O(N) in all dimensions.
 %
 %    Y = HIFDE_MV(F,X) produces the matrix Y by applying the factored matrix F
 %    to the matrix X.

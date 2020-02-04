@@ -5,9 +5,10 @@
 %    and right by unit coordinate vectors, taking advantage of the sparsity of
 %    each such operation.
 %
-%    Typical complexity: quasilinear in all dimensions, but generally worse than
-%    HIFDE_DIAG. However, the constant can be significantly smaller so that this
-%    should generally be preferred.
+%    Typical complexity: in 2D, O(N); in 3D, O(N^(5/3)) with face
+%    skeletonization but no edge skeletonization, and O(N) with both. This is
+%    generally worse than HIFDE_DIAG, but the constant can be significantly
+%    smaller so that this may still be preferred.
 %
 %    D = HIFDE_DIAG(F) produces the diagonal D of the factored matrix F.
 %
