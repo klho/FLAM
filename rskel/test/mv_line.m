@@ -11,7 +11,7 @@
 %
 % Inputs (defaults are used if not provided or set empty):
 %
-%   - N: number of points (default: N = 128)
+%   - N: number of points (default: N = 16384)
 %   - OCC: tree occupancy parameter (default: OCC = 128)
 %   - P: half-number of proxy points (default: P = 8)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)

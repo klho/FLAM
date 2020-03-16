@@ -2,18 +2,29 @@
 %
 % This is basically the same as MV_CIRCLE1 but using the Helmholtz kernel. The
 % associated matrix is rectangular and complex.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - M: number of row points (default: M = 16384)
+%   - N: number of column points (default: N = 8192)
+%   - K: wavenumber (default: K = 2*PI*8)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - NEAR: near-field compression parameter (default: NEAR = 0)
+%   - STORE: storage parameter (default: STORE = 'N')
 
 function mv_circle2(M,N,k,occ,p,rank_or_tol,near,store)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
-  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
-  if nargin < 3 || isempty(k), k = 2*pi*8; end  % wavenumber
+  if nargin < 1 || isempty(M), M = 16384; end
+  if nargin < 2 || isempty(N), N =  8192; end
+  if nargin < 3 || isempty(k), k = 2*pi*8; end
   if nargin < 4 || isempty(occ), occ = 128; end
-  if nargin < 5 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 5 || isempty(p), p = 64; end
   if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 7 || isempty(near), near = 0; end  % no near-field compression
-  if nargin < 8 || isempty(store), store = 'n'; end  % no storage
+  if nargin < 7 || isempty(near), near = 0; end
+  if nargin < 8 || isempty(store), store = 'n'; end
 
   % initialize
   theta = 2*pi*rand(1,M); rx = [cos(theta); sin(theta)];       % row points

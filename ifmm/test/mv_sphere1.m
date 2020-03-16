@@ -9,17 +9,27 @@
 %   - compress the matrix
 %   - check multiply error/time
 %   - check adjoint multiply error/time
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - M: number of row points (default: M = 16384)
+%   - N: number of column points (default: N = 8192)
+%   - OCC: tree occupancy parameter (default: OCC = 256)
+%   - P: number of proxy points (default: P = 512)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - NEAR: near-field compression parameter (default: NEAR = 0)
+%   - STORE: storage parameter (default: STORE = 'N')
 
 function mv_sphere1(M,N,occ,p,rank_or_tol,near,store)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
-  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
+  if nargin < 1 || isempty(M), M = 16384; end
+  if nargin < 2 || isempty(N), N =  8192; end
   if nargin < 3 || isempty(occ), occ = 256; end
-  if nargin < 4 || isempty(p), p = 512; end  % number of proxy points
+  if nargin < 4 || isempty(p), p = 512; end
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 6 || isempty(near), near = 0; end  % no near-field compression
-  if nargin < 7 || isempty(store), store = 'n'; end  % no storage
+  if nargin < 6 || isempty(near), near = 0; end
+  if nargin < 7 || isempty(store), store = 'n'; end
 
   % initialize
   rx = randn(3,M); rx = rx./sqrt(sum(rx.^2));  % row points
