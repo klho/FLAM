@@ -21,7 +21,7 @@ function fd_cube3(n,k,occ,symm,doiter,diagmode)
   if nargin < 3 || isempty(occ), occ = 4; end
   if nargin < 4 || isempty(symm), symm = 'h'; end
   if nargin < 5 || isempty(doiter), doiter = 1; end
-  if nargin < 6 || isempty(diagmode), diagmode = 0; en
+  if nargin < 6 || isempty(diagmode), diagmode = 0; end
 
   % initialize
   N = (n - 1)^3;  % total number of grid points
