@@ -10,15 +10,23 @@
 %   - factor the matrix
 %   - check multiply/solve error/time
 %   - check PDE solve error by applying to known solution
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of discretization points (default: N = 16384)
+%   - OCC: tree occupancy parameter (default: OCC = 64)
+%   - P: number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - SYMM: symmetry parameter (default: SYMM = 'H')
 
 function ie_circle(N,occ,p,rank_or_tol,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(N), N = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end
   if nargin < 2 || isempty(occ), occ = 64; end
-  if nargin < 3 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 3 || isempty(p), p = 64; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(symm), symm = 'h'; end  % symmetric/Hermitian
+  if nargin < 5 || isempty(symm), symm = 'h'; end
 
   % initialize
   theta = (1:N)*2*pi/N; x = [cos(theta); sin(theta)];  % discretization points

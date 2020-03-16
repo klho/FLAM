@@ -2,19 +2,30 @@
 %
 % This is essentially the same as COV_LINE1 but on the circle instead of the
 % line. The resulting matrix is square, real, positive definite, and circulant.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of points (default: N = 16384)
+%   - OCC: tree occupancy parameter (default: OCC = 64)
+%   - P: square root of number of proxy points (default: P = 16)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - SYMM: symmetry parameter (default: SYMM = 'P')
+%   - NOISE: nugget effect (default: NOISE = 1e-2)
+%   - SCALE: kernel length scale (default: SCALE = 100)
+%   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
+%       sparse apply/solves (default: DIAGMODE = 1)
 
 function cov_circle1(N,occ,p,rank_or_tol,symm,noise,scale,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(N), N = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end
   if nargin < 2 || isempty(occ), occ = 64; end
-  if nargin < 3 || isempty(p), p = 16; end  % sqrt number of proxy points
+  if nargin < 3 || isempty(p), p = 16; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
-  if nargin < 6 || isempty(noise), noise = 1e-2; end  % nugget effect
-  if nargin < 7 || isempty(scale), scale = 100; end  % kernel length scale
-  if nargin < 8 || isempty(diagmode), diagmode = 1; end  % diag extraction mode
-  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
+  if nargin < 5 || isempty(symm), symm = 'p'; end
+  if nargin < 6 || isempty(noise), noise = 1e-2; end
+  if nargin < 7 || isempty(scale), scale = 100; end
+  if nargin < 8 || isempty(diagmode), diagmode = 1; end
 
   % initialize
   theta = (1:N)*2*pi/N; x = [cos(theta); sin(theta)];  % row/col points

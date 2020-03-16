@@ -6,17 +6,27 @@
 % potential/velocity field is nonnegative so that the matrix can be symmetrized;
 % the resulting matrix is square, complex, symmetric, and Toeplitz. This demo
 % follows the same outline as in IE_SQUARE1.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of discretization points in each dimension (default: N = 128)
+%   - K: wavenumber (default: K = 2*PI*4)
+%   - OCC: tree occupancy parameter (default: OCC = 64)
+%   - P: number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - SYMM: symmetry parameter (default: SYMM = 'S')
+%   - DOITER: whether to run unpreconditioned GMRES (default: DOITER = 1)
 
 function ie_square3(n,k,occ,p,rank_or_tol,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
-  if nargin < 2 || isempty(k), k = 2*pi*4; end  % wavenumber
+  if nargin < 1 || isempty(n), n = 128; end
+  if nargin < 2 || isempty(k), k = 2*pi*4; end
   if nargin < 3 || isempty(occ), occ = 64; end
-  if nargin < 4 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 4 || isempty(p), p = 64; end
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 6 || isempty(symm), symm = 's'; end  % symmetric
-  if nargin < 7 || isempty(doiter), doiter = 1; end  % unpreconditioned GMRES?
+  if nargin < 6 || isempty(symm), symm = 's'; end
+  if nargin < 7 || isempty(doiter), doiter = 1; end
 
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
