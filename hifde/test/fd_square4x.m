@@ -4,18 +4,28 @@
 % This is basically the same as FD_SQUARE1X but using a fourth-order
 % approximation with stencil radius two. Correspondingly, the nested dissection
 % separators have width two.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of discretization points in each dimension (default: N = 128)
+%   - OCC: tree occupancy parameter (default: OCC = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-9)
+%   - SKIP: skip parameter (default: SKIP = 2)
+%   - SYMM: symmetry parameter (default: SYMM = 'P')
+%   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
+%   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
+%       sparse apply/solves (default: DIAGMODE = 0)
 
 function fd_square4x(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points + 1 in each dim
+  if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
   if nargin < 4 || isempty(skip), skip = 2; end
-  if nargin < 5 || isempty(symm), symm = 'p'; end  % positive definite
-  if nargin < 6 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
-  if nargin < 7 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
-  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
+  if nargin < 5 || isempty(symm), symm = 'p'; end
+  if nargin < 6 || isempty(doiter), doiter = 1; end
+  if nargin < 7 || isempty(diagmode), diagmode = 0; end
 
   % initialize
   [x1,x2] = ndgrid((1:n-1)/n); x = [x1(:) x2(:)]'; clear x1 x2  % grid points
