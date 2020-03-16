@@ -1,5 +1,5 @@
 % Covariance matrix on the unit cube, squared exponential kernel.
-
+%
 % This is basically the 3D analogue of COV_SQUARE1.
 %
 % Inputs (defaults are used if not provided or set empty):
