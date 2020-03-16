@@ -8,15 +8,23 @@
 %   - compress the matrix
 %   - check multiply error/time
 %   - check adjoint multiply error/time
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of points (default: N = 128)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: half-number of proxy points (default: P = 8)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - SYMM: symmetry parameter (default: SYMM = 'S')
 
 function mv_line(N,occ,p,rank_or_tol,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(N), N = 16384; end  % number of points
+  if nargin < 1 || isempty(N), N = 16384; end
   if nargin < 2 || isempty(occ), occ = 128; end
-  if nargin < 3 || isempty(p), p = 8; end  % half number of proxy points
+  if nargin < 3 || isempty(p), p = 8; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(symm), symm = 's'; end  % symmetric
+  if nargin < 5 || isempty(symm), symm = 's'; end
 
   % initialize
   x = rand(1,N);                                        % source points

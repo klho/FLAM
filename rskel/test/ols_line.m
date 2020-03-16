@@ -13,18 +13,29 @@
 %   - build/factor extended sparsification (regularized OLS form)
 %   - check pseudoinverse solve error/time
 %   - compare LSQR/CG with/without initial guess from approximate solve
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - M: number of row points (default: M = 16384)
+%   - N: number of column points (default: N = 8192)
+%   - LAMBDA: Tikhonov regularization (default: LAMBDA = 0.01)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: half-number of proxy points (default: P = 8)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - STORE: FMM storage mode (default: STORE = 'A')
+%   - DOITER: whether to run naive LSQR/CG (default: DOITER = 1)
 
 function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
-  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
-  if nargin < 3 || isempty(lambda), lambda = 0.01; end  % regularization
+  if nargin < 1 || isempty(M), M = 16384; end
+  if nargin < 2 || isempty(N), N =  8192; end
+  if nargin < 3 || isempty(lambda), lambda = 0.01; end
   if nargin < 4 || isempty(occ), occ = 128; end
-  if nargin < 5 || isempty(p), p = 8; end  % half number of proxy points
+  if nargin < 5 || isempty(p), p = 8; end
   if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 7 || isempty(store), store = 'a'; end  % FMM storage mode
-  if nargin < 8 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
+  if nargin < 7 || isempty(store), store = 'a'; end
+  if nargin < 8 || isempty(doiter), doiter = 1; end
 
   % initialize
   rx = (1:M)/M;                                         % row points

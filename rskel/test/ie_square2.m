@@ -4,15 +4,23 @@
 % system matrix in order to create an artificial second-kind volume integral
 % operator. It skips the preconditioned GMRES comparison since the problem is
 % well-conditioned.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of discretization points in each dimension (default: N = 128)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - SYMM: symmetry parameter (default: SYMM = 'S')
 
 function ie_square2(n,occ,p,rank_or_tol,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
+  if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(occ), occ = 128; end
-  if nargin < 3 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 3 || isempty(p), p = 64; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 5 || isempty(symm), symm = 's'; end  % symmetric
+  if nargin < 5 || isempty(symm), symm = 's'; end
 
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points

@@ -1,18 +1,29 @@
 % Overdetermined least squares on the unit square, thin-plate splines.
 %
 % This is the direct analogue of OLS_LINE for quasi-uniform points in 2D.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - M: number of row points (default: M = 16384)
+%   - N: number of column points (default: N = 8192)
+%   - LAMBDA: Tikhonov regularization (default: LAMBDA = 0.1)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: half-number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - STORE: FMM storage mode (default: STORE = 'A')
+%   - DOITER: whether to run naive LSQR/CG (default: DOITER = 1)
 
 function ols_square1(M,N,lambda,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
-  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
-  if nargin < 3 || isempty(lambda), lambda = 0.1; end  % regularization
+  if nargin < 1 || isempty(M), M = 16384; end
+  if nargin < 2 || isempty(N), N =  8192; end
+  if nargin < 3 || isempty(lambda), lambda = 0.1; end
   if nargin < 4 || isempty(occ), occ = 128; end
-  if nargin < 5 || isempty(p), p = 64; end  % half number of proxy points
+  if nargin < 5 || isempty(p), p = 64; end
   if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 7 || isempty(store), store = 'a'; end  % FMM storage mode
-  if nargin < 8 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
+  if nargin < 7 || isempty(store), store = 'a'; end
+  if nargin < 8 || isempty(doiter), doiter = 1; end
 
   % initialize
   m = ceil(sqrt(M)); [x1,x2] = ndgrid((1:m)/m); rx = [x1(:) x2(:)]';

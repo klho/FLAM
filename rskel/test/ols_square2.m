@@ -2,20 +2,32 @@
 %
 % This is like OLS_SQUARE1 except now we use regularized Laplace sources instead
 % of thin-plate splines. This seems to better match the expected asymptotics for
-% method-of-fundamental-solution problems.
+% method-of-fundamental-solutions problems.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - M: number of row points (default: M = 16384)
+%   - N: number of column points (default: N = 8192)
+%   - DELTA: kernel regularization (default: DELTA = 1e-3)
+%   - LAMBDA: Tihonov regularization (default: LAMBDA = 0.1)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - STORE: FMM storage mode (default: STORE = 'A')
+%   - DOITER: whether to run naive LSQR/CG (default: DOITER = 1)
 
 function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M = 16384; end  % number of row points
-  if nargin < 2 || isempty(N), N =  8192; end  % number of col points
-  if nargin < 3 || isempty(delta), delta = 1e-3; end  % kernel regularization
-  if nargin < 4 || isempty(lambda), lambda = 0.1; end  % Tikhonov regularization
+  if nargin < 1 || isempty(M), M = 16384; end
+  if nargin < 2 || isempty(N), N =  8192; end
+  if nargin < 3 || isempty(delta), delta = 1e-3; end
+  if nargin < 4 || isempty(lambda), lambda = 0.1; end
   if nargin < 5 || isempty(occ), occ = 128; end
-  if nargin < 6 || isempty(p), p = 64; end  % half number of proxy points
+  if nargin < 6 || isempty(p), p = 64; end
   if nargin < 7 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 8 || isempty(store), store = 'a'; end  % FMM storage mode
-  if nargin < 9 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
+  if nargin < 8 || isempty(store), store = 'a'; end
+  if nargin < 9 || isempty(doiter), doiter = 1; end
 
   % initialize
   m = ceil(sqrt(M)); [x1,x2] = ndgrid((1:m)/m); rx = [x1(:) x2(:)]';
@@ -23,10 +35,7 @@ function ols_square2(M,N,delta,lambda,occ,p,rank_or_tol,store,doiter)
   n = ceil(sqrt(N)); [x1,x2] = ndgrid((1:n)/n); cx = [x1(:) x2(:)]';
   r = randperm(size(cx,2)); cx = cx(:,r(1:N));  % col points
   clear x1 x2
-  % proxy points -- two concentric rings (thin-plate splines are Green's
-  % function for biharmonic equation; no Green's theorem)
-  theta = (1:p)*2*pi/p;
-  proxy = 1.5*[cos(theta); sin(theta)]; proxy = [proxy 2*proxy];
+  theta = (1:p)*2*pi/p; proxy = 1.5*[cos(theta); sin(theta)];  % proxy points
   % reference proxy points are for unit box [-1, 1]^2
 
   % compress matrix using RSKEL

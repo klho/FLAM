@@ -12,17 +12,27 @@
 %   - build/factor extended sparsification (ULS form)
 %   - check pseudoinverse solve error/time
 %   - compare LSQR/CG with/without initial guess from approximate solve
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - M: number of row points (default: M = 8192)
+%   - N: number of column points (default: N = 16384)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - P: number of proxy points (default: P = 64)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - STORE: FMM storage mode (default: STORE = 'A')
+%   - DOITER: whether to run naive LSQR/CG (default: DOITER = 1)
 
 function uls_square1(M,N,occ,p,rank_or_tol,store,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(M), M =  8192; end  % number of row points
-  if nargin < 2 || isempty(N), N = 16384; end  % number of col points
+  if nargin < 1 || isempty(M), M =  8192; end
+  if nargin < 2 || isempty(N), N = 16384; end
   if nargin < 3 || isempty(occ), occ = 128; end
-  if nargin < 4 || isempty(p), p = 64; end  % number of proxy points
+  if nargin < 4 || isempty(p), p = 64; end
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 6 || isempty(store), store = 'a'; end  % FMM storage mode
-  if nargin < 7 || isempty(doiter), doiter = 1; end  % naive LSQR/CG?
+  if nargin < 6 || isempty(store), store = 'a'; end
+  if nargin < 7 || isempty(doiter), doiter = 1; end
 
   % initialize
   rx = rand(2,M);                                              % row points

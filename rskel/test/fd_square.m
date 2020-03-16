@@ -11,15 +11,23 @@
 %   - check multiply error/time
 %   - check solve error/time (using extended sparsification)
 %   - compare CG with/without preconditioning by approximate solve
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of discretization points in each dimension (default: N = 128)
+%   - OCC: tree occupancy parameter (default: OCC = 128)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-9)
+%   - SYMM: symmetry parameter (default: SYMM = 'P')
+%   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
 
 function fd_square(n,occ,rank_or_tol,symm,doiter)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points in each dim
+  if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
-  if nargin < 4 || isempty(symm), symm = 'p'; end  % positive definite
-  if nargin < 5 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
+  if nargin < 4 || isempty(symm), symm = 'p'; end
+  if nargin < 5 || isempty(doiter), doiter = 1; end
 
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2  % grid points
