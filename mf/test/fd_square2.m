@@ -4,16 +4,24 @@
 % This is basically the same as FD_SQUARE1 but with a variable quantized high-
 % contrast random coefficient field that makes the problem especially ill-
 % conditioned.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of points + 1 in each dimension (default: N = 128)
+%   - OCC: tree occupancy parameter (default: OCC = 8)
+%   - SYMM: symmetry parameter (default: SYMM = 'P')
+%   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
+%   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
+%       sparse apply/solves (default: DIAGMODE = 0)
 
 function fd_square2(n,occ,symm,doiter,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 128; end  % number of points + 1 in each dim
+  if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(occ), occ = 8; end
-  if nargin < 3 || isempty(symm), symm = 'p'; end  % positive definite
-  if nargin < 4 || isempty(doiter), doiter = 1; end  % unpreconditioned CG?
-  if nargin < 5 || isempty(diagmode), diagmode = 0; end  % diag extraction mode:
-  % 0 - skip; 1 - matrix unfolding; 2 - sparse apply/solves
+  if nargin < 3 || isempty(symm), symm = 'p'; end
+  if nargin < 4 || isempty(doiter), doiter = 1; end
+  if nargin < 5 || isempty(diagmode), diagmode = 0; end
 
   % initialize
   N = (n - 1)^2;  % total number of grid points
