@@ -1,16 +1,25 @@
 % Second-kind integral equation on the unit cube, Laplace single-layer.
 %
 % This is the same as IE_CUBE2 but using HIFIE3X.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: number of discretization points in each dimension (default: N = 32)
+%   - OCC: tree occupancy parameter (default: OCC = 512)
+%   - P: number of proxy points (default: P = 512)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-3)
+%   - SKIP: skip parameter (default: SKIP = 1)
+%   - SYMM: symmetry parameter (default: SYMM = 'H')
 
 function ie_cube2x(n,occ,p,rank_or_tol,skip,symm)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 32; end  % number of points in each dimension
+  if nargin < 1 || isempty(n), n = 32; end
   if nargin < 2 || isempty(occ), occ = 512; end
-  if nargin < 3 || isempty(p), p = 512; end  % number of proxy points
+  if nargin < 3 || isempty(p), p = 512; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-3; end
   if nargin < 5 || isempty(skip), skip = 1; end
-  if nargin < 6 || isempty(symm), symm = 'h'; end  % symmetric/Hermitian
+  if nargin < 6 || isempty(symm), symm = 'h'; end
 
   % initialize
   [x1,x2,x3] = ndgrid((1:n)/n); x = [x1(:) x2(:) x3(:)]';  % grid points

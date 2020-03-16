@@ -1,17 +1,27 @@
 % Second-kind integral equation on the unit sphere, Laplace double-layer.
 %
 % This is the same as IE_SPHERE1 but using HIFIE3X.
+%
+% Inputs (defaults are used if not provided or set empty):
+%
+%   - N: minimum number of triangles from subdivision (default: N = 20480)
+%   - NQUAD: quadrature order (default: NQUAD = 4)
+%   - OCC: tree occupancy parameter (default: OCC = 1024)
+%   - P: number of proxy points (default: P = 512)
+%   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-3)
+%   - SKIP: skip parameter (default: SKIP = 0)
+%   - STORE: FMM storage mode (default: STORE = 'A')
 
 function ie_sphere1x(n,nquad,occ,p,rank_or_tol,skip,store)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 20480; end  % approx number of triangles
-  if nargin < 2 || isempty(nquad), nquad = 4; end  % quadrature order
+  if nargin < 1 || isempty(n), n = 20480; end
+  if nargin < 2 || isempty(nquad), nquad = 4; end
   if nargin < 3 || isempty(occ), occ = 1024; end
-  if nargin < 4 || isempty(p), p = 512; end  % number of proxy points
+  if nargin < 4 || isempty(p), p = 512; end
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-3; end
   if nargin < 6 || isempty(skip), skip = 1; end
-  if nargin < 7 || isempty(store), store = 'a'; end  % FMM storage mode
+  if nargin < 7 || isempty(store), store = 'a'; end
 
   % initialize
   [V,F] = trisphere_subdiv(n);  % vertices and faces of triangle discretization
