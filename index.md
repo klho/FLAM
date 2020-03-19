@@ -1,5 +1,5 @@
-FLAM (Fast Linear Algebra in MATLAB)
-====================================
+FLAM (Fast Linear Algebra in MATLAB): Algorithms for Hierarchical Matrices
+==========================================================================
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1253581.svg)](https://doi.org/10.5281/zenodo.1253581)
 
@@ -26,7 +26,7 @@ It was originally intended as a research testbed for personal prototyping, thoug
 
 See [Algorithms](#algorithms) for details.
 
-FLAM has been written to emphasize readability and ease of use. This follows the choice of MATLAB as the computing platform, and we have preferred standard idiomatic MATLAB over more complicated constructions where possible. A key goal is for the codes to be readily understood at an introductory graduate level so that they may be broadly deployed, modified, and tested in an effort to make such fast matrix methods more accessible. Of course, this design may not yield the best performance; a more serious undertaking would re-implement the algorithms in a lower-level language---but this is beyond the scope of FLAM.
+FLAM has been written to emphasize readability and ease of use. This follows the choice of MATLAB as the computing platform, and we have preferred standard idiomatic MATLAB over more complicated constructions where possible. A key goal is for the codes to be readily understood at an introductory graduate level so that they may be broadly deployed, modified, and tested in an effort to make such fast matrix methods more accessible. Of course, this design may not yield the best performance; a more serious undertaking would re-implement the algorithms in a lower-level language -- but this is beyond the scope of FLAM.
 
 FLAM is freely available under the GNU GPLv3 and was last tested on MATLAB R2019a and Octave 4.2.2.
 
@@ -56,7 +56,7 @@ Download FLAM by typing, e.g.:
 git clone https://github.com/klho/FLAM
 ```
 
-This will create a local directory called ``FLAM`` containing the contents of the entire repository. Then enter the ``FLAM`` directory and launch MATLAB. This will automatically run FLAM's startup script and set up all required paths. Alternatively, if you launched MATLAB from a different directory or are using Octave instead, this will have to be done manually by running ``startup.m`` inside ``FLAM``.
+This will create a local directory called `FLAM` containing the contents of the entire repository. Then enter the `FLAM` directory and launch MATLAB. This will automatically run FLAM's startup script and set up all required paths. Alternatively, if you launched MATLAB from a different directory or are using Octave instead, do this manually by running `startup.m` inside `FLAM`.
 
 All FLAM functions should now be accessible. Test this by typing, e.g.:
 
@@ -64,19 +64,26 @@ All FLAM functions should now be accessible. Test this by typing, e.g.:
 help rskelf
 ```
 
-which should display the documentation for ``rskelf``:
+which should display the documentation for `rskelf`:
 
 ```
- RSKELF  Recursive skeletonization factorization.
+RSKELF  Recursive skeletonization factorization.
 
     The recursive skeletonization factorization  % ...
 ```
 
 Other functions are similarly documented.
 
-All of the algorithms listed in the preamble are accompanied by extensive tests demonstrating their usage and performance. As an example, consider ``ie_circle.m`` inside ``FLAM/rskelf/test``, which solves a second-kind boundary IE on the unit circle. This test is actually written as a function, with parameters to set the number of discretization points, compression accuracy, symmetry properties, etc.; sensible defaults are provided for any omitted arguments. Please see the test file for more information.
+All of the algorithms listed in the preamble are accompanied by extensive tests demonstrating their usage and performance. As an example, consider `ie_circle.m` inside `FLAM/rskelf/test`, which solves a second-kind boundary IE on the unit circle. Briefly, the IE is derived from an underlying Laplace DE:
 
-Running ``ie_circle`` then gives, e.g.:
+    Δu(x) = 0     for  x ∊  Ω
+     u(x) = f(x)  for  x ∊ ∂Ω
+
+on the unit disk `Ω` by writing the solution as a double-layer potential `u(x) = D[σ](x)` over an unknown surface density `σ`, where `D` is a convolution against the normal derivative of the Green's function. This representation satisfies the DE in the interior by construction; matching the boundary condition then gives the IE `Aσ = f`, where, in operator notation, `A = -1/2*I + D` for `D` now understood in the principal value sense. The matrix `A` is *fully dense* and thus can be very challenging to solve directly using conventional techniques. The purpose of this example is to demonstrate that in fact we can do so very efficiently, in linear time, by exploiting the inherent structure in `A`.
+
+As with all tests, `ie_circle` is actually written as a function, with parameters to set the number of discretization points, compression accuracy, symmetry properties, etc.; sensible defaults are provided for any omitted arguments. Please see the test file for more information.
+
+Running `ie_circle` then gives, e.g.:
 
 ```
 >> cd rskelf/test
@@ -102,13 +109,13 @@ pde solve err: 1.3504e-12
 
 The actual numbers may differ from run to run but should be roughly the same as those listed here. Let's now walk through this test in order and explain each output:
 
-- Associated with the IE is a dense square matrix, which in this case has order 16384. First, we use ``rskelf`` to compress and factorize this matrix in a multilevel manner; the table at the top shows various compression statistics through level. In particular, we see, from left to right: the current tree level (relative to the root at `lvl = 1`), the number of blocks on that level, the total number of points (i.e., row/column indices) before/after compression, the average number of points per block before/after compression, and the time taken. The output of ``rskelf`` is a generalized LU decomposition, which in total requires about 0.7 s to compute (vs. 58 s for dense LU) and 8.86 MB to store (vs. 2 GB dense).
+- Associated with the IE is a dense square matrix, which in this case has order 16384. First, we use `rskelf` to compress and factorize this matrix in a multilevel manner; the table at the top shows various compression statistics through level. In particular, we see, from left to right: the current tree level (relative to the root at `lvl = 1`), the number of blocks on that level, the total number of points (i.e., row/column indices) before/after compression, the average number of points per block before/after compression, and the time taken. The output of `rskelf` is a generalized LU decomposition, which in total requires about 0.7 s to compute (vs. 58 s for dense LU) and 8.86 MB to store (vs. 2 GB dense).
 
-- We then validate the factorization by checking the forward and inverse apply errors. The default target precision is 1e-12, which both successfully achieve; see the test file for details. Applying the factorized matrix and its inverse each take 0.03--0.04 s.
+- We then validate the factorization by checking the forward and inverse apply errors. The default target precision is 1e-12, which both successfully achieve; see the test file for details. Applying the factorized matrix and its inverse each take 0.03 - 0.04 s.
 
-- Finally, we use the factorization to solve an actual instance of the IE and compare the result against a known analytical solution. Briefly, the IE on the unit circle is associated with an underlying Laplace DE on the unit disk; the solution of the IE yields a layer density on the boundary that determines the Laplace field in the volume through a double-layer potential. The match between the exact and numerically computed fields is quite good.
+- Finally, we use the factorization to solve an actual instance of the IE and compare the result against a known analytical solution. This is done by constructing the right-hand side as the restriction of a known Laplace field to the boundary, solving for the layer density, then using that to evaluate the field in the volume through the double-layer potential. The match between the exact and numerically computed fields is quite good.
 
-Pay close attention to the number of "skeleton" points per block at the end of each level, which remains roughly constant as we move up the tree. At the same time, the number of blocks decreases geometrically; this forms the basis of ``rskelf``'s linear computational complexity when applied to quasi-1D problems (e.g., boundary IEs in 2D). Indeed, running at some larger sizes gives:
+Pay close attention to the number of "skeleton" points per block at the end of each level, which remains roughly constant as we move up the tree. At the same time, the number of blocks decreases geometrically; this forms the basis of `rskelf`'s linear computational complexity when applied to quasi-1D problems (e.g., boundary IEs in 2D). Indeed, running at some larger sizes gives:
 
 ```
 >> ie_circle(2^17)  % 2^17 = 131,072
@@ -122,15 +129,15 @@ rskelf time/mem: 4.8768e+01 (s) / 750.45 (MB)
 % ...
 ```
 
-Perfect linear scaling is observed. However, this property does not extend to higher dimensions, for which more advanced algorithms like ``hifie`` may be better suited; see [Algorithms](#algorithms) for further information.
+Perfect linear scaling is observed. However, this property does not extend to higher dimensions, for which more advanced algorithms like `hifie` may be better suited; see [Algorithms](#algorithms) for further information.
 
-Many other tests beyond ``ie_circle`` are also available, including IEs with different kernels and on various other geometries (prefixed with ``ie_*``), sparse finite difference discretizations of DEs (``fd_*``), and kernel covariance matrices (``cov_*``). The same general style is followed for tests belonging to other algorithms as well. From this, you should now be able to navigate FLAM's directory structure and to understand the usage and performance characteristics of the different algorithms by running the tests and---when in doubt---reading the source.
+Many other tests beyond `ie_circle` are also available, including IEs with different kernels and on various other geometries (prefixed with `ie_*`), sparse finite difference discretizations of DEs (`fd_*`), and kernel covariance matrices (`cov_*`). The same general style is followed for tests belonging to other algorithms as well. From this, you should now be able to navigate FLAM's directory structure and to understand the usage and performance characteristics of the different algorithms by running the tests and -- when in doubt -- reading the source.
 
 ## Algorithms
 
 FLAM contains a variety of methods for working with structured matrices. All are fundamentally based on using geometry to reveal rank structure and so require this information to be passed in by attaching a spatial coordinate to each matrix index. Other common features include optimizations for matrix symmetry (which the user must specify since we cannot afford to check) and a tunable accuracy parameter.
 
-The algorithms can largely be divided into two groups: those designed for dense matrices and those for sparse ones. The former is nominally more complicated but somewhat more generic and hence easier to explain---so we'll start there. Throughout, let `M >= N` denote the matrix dimensions and let `d` be the intrinsic dimension of the corresponding spatial geometry.
+The algorithms can largely be divided into two groups: those designed for dense matrices and those for sparse ones. The former is nominally more complicated but somewhat more generic and hence easier to explain -- so we'll start there. Throughout, let `M >= N` denote the matrix dimensions and let `d` be the intrinsic dimension of the corresponding spatial geometry. While the algorithms are mostly designed for `d <= 3`, there is no such explicit limitation in the code.
 
 ### Dense matrices
 
@@ -138,7 +145,7 @@ There are two main objectives when dealing with dense matrices. The first is *co
 
 This is in contrast to *factorization*, which employs instead a multiplicative structure as in a generalized LU decomposition. Fast direct inversion is naturally supported, as are other capabilities facilitated by the standard LU, e.g., determinant computation and Cholesky square roots, where applicable. Factorization is often more complicated than compression because of the extra internal structure required and consequently may impose more restrictions on the input matrix.
 
-The matrix itself is passed in as a function handle in order to avoid the cost of generating and storing it full. Similarly, we will often need to compress, in principle, an entire off-diagonal block row, which is global in extent; the user can provide a "proxy" function---utilizing, for instance, analytic properties of the underlying matrix kernel---to localize and accelerate this step. The interpolative decomposition (ID) is used for all low-rank approximation since it has a special structure-preserving property that is critical for high efficiency.
+The matrix itself is passed in as a function handle in order to avoid the cost of generating and storing it full. Similarly, we will often need to compress, in principle, an entire off-diagonal block row/column, which is global in extent; the user can provide a "proxy" function -- utilizing, for instance, analytic properties of the underlying matrix kernel -- to localize and accelerate this step. The interpolative decomposition (ID) is used for all low-rank approximation since it has a special structure-preserving property that is critical for high efficiency.
 
 #### Interpolative fast multipole method
 
@@ -151,7 +158,7 @@ Available functions:
 
 #### Recursive skeletonization
 
-While `ifmm` can be effective for solving many linear systems by iteration, certain challenging environments (e.g., ill-conditioning, multiple right-hand sides, updating) more naturally demand direct solution techniques. The complicated near- and far-field structure of `ifmm`, however, does not lend itself easily to this task. `rskel` was developed in partial response to this need, sacrificing efficiency for a simpler structure that can be leveraged into a fast direct solver. Indeed, the compression algorithm now has linear complexity only in 1D, with computational and storage costs of `O(M + N^(3(1 - 1/d)))` and `O(M + N^(2(1 - 1/d)))`, respectively, for `d > 1`. Once the matrix `A` has been compressed, its factors can be rearranged in a special way and embedded into an extended sparse matrix `A_xsp` such that `A_xsp` can be efficiently factored and that the solution of `A*x = b` can be recovered from that of the corresponding extended system `A_xsp*x_xsp = b_xsp`. Variants of this also allow the solution of least squares problems with rectangular `A` (see `rskel/test/{ols,uls}_*` for full-rank over- and under-determined examples, respectively).
+While `ifmm` can be effective for solving many linear systems by iteration, certain challenging environments (e.g., ill-conditioning, multiple right-hand sides, updating) more naturally demand direct solution techniques. The complicated near- and far-field structure of `ifmm`, however, does not lend itself easily to this task. `rskel` was developed in partial response to this need, sacrificing efficiency for a simpler structure that can be leveraged into a fast direct solver. Indeed, the compression algorithm now has linear complexity only in 1D, with computational and storage costs of `O(M + N^(3(1 - 1/d)))` and `O(M + N^(2(1 - 1/d)))`, respectively, for `d > 1`. Once the matrix `A` has been compressed, its factors can be rearranged in a special way and embedded into an extended sparse matrix `A_xsp` such that `A_xsp` can be efficiently factored and the solution of `A*x = b` can be recovered from that of the corresponding extended system `A_xsp*x_xsp = b_xsp`. Variants of this idea also allow the solution of least squares problems with rectangular `A` (see `rskel/test/{ols,uls}_*` for full-rank over- and under-determined examples, respectively).
 
 Available functions:
 
