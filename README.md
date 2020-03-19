@@ -1,5 +1,5 @@
-FLAM (Fast Linear Algebra in MATLAB)
-====================================
+FLAM (Fast Linear Algebra in MATLAB): Algorithms for Hierarchical Matrices
+==========================================================================
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1253581.svg)](https://doi.org/10.5281/zenodo.1253581)
 
