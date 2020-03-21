@@ -123,7 +123,7 @@ function F = mfx(A,x,occ,opts)
   for lvl = t.nlvl:-1:1
     ts = tic;
     nlvl = nlvl + 1;
-    nrem1 = sum(rem);  % remaining points at start
+    nrem1 = nnz(rem);  % remaining points at start
     nz = 0;
 
     % form matrix transpose for fast row access
@@ -234,7 +234,7 @@ function F = mfx(A,x,occ,opts)
 
     % print summary
     if opts.verb
-      nrem2 = sum(rem);                              % remaining points at end
+      nrem2 = nnz(rem);                              % remaining points at end
       nblk = pblk(lvl) + t.lvp(lvl+1) - t.lvp(lvl);  % nonempty up to this level
       fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
               lvl,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)

@@ -84,7 +84,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
     % loop over dimensions
     for d = [3 2]
       ts = tic;
-      nrem1 = sum(rem(:));  % remaining nodes at start
+      nrem1 = nnz(rem(:));  % remaining nodes at start
       nb = 0;               % number of centers
 
       % block elimination
@@ -288,7 +288,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
 
       % print summary
       if opts.verb
-        nrem2 = sum(rem(:));  % remaining nodes at end
+        nrem2 = nnz(rem(:));  % remaining nodes at end
         fprintf('%3d-%1d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
                 lvl,d,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)
       end

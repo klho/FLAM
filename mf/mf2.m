@@ -74,7 +74,7 @@ function F = mf2(A,n,occ,opts)
     nlvl = nlvl + 1;
     w = 2*w;              % cell width
     nb = ceil(n/w);       % number of cells in each dimension
-    nrem1 = sum(rem(:));  % remaining nodes at start
+    nrem1 = nnz(rem(:));  % remaining nodes at start
     nz = 0;
 
     % loop over cells
@@ -155,7 +155,7 @@ function F = mf2(A,n,occ,opts)
 
     % print summary
     if opts.verb
-      nrem2 = sum(rem(:));  % remaining nodes at end
+      nrem2 = nnz(rem(:));  % remaining nodes at end
       nblk = nb^2;
       fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
               lvl,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)

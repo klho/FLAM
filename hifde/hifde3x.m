@@ -142,7 +142,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
     % loop over dimensions
     for d = [3 2 1]
       ts = tic;
-      nrem1 = sum(rem);  % remaining points at start
+      nrem1 = nnz(rem);  % remaining points at start
 
       % form matrix transpose for fast row access
       if opts.symm == 'n', Ac = A'; end
@@ -437,7 +437,7 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
 
       % print summary
       if opts.verb
-        nrem2 = sum(rem);         % remaining points at end
+        nrem2 = nnz(rem);         % remaining points at end
         nblk = pblk(lvl) + nblk;  % nonempty up to this level
         fprintf('%3d-%1d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
                 lvl,d,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)

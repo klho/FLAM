@@ -205,7 +205,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
       else,      nb = length(blocks);             % use centers
         for i = t.lvp(lvl)+1:t.lvp(lvl+1), t.nodes(i).xi = []; end
       end
-      nrem1 = sum(rem);  % remaining points at start
+      nrem1 = nnz(rem);  % remaining points at start
       nz = 0;
 
       % loop over blocks
@@ -314,7 +314,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
 
       % print summary
       if opts.verb
-        nrem2 = sum(rem);       % remaining points at end
+        nrem2 = nnz(rem);       % remaining points at end
         nblk = pblk(lvl) + nb;  % nonempty up to this level
         fprintf('%3d-%1d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
                 lvl,d,nblk,nrem1,nrem2,nrem1/nblk,nrem2/nblk,te)

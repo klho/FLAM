@@ -170,7 +170,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   %   1. store (diagonal) self-interactions and compress near-field (if any)
   %   2. store compressed near-field interactions
   ts = tic;
-  nrrem1 = sum(rrem); ncrem1 = sum(crem);  % remaining row/cols at start
+  nrrem1 = nnz(rrem); ncrem1 = nnz(crem);  % remaining row/cols at start
   for lvl = 1:t.nlvl
     l = t.l(:,lvl);
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
@@ -295,7 +295,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
   % print summary
   if opts.verb
-    nrrem2 = sum(rrem); ncrem2 = sum(crem);  % remaining row/cols at end
+    nrrem2 = nnz(rrem); ncrem2 = nnz(crem);  % remaining row/cols at end
     nblk = pblk(t.nlvl+1);  % total number of nonempty boxes
     fprintf('%3s | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
             'n',nblk,nrrem1,nrrem2,nrrem1/nblk,nrrem2/nblk,toc(ts))
@@ -308,7 +308,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   for lvl = t.nlvl:-1:1
     ts = tic;
     nlvl = nlvl + 1;
-    nrrem1 = sum(rrem); ncrem1 = sum(crem);  % remaining row/cols at start
+    nrrem1 = nnz(rrem); ncrem1 = nnz(crem);  % remaining row/cols at start
     l = t.l(:,lvl);
 
     % pull up skeletons from children
@@ -437,7 +437,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
     % print summary
     if opts.verb
-      nrrem2 = sum(rrem); ncrem2 = sum(crem);        % remaining row/cols at end
+      nrrem2 = nnz(rrem); ncrem2 = nnz(crem);        % remaining row/cols at end
       nblk = pblk(lvl) + t.lvp(lvl+1) - t.lvp(lvl);  % nonempty up to this level
       fprintf('%3d | %6d | %8d | %8d | %8.2f | %8.2f | %10.2e\n', ...
               lvl,nblk,nrrem1,nrrem2,nrrem1/nblk,nrrem2/nblk,toc(ts))
