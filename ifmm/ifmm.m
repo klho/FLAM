@@ -159,8 +159,9 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   %                    'D' for diagonal interactions and 'B' for others
   B = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
   U = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);  % ID matrices
-  F = struct('M',M,'N',N,'nlvl',nlvl,'lvpb',zeros(1,nlvl+1),'lvpu', ...
+  F = struct('M',M,'N',N,'nlvl',nlvl,'lvpb',zeros(1,nlvl+2),'lvpu', ...
              zeros(1,nlvl+1),'B',B,'U',U,'store',opts.store,'symm',opts.symm);
+  [F.p,F.q] = ifmm_perm(t,opts.symm);
   nb = 0; mnb = nbox;  % number of B nodes and maximum capacity
   nu = 0; mnu = nbox;  % number of U nodes and maximum capacity
   rrem = true(M,1); crem = true(N,1);  % which row/cols remain?
@@ -303,8 +304,8 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   end
 
   % loop over tree levels
-  nlvl = 1;              % offset for extra near-field level
-  for lvl = t.nlvl:-1:3  % no far field for top two levels
+  nlvl = 1;  % offset for extra near-field level
+  for lvl = t.nlvl:-1:1
     ts = tic;
     nlvl = nlvl + 1;
     nrrem1 = sum(rrem); ncrem1 = sum(crem);  % remaining row/cols at start
@@ -324,21 +325,29 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       cnbr = [t.nodes(t.nodes(i).nbor).cxi];
 
       % compress row space
-      if isempty(pxyfun)
-        cfar = setdiff(find(crem),[cslf cnbr]);
-        K = A(rslf,cfar);
+      if lvl > 2
+        if isempty(pxyfun)
+          cfar = setdiff(find(crem),[cslf cnbr]);
+          K = A(rslf,cfar);
+        else
+          K = pxyfun('r',rx,cx,rslf,cnbr,l,t.nodes(i).ctr);
+        end
       else
-        K = pxyfun('r',rx,cx,rslf,cnbr,l,t.nodes(i).ctr);
+        K = zeros(length(rslf),0);
       end
       [rsk,rrd,rT] = id(K',rank_or_tol);
 
       % compress column space
       if opts.symm == 'n'
-        if isempty(pxyfun)
-          rfar = setdiff(find(rrem),[rslf rnbr]);
-          K = A(rfar,cslf);
+        if lvl > 2
+          if isempty(pxyfun)
+            rfar = setdiff(find(rrem),[rslf rnbr]);
+            K = A(rfar,cslf);
+          else
+            K = pxyfun('c',rx,cx,cslf,rnbr,l,t.nodes(i).ctr);
+          end
         else
-          K = pxyfun('c',rx,cx,cslf,rnbr,l,t.nodes(i).ctr);
+          K = zeros(0,length(cslf));
         end
         [csk,crd,cT] = id(K,rank_or_tol);
       else
@@ -377,49 +386,51 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
     F.lvpu(nlvl+1) = nu;
 
     % store far-field interactions
-    for i = t.lvp(lvl)+1:t.lvp(lvl+1)
-      rslf = t.nodes(i).rxi;
-      cslf = t.nodes(i).cxi;
+    if lvl > 2
+      for i = t.lvp(lvl)+1:t.lvp(lvl+1)
+        rslf = t.nodes(i).rxi;
+        cslf = t.nodes(i).cxi;
 
-      % generate interaction list
-      ilst = [];
-      pnbor = t.nodes(t.nodes(i).prnt).nbor;
-      for j = pnbor
-        % include nonempty parent-neighbors
-        if ~isempty([t.nodes(j).rxi t.nodes(j).cxi]), ilst = [ilst j]; end
-        % include their children if at same level as parent
-        if j > t.lvp(lvl-1), ilst = [ilst t.nodes(j).chld]; end
-      end
-      % remove neighbors
-      ilst_sort = sort(ilst);
-      ilst = ilst_sort(~ismemb(ilst_sort,sort(t.nodes(i).nbor)));
-      % keep if at higher level; avoid double-counting at same level
-      ilst = ilst(ilst <= t.lvp(lvl) | (ilst > t.lvp(lvl) & ilst > i));
-      rint = [t.nodes(ilst).rxi];
-      cint = [t.nodes(ilst).cxi];
+        % generate interaction list
+        ilst = [];
+        pnbor = t.nodes(t.nodes(i).prnt).nbor;
+        for j = pnbor
+          % include nonempty parent-neighbors
+          if ~isempty([t.nodes(j).rxi t.nodes(j).cxi]), ilst = [ilst j]; end
+          % include their children if at same level as parent
+          if j > t.lvp(lvl-1), ilst = [ilst t.nodes(j).chld]; end
+        end
+        % remove neighbors
+        ilst_sort = sort(ilst);
+        ilst = ilst_sort(~ismemb(ilst_sort,sort(t.nodes(i).nbor)));
+        % keep if at higher level; avoid double-counting at same level
+        ilst = ilst(ilst <= t.lvp(lvl) | (ilst > t.lvp(lvl) & ilst > i));
+        rint = [t.nodes(ilst).rxi];
+        cint = [t.nodes(ilst).cxi];
 
-      % move on if empty
-      if (isempty(rslf) || isempty(cint)) && (isempty(cslf) || isempty(rint))
-        continue
-      end
+        % move on if empty
+        if (isempty(rslf) || isempty(cint)) && (isempty(cslf) || isempty(rint))
+          continue
+        end
 
-      % store matrix factors
-      nb = nb + 1;
-      if mnb < nb
-        e = cell(mnb,1);
-        s = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
-        F.B = [F.B; s];
-        mnb = 2*mnb;
-      end
-      F.B(nb).is = rslf;
-      F.B(nb).ie = rint;
-      if opts.symm == 'n'
-        F.B(nb).js = cslf;
-        F.B(nb).je = cint;
-      end
-      if opts.store == 'a'
-        F.B(nb).Bo = A(rint,cslf);
-        if opts.symm == 'n', F.B(nb).Bi = A(rslf,cint); end
+        % store matrix factors
+        nb = nb + 1;
+        if mnb < nb
+          e = cell(mnb,1);
+          s = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
+          F.B = [F.B; s];
+          mnb = 2*mnb;
+        end
+        F.B(nb).is = rslf;
+        F.B(nb).ie = rint;
+        if opts.symm == 'n'
+          F.B(nb).js = cslf;
+          F.B(nb).je = cint;
+        end
+        if opts.store == 'a'
+          F.B(nb).Bo = A(rint,cslf);
+          if opts.symm == 'n', F.B(nb).Bi = A(rslf,cint); end
+        end
       end
     end
     F.lvpb(nlvl+2) = nb;
