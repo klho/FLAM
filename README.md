@@ -155,7 +155,7 @@ Available functions:
 
 - `ifmm`: main routine for matrix compression
 - `ifmm_mv`: apply compressed matrix to a vector
-- `ifmm_perm`: natural row/column permutationsn for compressed matrix
+- `ifmm_perm`: natural row/column permutations for compressed matrix
 
 #### Recursive skeletonization
 
