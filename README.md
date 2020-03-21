@@ -165,6 +165,7 @@ Available functions:
 - `rskel`: main routine for matrix compression
 - `rskel_mv`: apply compressed matrix to a vector
 - `rskel_xsp`: embed compressed matrix into extended sparse form
+- `rskel_perm`: natural row/column permutations for compressed matrix
 
 #### Recursive skeletonization factorization
 

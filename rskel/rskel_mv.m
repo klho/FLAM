@@ -23,110 +23,108 @@ function Y = rskel_mv(F,X,trans)
   if trans == 't', Y = conj(rskel_mv(F,conj(X),'c')); return; end
 
   % initialize
-  M = F.M;
-  N = F.N;
   nlvl = F.nlvl;
-  rrem = true(M,1);
-  crem = true(N,1);
-  Z = cell(nlvl+1,1);  % successively compressed from upward pass
-  Y = cell(nlvl+1,1);  % successively refined from downward pass
+  if F.symm == 'n' && trans == 'c', p = F.q;
+  else,                             p = F.p;
+  end
+  if F.symm == 'n' && trans == 'n', q = F.q;
+  else,                             q = F.p;
+  end
+  np = length(p); prem = true(np,1);  % which "left"  indices remain?
+  nq = length(q); qrem = true(nq,1);  % which "right" indices remain?
+  P = zeros(nq,2);     % permutation for before/after current level
+  Z = cell(nlvl  ,1);  % successively compressed from   upward pass
+  Y = cell(nlvl+1,1);  % successively    refined from downward pass
 
   % upward sweep
-  Z{1} = X;
-  for lvl = 1:nlvl
-    prrem1 = cumsum(rrem);
-    pcrem1 = cumsum(crem);
+  P(q,1) = 1:nq;  % initial permutation
+  pf = 0;         % index for current level (to avoid data copy)
+  Z{1} = X(q,:);  % copy-permute from input
+  for lvl = 1:nlvl-1
+
+    % update permutation and copy-permute from lower level
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrem(F.U(i).rrd) = 0;
-      if F.symm == 'n', crem(F.U(i).crd) = 0;
-      else,             crem(F.U(i).rrd) = 0;
+      if F.symm == 'n' && trans == 'n', qrem(F.U(i).crd) = 0;
+      else,                             qrem(F.U(i).rrd) = 0;
       end
     end
-    prrem2 = cumsum(rrem);
-    pcrem2 = cumsum(crem);
-    if trans == 'n', Z{lvl+1} = Z{lvl}(pcrem1(find(crem)),:);
-    else,            Z{lvl+1} = Z{lvl}(prrem1(find(rrem)),:);
-    end
+    p1 =  pf + 1;
+    p2 = ~pf + 1;
+    pf = ~pf;
+    P(q(qrem(q)),p2) = 1:nnz(qrem);
+    Z{lvl+1}(P(qrem,p2),:) = Z{lvl}(P(qrem,p1),:);
 
     % apply interpolation operators
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
+      if F.symm == 'n' && trans == 'n'
+        rd = P(F.U(i).crd,p1);
+        sk = P(F.U(i).csk,p2);
+      else
+        rd = P(F.U(i).rrd,p1);
+        sk = P(F.U(i).rsk,p2);
+      end
       if F.symm == 'n'
-        if trans == 'n'
-          rd = pcrem1(F.U(i).crd);
-          sk = pcrem2(F.U(i).csk);
-          T = F.U(i).cT;
-        else
-          rd = prrem1(F.U(i).rrd);
-          sk = prrem2(F.U(i).rsk);
-          T = F.U(i).rT';
+        if trans == 'n', T = F.U(i).cT;
+        else,            T = F.U(i).rT';
         end
       elseif F.symm == 's'
-        rd = pcrem1(F.U(i).rrd);
-        sk = pcrem2(F.U(i).rsk);
         if trans == 'n', T = F.U(i).rT.';
         else,            T = F.U(i).rT';
         end
-      elseif F.symm == 'h'
-        rd = pcrem1(F.U(i).rrd);
-        sk = pcrem2(F.U(i).rsk);
-        T = F.U(i).rT';
+      elseif F.symm == 'h', T = F.U(i).rT';
       end
       Z{lvl+1}(sk,:) = Z{lvl+1}(sk,:) + T*Z{lvl}(rd,:);
     end
   end
 
   % downward sweep
-  if trans == 'n', Y{nlvl+1} = zeros(sum(rrem),size(X,2));
-  else,            Y{nlvl+1} = zeros(sum(crem),size(X,2));
-  end
+  prem(:) = 0;
+  P = zeros(np,2);  % reset permutations
+  Q = zeros(nq,1);  % permutation for data from upward sweep
+  pf = 0;
+  nx = size(X,2);
+  Y{nlvl+1} = zeros(0,nx);
   for lvl = nlvl:-1:1
-    prrem2 = cumsum(rrem);
-    pcrem2 = cumsum(crem);
-    if trans == 'n', rem_ = rrem;
-    else,            rem_ = crem;
-    end
+
+    % update permutation and copy-permute from higher level
+    r = p(prem(p));
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrem(F.U(i).rrd) = 1;
-      if F.symm == 'n', crem(F.U(i).crd) = 1;
-      else,             crem(F.U(i).rrd) = 1;
+      if F.symm == 'n' && trans == 'c', prem(F.U(i).crd) = 1;
+      else,                             prem(F.U(i).rrd) = 1;
+      end
+      if F.symm == 'n' && trans == 'n', qrem(F.U(i).crd) = 1;
+      else,                             qrem(F.U(i).rrd) = 1;
       end
     end
-    prrem1 = cumsum(rrem);
-    pcrem1 = cumsum(crem);
-    if trans == 'n'
-      Y{lvl} = zeros(sum(rrem),size(X,2));
-      Y{lvl}(prrem1(find(rem_)),:) = Y{lvl+1};
-    else
-      Y{lvl} = zeros(sum(crem),size(X,2));
-      Y{lvl}(pcrem1(find(rem_)),:) = Y{lvl+1};
-    end
+    p1 =  pf + 1;
+    p2 = ~pf + 1;
+    pf = ~pf;
+    np = nnz(prem);
+    P(p(prem(p)),p1) = 1:np;
+    Q(q(qrem(q))) = 1:nnz(qrem);
+    Y{lvl} = zeros(np,nx);
+    Y{lvl}(P(r,p1),:) = Y{lvl+1}(P(r,p2),:);
 
     % apply interpolation operators
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
+      if F.symm == 'n' && trans == 'c'
+        rd  = P(F.U(i).crd,p1);
+        sk1 = P(F.U(i).csk,p1);
+        sk2 = P(F.U(i).csk,p2);
+      else
+        rd  = P(F.U(i).rrd,p1);
+        sk1 = P(F.U(i).rsk,p1);
+        sk2 = P(F.U(i).rsk,p2);
+      end
       if F.symm == 'n'
-        if trans == 'n'
-          rd  = prrem1(F.U(i).rrd);
-          sk1 = prrem1(F.U(i).rsk);
-          sk2 = prrem2(F.U(i).rsk);
-          T = F.U(i).rT;
-        else
-          rd  = pcrem1(F.U(i).crd);
-          sk1 = pcrem1(F.U(i).csk);
-          sk2 = pcrem2(F.U(i).csk);
-          T = F.U(i).cT';
+        if trans == 'n', T = F.U(i).rT;
+        else,            T = F.U(i).cT';
         end
       elseif F.symm == 's'
-        rd  = prrem1(F.U(i).rrd);
-        sk1 = prrem1(F.U(i).rsk);
-        sk2 = prrem2(F.U(i).rsk);
         if trans == 'n', T = F.U(i).rT;
         else,            T = conj(F.U(i).rT);
         end
-      elseif F.symm == 'h'
-        rd  = prrem1(F.U(i).rrd);
-        sk1 = prrem1(F.U(i).rsk);
-        sk2 = prrem2(F.U(i).rsk);
-        T = F.U(i).rT;
+      elseif F.symm == 'h', T = F.U(i).rT;
       end
       Y{lvl}(rd,:) = T*Y{lvl+1}(sk2,:);
       Y{lvl}(sk1,:) = Y{lvl+1}(sk2,:);
@@ -135,12 +133,12 @@ function Y = rskel_mv(F,X,trans)
     % apply diagonal blocks
     for i = F.lvpd(lvl)+1:F.lvpd(lvl+1)
       if trans == 'n'
-        j = prrem1(F.D(i).i);
-        k = pcrem1(F.D(i).j);
+        j = P(F.D(i).i,p1);
+        k = Q(F.D(i).j);
         D = F.D(i).D;
       else
-        j = pcrem1(F.D(i).j);
-        k = prrem1(F.D(i).i);
+        j = P(F.D(i).j,p1);
+        k = Q(F.D(i).i);
         D = F.D(i).D';
       end
       Y{lvl}(j,:) = Y{lvl}(j,:) + D*Z{lvl}(k,:);
@@ -148,5 +146,5 @@ function Y = rskel_mv(F,X,trans)
   end
 
   % extract output
-  Y = Y{1};
+  Y = Y{1}(P(:,p1),:);
 end

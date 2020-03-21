@@ -146,6 +146,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   U = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);  % ID matrices
   F = struct('M',M,'N',N,'nlvl',t.nlvl,'lvpd',zeros(1,t.nlvl+1),'lvpu', ...
              zeros(1,t.nlvl+1),'D',D,'U',U,'symm',opts.symm);
+  [F.p,F.q] = rskel_perm(t,opts.symm);
   nlvl = 0;
   nd = 0;
   nu = 0;
