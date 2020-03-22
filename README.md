@@ -155,7 +155,6 @@ Available functions:
 
 - `ifmm`: main routine for matrix compression
 - `ifmm_mv`: apply compressed matrix to a vector
-- `ifmm_perm`: natural permutation for compressed matrix
 
 #### Recursive skeletonization
 
@@ -166,7 +165,6 @@ Available functions:
 - `rskel`: main routine for matrix compression
 - `rskel_mv`: apply compressed matrix to a vector
 - `rskel_xsp`: embed compressed matrix into extended sparse form
-- `rskel_perm`: natural permutation for compressed matrix
 
 #### Recursive skeletonization factorization
 

@@ -120,6 +120,12 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   ts = tic;
   t = hypoct([rx cx],occ,opts.lvlmax,opts.ext);  % bundle row/col points
   te = toc(ts);
+  P = hypoct_perm(t);                   % find bundled permutation
+  idx = P > M;
+  if opts.symm == 'n', Q = P(idx) - M;  % extract col permutation
+  else,                Q = [];
+  end
+  P = P(~idx);                          % extract row permutation
   for i = 1:t.lvp(t.nlvl+1)
     xi = t.nodes(i).xi;
     idx = xi <= M;
@@ -144,9 +150,8 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   e = cell(nbox,1);
   D = struct('i',e,'j',e,'D',e);  % diagonal submatrix entries
   U = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);  % ID matrices
-  F = struct('M',M,'N',N,'nlvl',t.nlvl,'lvpd',zeros(1,t.nlvl+1),'lvpu', ...
-             zeros(1,t.nlvl+1),'D',D,'U',U,'symm',opts.symm);
-  [F.p,F.q] = rskel_perm(t,opts.symm);
+  F = struct('M',M,'N',N,'P',P,'Q',Q,'nlvl',t.nlvl,'lvpd',zeros(1,t.nlvl+1), ...
+             'lvpu',zeros(1,t.nlvl+1),'D',D,'U',U,'symm',opts.symm);
   nlvl = 0;
   nd = 0;
   nu = 0;

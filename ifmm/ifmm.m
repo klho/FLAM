@@ -118,6 +118,12 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   ts = tic;
   t = hypoct([rx cx],occ,opts.lvlmax,opts.ext);  % bundle row/col points
   te = toc(ts);
+  P = hypoct_perm(t);                   % find bundled permutation
+  idx = P > M;
+  if opts.symm == 'n', Q = P(idx) - M;  % extract col permutation
+  else,                Q = [];
+  end
+  P = P(~idx);                          % extract row permutation
   for i = 1:t.lvp(t.nlvl+1)
     xi = t.nodes(i).xi;
     idx = xi <= M;
@@ -159,9 +165,9 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   %                    'D' for diagonal interactions and 'B' for others
   B = struct('is',e,'js',e,'ie',e,'je',e,'D',e,'Bo',e,'Bi',e);
   U = struct('rsk',e,'rrd',e,'csk',e,'crd',e,'rT',e,'cT',e);  % ID matrices
-  F = struct('M',M,'N',N,'nlvl',nlvl,'lvpb',zeros(1,nlvl+2),'lvpu', ...
-             zeros(1,nlvl+1),'B',B,'U',U,'store',opts.store,'symm',opts.symm);
-  [F.p,F.q] = ifmm_perm(t,opts.symm);
+  F = struct('M',M,'N',N,'P',P,'Q',Q,'nlvl',nlvl,'lvpb',zeros(1,nlvl+2), ...
+             'lvpu',zeros(1,nlvl+1),'B',B,'U',U,'store',opts.store,'symm', ...
+             opts.symm);
   nb = 0; mnb = nbox;  % number of B nodes and maximum capacity
   nu = 0; mnu = nbox;  % number of U nodes and maximum capacity
   rrem = true(M,1); crem = true(N,1);  % which row/cols remain?

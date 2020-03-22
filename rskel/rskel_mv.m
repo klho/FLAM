@@ -24,11 +24,11 @@ function Y = rskel_mv(F,X,trans)
 
   % initialize
   nlvl = F.nlvl;
-  if F.symm == 'n' && trans == 'c', p = F.q;
-  else,                             p = F.p;
+  if F.symm == 'n' && trans == 'c', p = F.Q;
+  else,                             p = F.P;
   end
-  if F.symm == 'n' && trans == 'n', q = F.q;
-  else,                             q = F.p;
+  if F.symm == 'n' && trans == 'n', q = F.Q;
+  else,                             q = F.P;
   end
   np = length(p); prem = true(np,1);  % which "left"  indices remain?
   nq = length(q); qrem = true(nq,1);  % which "right" indices remain?
