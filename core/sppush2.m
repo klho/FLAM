@@ -1,7 +1,7 @@
 % SPPUSH2  Append to 2-array sparse matrix representation.
 %
-%   [I,J,NZ] = SPPUSH2(I,J,NZ,IA,JA) overwrites I(NZ+1:NZ+N) = IA and
-%   J(NZ+1:NZ+N) = JA, where N = LENGTH(IA) = LENGTH(JA), and replaces
+%   [I,J,NZ] = SPPUSH2(I,J,NZ,IA,JA) overwrites I(NZ+(1:N)) = IA and
+%   J(NZ+(1:N)) = JA, where N = LENGTH(IA) = LENGTH(JA), and replaces
 %   NZ := NZ + N, appropriately reallocating and expanding the capacities of I
 %   and J as needed.
 %
@@ -22,7 +22,7 @@ function [I,J,nz] = sppush2(I,J,nz,i,j)
     I = [I; e];
     J = [J; e];
   end
-  I(nz+1:nz+n) = i;
-  J(nz+1:nz+n) = j;
+  I(nz+(1:n)) = i;
+  J(nz+(1:n)) = j;
   nz = nznew;
 end

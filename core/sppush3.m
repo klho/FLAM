@@ -1,7 +1,7 @@
 % SPPUSH3  Append to 3-array sparse matrix representation.
 %
-%   [I,J,V,NZ] = SPPUSH3(I,J,V,NZ,IA,JA,VA) overwrites I(NZ+1:NZ+N) = IA,
-%   J(NZ+1:NZ+N) = JA, and V(NZ+1:NZ+N) = VA, where
+%   [I,J,V,NZ] = SPPUSH3(I,J,V,NZ,IA,JA,VA) overwrites I(NZ+(1:N)) = IA,
+%   J(NZ+(1:N)) = JA, and V(NZ+(1:N)) = VA, where
 %   N = LENGTH(IA) = LENGTH(JA) = LENGTH(VA), and replaces NZ := NZ + N,
 %   appropriately reallocating and expanding the capacities of I, J, and V as
 %   needed.
@@ -25,8 +25,8 @@ function [I,J,V,nz] = sppush3(I,J,V,nz,i,j,v)
     J = [J; e];
     V = [V; e];
   end
-  I(nz+1:nz+n) = i;
-  J(nz+1:nz+n) = j;
-  V(nz+1:nz+n) = v;
+  I(nz+(1:n)) = i;
+  J(nz+(1:n)) = j;
+  V(nz+(1:n)) = v;
   nz = nznew;
 end
