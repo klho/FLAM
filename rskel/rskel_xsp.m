@@ -1,27 +1,56 @@
 % RSKEL_XSP  Extended sparsification for recursive skeletonization.
 %
-%    A = RSKEL_XSP(F) produces the extended sparse embedding A of the compressed
-%    matrix F. If F has the single-level representation D + U*S*V', then
+%    The extended sparsification of a compressed matrix F = D + U*S*V' is a
+%    sparse matrix embedding
 %
 %          [D   U   ]
 %      A = [V'    -I]
 %          [   -I  S]
 %
-%    where I is an identity matrix of the appropriate size; in the multilevel
-%    setting, S itself is expanded in the same way. This can be used to solve
-%    linear systems and least squares problems.
+%    where I is an identity matrix of the appropriate size and S is itself
+%    possibly expanded in the same way, following the hierarchical structure of
+%    the compressed representation. This sparse form can be used to solve linear
+%    systems and least squares problems, e.g., the solution of F*X = B can be
+%    recovered from that of A*[X; Y; Z] = [B; 0; 0], where B is zero-padded as
+%    required and A can be factored efficiently using standard sparse direct
+%    solvers.
 %
 %    If F.SYMM = 'N', then the entire extended sparse matrix is returned;
 %    otherwise, only the lower triangular part is returned.
 %
 %    Typical complexity: same as RSKEL_MV.
 %
+%    A = RSKEL_XSP(F) produces the extended sparsification A of the compressed
+%    matrix F.
+%
+%    [A,P,Q] = RSKEL_XSP(F) returns the extended sparsification in "natural"
+%    order according to the row and column permutations P and Q, respectively,
+%    such that each submatrix D, U, V, S, etc. is block diagonal. This ordering
+%    better exposes the inherent structure in A and can lead to more efficient
+%    sparse factorizations. If [M,N] = SIZE(F) and B = RSKEL_XSP(F), then
+%    A(1:M,1:N) = B(P,Q). Note that the permutations only pertain to the
+%    original non-extended indices; the others are defined internally in a self-
+%    consistent way.
+%
 %    See also RSKEL.
 
-function A = rskel_xsp(F)
+function [A,p,q] = rskel_xsp(F)
 
   % initialize
   nlvl = F.nlvl;
+  P = zeros(F.M,2);  % row permutations for current/next level
+  Q = zeros(F.N,2);  % col permutations for current/next level
+  if nargout < 2, p = 1:F.M;    % default row ordering
+  else,           p = F.P;      % natural row ordering
+  end
+  if nargout < 3, q = 1:F.N;    % default col ordering
+  else
+    if F.symm == 'n', q = F.Q;  % natural col ordering
+    else,             q = F.P;
+    end
+  end
+  P(p) = 1:F.M; Q(q) = 1:F.N;  % initial permutations
+  pf = 0;                      % index for current level (to avoid data copy)
   M = 0;
   N = 0;
 
@@ -41,8 +70,8 @@ function A = rskel_xsp(F)
         nz = nz + numel(F.U(i).rT);
       end
     end
-    if F.symm == 'n', nz = nz + 2*(sum(rrem) + sum(crem));
-    else,             nz = nz +    sum(rrem) + sum(crem);
+    if F.symm == 'n', nz = nz + 2*(nnz(rrem) + nnz(crem));
+    else,             nz = nz +    nnz(rrem) + nnz(crem);
     end
   end
   I = zeros(nz,1);
@@ -56,30 +85,31 @@ function A = rskel_xsp(F)
   for lvl = 1:nlvl
 
     % compute index data
-    prrem1 = cumsum(rrem);
-    pcrem1 = cumsum(crem);
+    rn = nnz(rrem);
+    cn = nnz(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrem(F.U(i).rrd) = 0;
       if F.symm == 'n', crem(F.U(i).crd) = 0;
       else,             crem(F.U(i).rrd) = 0;
       end
     end
-    prrem2 = cumsum(rrem);
-    pcrem2 = cumsum(crem);
-    rn = prrem1(end);
-    cn = pcrem1(end);
-    rk = prrem2(end);
-    ck = pcrem2(end);
+    rk = nnz(rrem);
+    ck = nnz(crem);
+    p1 =  pf + 1;
+    p2 = ~pf + 1;
+    pf = ~pf;
+    P(p(rrem(p)),p2) = 1:rk;
+    Q(q(crem(q)),p2) = 1:ck;
 
     % embed diagonal matrices
     for i = F.lvpd(lvl)+1:F.lvpd(lvl+1)
       [j,k] = ndgrid(F.D(i).i,F.D(i).j);
       D = F.D(i).D;
-      m = numel(D);
-      I(nz+1:nz+m) = M + prrem1(j(:));
-      J(nz+1:nz+m) = N + pcrem1(k(:));
-      S(nz+1:nz+m) = D(:);
-      nz = nz + m;
+      n = numel(D);
+      I(nz+(1:n)) = M + P(j(:),p1);
+      J(nz+(1:n)) = N + Q(k(:),p1);
+      S(nz+(1:n)) = D(:);
+      nz = nz + n;
     end
 
     % terminate if at root
@@ -91,14 +121,14 @@ function A = rskel_xsp(F)
 
     % embed interpolation identity matrices
     if F.symm == 'n'
-      I(nz+1:nz+rk) = M + prrem1(find(rrem));
-      J(nz+1:nz+rk) = N + cn + prrem2(find(rrem));
-      S(nz+1:nz+rk) = ones(rk,1);
+      I(nz+(1:rk)) = M + P(find(rrem),p1);
+      J(nz+(1:rk)) = N + cn + P(find(rrem),p2);
+      S(nz+(1:rk)) = ones(rk,1);
       nz = nz + rk;
     end
-    I(nz+1:nz+ck) = M + rn + pcrem2(find(crem));
-    J(nz+1:nz+ck) = N + pcrem1(find(crem));
-    S(nz+1:nz+ck) = ones(ck,1);
+    I(nz+(1:ck)) = M + rn + Q(find(crem),p2);
+    J(nz+(1:ck)) = N + Q(find(crem),p1);
+    S(nz+(1:ck)) = ones(ck,1);
     nz = nz + ck;
 
     % embed interpolation matrices
@@ -123,34 +153,34 @@ function A = rskel_xsp(F)
       % row interpolation
       if F.symm == 'n'
         [j,k] = ndgrid(rrd,rsk);
-        m = numel(rT);
-        I(nz+1:nz+m) = M + prrem1(j(:));
-        J(nz+1:nz+m) = N + cn + prrem2(k(:));
-        S(nz+1:nz+m) = rT(:);
-        nz = nz + m;
+        n = numel(rT);
+        I(nz+(1:n)) = M + P(j(:),p1);
+        J(nz+(1:n)) = N + cn + P(k(:),p2);
+        S(nz+(1:n)) = rT(:);
+        nz = nz + n;
       end
 
       % column interpolation
       [j,k] = ndgrid(csk,crd);
-      m = numel(cT);
-      I(nz+1:nz+m) = M + rn + pcrem2(j(:));
-      J(nz+1:nz+m) = N + pcrem1(k(:));
-      S(nz+1:nz+m) = cT(:);
-      nz = nz + m;
+      n = numel(cT);
+      I(nz+(1:n)) = M + rn + Q(j(:),p2);
+      J(nz+(1:n)) = N + Q(k(:),p1);
+      S(nz+(1:n)) = cT(:);
+      nz = nz + n;
     end
 
     % embed identity matrices
     M = M + rn;
     N = N + cn;
     if F.symm == 'n'
-      I(nz+1:nz+ck) = M + (1:ck);
-      J(nz+1:nz+ck) = N + rk + (1:ck);
-      S(nz+1:nz+ck) = -ones(ck,1);
+      I(nz+(1:ck)) = M + (1:ck);
+      J(nz+(1:ck)) = N + rk + (1:ck);
+      S(nz+(1:ck)) = -ones(ck,1);
       nz = nz + ck;
     end
-    I(nz+1:nz+rk) = M + ck + (1:rk);
-    J(nz+1:nz+rk) = N + (1:rk);
-    S(nz+1:nz+rk) = -ones(rk,1);
+    I(nz+(1:rk)) = M + ck + (1:rk);
+    J(nz+(1:rk)) = N + (1:rk);
+    S(nz+(1:rk)) = -ones(rk,1);
     nz = nz + rk;
 
     % move pointer to next level

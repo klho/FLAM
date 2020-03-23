@@ -122,12 +122,13 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,store)
   fprintf('ifmm_mv time: %10.4e (s)\n',t)
 
   % build extended sparsification
-  tic; A = rskel_xsp(F); t = toc;
+  tic; [A,p,q] = rskel_xsp(F); t = toc;
   w = whos('A'); mem = w.bytes/1e6;
   fprintf('rskel_xsp:\n')
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
+  FA = struct('p',p,'q',q);
   tic; [FA.L,FA.U,FA.P] = lu(A); t = toc;
   w = whos('FA'); mem = w.bytes/1e6;
   fprintf('  factor time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
@@ -219,9 +220,13 @@ end
 % sparse LU solve
 function Y = sv_(F,X,trans)
   N = size(X,1);
-  X = [X; zeros(size(F.L,1)-N,size(X,2))];
+  if trans == 'n', p = F.p; q = F.q;
+  else,            p = F.q; q = F.p;
+  end
+  X = [X(p,:); zeros(size(F.L,1)-N,size(X,2))];
   if trans == 'n', Y = F.U \(F.L \(F.P *X));
   else,            Y = F.P'*(F.L'\(F.U'\X));
   end
   Y = Y(1:N,:);
+  Y(q,:) = Y;
 end

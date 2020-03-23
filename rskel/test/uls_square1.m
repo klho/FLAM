@@ -72,7 +72,7 @@ function uls_square1(M,N,occ,p,rank_or_tol,store,doiter)
   % build extended sparsification
   tau = eps^(-1/3);
   tic
-  A = rskel_xsp(F);
+  [A,p,q] = rskel_xsp(F);
   A = [tau*A; speye(N) sparse(N,size(A,2)-N)];
   t = toc;
   w = whos('A'); mem = w.bytes/1e6;
@@ -80,16 +80,15 @@ function uls_square1(M,N,occ,p,rank_or_tol,store,doiter)
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  tic; R = qr(A,0); t = toc;
-  w = whos('R'); mem = w.bytes/1e6;
+  FA = struct('A',A,'p',p,'q',q,'N',N,'tau',tau);
+  tic; FA.R = qr(A,0); t = toc;
+  w = whos('FA.R'); mem = w.bytes/1e6;
   fprintf('  qr time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
-  nc = size(A,1) - N;         % number of constraints
-  ls = @(X)ls_(A,R,X,N,tau);  % least squares solve function
+  ls = @(X)ls_(FA,X);  % least squares solve function
 
   % test pseudoinverse apply accuracy
   B = ifmm_mv(G,X,Afun);                 % random right-hand side in range
-  C = [B; zeros(nc-M,1)];
-  tic; [Y,cres,niter] = ls(C); t = toc;  % least squares solve
+  tic; [Y,cres,niter] = ls(B); t = toc;  % least squares solve
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - ifmm_mv(G,Y,Afun))/norm(B);
   fprintf('ls:\n')
@@ -160,13 +159,15 @@ function x = lsfun(A,R,b)
 end
 
 % equality-constrained least squares solve
-function [Y,cres,niter] = ls_(A,R,X,N,tau)
-  p = size(X,2);
-  nc = size(A,1) - N;  % number of constraints
+function [Y,cres,niter] = ls_(F,X)
+  [M,p] = size(X);
+  nc = size(F.A,1) - F.N;         % number of constraints
+  X = [X(F.p,:); zeros(nc-M,p)];  % for regularization
   % deferred correction for iterated weighted least squares
-  [Y,cres,niter] = lsedc(@(b)lsfun(A,R,b),A(nc+1:end,:),zeros(N,p), ...
-                         A(1:nc,:)/tau,X,tau);
-  Y = Y(1:N,:);
+  [Y,cres,niter] = lsedc(@(b)lsfun(F.A,F.R,b),F.A(nc+1:end,:),zeros(F.N,p), ...
+                         F.A(1:nc,:)/F.tau,X,F.tau);
+  Y = Y(1:F.N,:);
+  Y(F.q,:) = Y;
 end
 
 % matrix multiply for LSQR

@@ -61,9 +61,10 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % build extended sparsification
-  tic; S = rskel_xsp(F); t = toc;
+  tic; [S,p,q] = rskel_xsp(F); t = toc;
   w = whos('S'); mem = w.bytes/1e6;
-  fprintf('rskel_xsp time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
+  fprintf('rskel_xsp:\n')
+  fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
   dolu = F.symm == 'n';  % LU or LDL?
@@ -73,10 +74,10 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
     dolu = 1;
     S = S + tril(S,-1)';
   end
-  FS = struct('lu',dolu);
+  FS = struct('p',p,'q',q,'lu',dolu);
   tic
-  if dolu, [FS.L,FS.U,FS.P] = lu(A);
-  else,    [FS.L,FS.D,FS.P] = ldl(A);
+  if dolu, [FS.L,FS.U,FS.P] = lu(S);
+  else,    [FS.L,FS.D,FS.P] = ldl(S);
   end
   t = toc;
   w = whos('FS'); mem = w.bytes/1e6;
@@ -127,7 +128,10 @@ end
 % sparse LU/LDL solve
 function Y = sv_(F,X,trans)
   N = size(X,1);
-  X = [X; zeros(size(F.L,1)-N,size(X,2))];
+  if trans == 'n', p = F.p; q = F.q;
+  else,            p = F.q; q = F.p;
+  end
+  X = [X(p,:); zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
     if trans == 'n', Y = F.U \(F.L \(F.P *X));
     else,            Y = F.P'*(F.L'\(F.U'\X));
@@ -136,4 +140,5 @@ function Y = sv_(F,X,trans)
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));
   end
   Y = Y(1:N,:);
+  Y(q,:) = Y;
 end

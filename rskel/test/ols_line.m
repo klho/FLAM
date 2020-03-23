@@ -74,7 +74,7 @@ function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
   % build extended sparsification
   tau = eps^(-1/3);
   tic
-  A = rskel_xsp(F);
+  [A,p,q] = rskel_xsp(F);
   A = [tau*A(M+1:end,:); A(1:M,:); lambda*speye(N) sparse(N,size(A,2)-N)];
   t = toc;
   w = whos('A'); mem = w.bytes/1e6;
@@ -82,10 +82,11 @@ function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  tic; R = qr(A,0); t = toc;
-  w = whos('R'); mem = w.bytes/1e6;
+  FA = struct('A',A,'p',p,'q',q,'N',N,'tau',tau);
+  tic; FA.R = qr(A,0); t = toc;
+  w = whos('FA.R'); mem = w.bytes/1e6;
   fprintf('  qr time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
-  ls = @(X)ls_(A,R,X,M,N,tau);  % least squares solve function
+  ls = @(X)ls_(FA,X);  % least squares solve function
 
   % test pseudoinverse apply accuracy
   B = ifmm_mv(G,X,Afun);                 % random right-hand side in range
@@ -161,14 +162,15 @@ function x = lsfun(A,R,b)
 end
 
 % equality-constrained least squares solve
-function [Y,cres,niter] = ls_(A,R,X,M,N,tau)
-  p = size(X,2);
-  X = [X; zeros(N,p)];     % for regularization
-  nc = size(A,1) - M - N;  % number of constraints
+function [Y,cres,niter] = ls_(F,X)
+  [M,p] = size(X);
+  X = [X(F.p,:); zeros(F.N,p)];  % for regularization
+  nc = size(F.A,1) - M - F.N;    % number of constraints
   % deferred correction for iterated weighted least squares
-  [Y,cres,niter] = lsedc(@(b)lsfun(A,R,b),A(nc+1:end,:),X,A(1:nc,:)/tau, ...
-                         zeros(nc,p),tau);
-  Y = Y(1:N,:);
+  [Y,cres,niter] = lsedc(@(b)lsfun(F.A,F.R,b),F.A(nc+1:end,:),X, ...
+                         F.A(1:nc,:)/F.tau,zeros(nc,p),F.tau);
+  Y = Y(1:F.N,:);
+  Y(F.q,:) = Y;
 end
 
 % matrix multiply for LSQR

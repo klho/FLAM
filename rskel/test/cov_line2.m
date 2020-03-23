@@ -55,7 +55,7 @@ function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
   fprintf('rskel_mv err/time: %10.4e / %10.4e (s)\n',err,t)
 
   % build extended sparsification
-  tic; A = rskel_xsp(F); t = toc;
+  tic; [A,p,q] = rskel_xsp(F); t = toc;
   w = whos('A'); mem = w.bytes/1e6;
   fprintf('rskel_xsp:\n')
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
@@ -67,7 +67,7 @@ function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
     dolu = 1;
     A = A + tril(A,-1)';
   end
-  FA = struct('lu',dolu);
+  FA = struct('p',p,'q',q,'lu',dolu);
   tic
   if dolu, [FA.L,FA.U,FA.P] = lu(A);
   else,    [FA.L,FA.D,FA.P] = ldl(A);
@@ -97,8 +97,6 @@ function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
   % solution storage
   S = zeros(m,1);
   T = zeros(m,1);
-  % if LU factored, need rows of inv(U); store as cols for efficient access
-  if dolu, FA.Uic = (FA.U\speye(size(A)))'; end
 
   % selected inversion
   % algorithm: sparse dot product of (inverse) matrix factor row/cols
@@ -106,13 +104,13 @@ function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
   % note: error can sometimes be poor since exact entries are small
   tic
   for i = 1:m
-    ei(r(i,1)) = 1;
-    ej(r(i,2)) = 1;
-    if dolu, S(i) = FA.Uic(:,r(i,1))'*(FA.L\(FA.P*ej));
+    ei(FA.q(r(i,1))) = 1;
+    ej(FA.p(r(i,2))) = 1;
+    if dolu, S(i) = (FA.U'\ei)'*(FA.L\(FA.P*ej));
     else,    S(i) = (FA.L\(FA.P\ei))'*(FA.D\(FA.L\(FA.P\ej)));
     end
-    ei(r(i,1)) = 0;
-    ej(r(i,2)) = 0;
+    ei(FA.q(r(i,1))) = 0;
+    ej(FA.p(r(i,2))) = 0;
   end
   t = toc/m;  % average time
   for i = 1:m, T(i) = Y(r(i,1),i); end
@@ -122,11 +120,11 @@ function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
   % diagonal inversion -- same as selinv but for most "important" entries
   tic
   for i = 1:m
-    ei(r(i,2)) = 1;
-    if dolu, S(i) = FA.Uic(:,r(i,2))'*(FA.L\(FA.P*ei));
+    ei(FA.p(r(i,2))) = 1;
+    if dolu, S(i) = (FA.U'\ei)'*(FA.L\(FA.P*ei));
     else,    S(i) = (FA.L\(FA.P\ei))'*(FA.D\(FA.L\(FA.P\ei)));
     end
-    ei(r(i,2)) = 0;
+    ei(FA.p(r(i,2))) = 0;
   end
   t = toc/m;  % average time
   for i = 1:m, T(i) = Y(r(i,2),i); end
@@ -174,7 +172,10 @@ end
 % sparse LU/LDL solve
 function Y = sv_(F,X,trans)
   N = size(X,1);
-  X = [X; zeros(size(F.L,1)-N,size(X,2))];
+  if trans == 'n', p = F.p; q = F.q;
+  else,            p = F.q; q = F.p;
+  end
+  X = [X(p,:); zeros(size(F.L,1)-N,size(X,2))];
   if F.lu
     if trans == 'n', Y = F.U \(F.L \(F.P *X));
     else,            Y = F.P'*(F.L'\(F.U'\X));
@@ -183,4 +184,5 @@ function Y = sv_(F,X,trans)
     Y = F.P*(F.L'\(F.D\(F.L\(F.P'*X))));
   end
   Y = Y(1:N,:);
+  Y(q,:) = Y;
 end
