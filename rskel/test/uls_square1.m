@@ -80,10 +80,10 @@ function uls_square1(M,N,occ,p,rank_or_tol,store,doiter)
   fprintf('  build time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem);
 
   % factor extended sparsification
-  FA = struct('A',A,'p',p,'q',q,'N',N,'tau',tau);
-  tic; FA.R = qr(A,0); t = toc;
-  w = whos('FA.R'); mem = w.bytes/1e6;
+  tic; R = qr(A,0); t = toc;
+  w = whos('R'); mem = w.bytes/1e6;
   fprintf('  qr time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
+  FA = struct('A',A,'p',p,'q',q,'N',N,'tau',tau,'R',R);
   ls = @(X)ls_(FA,X);  % least squares solve function
 
   % test pseudoinverse apply accuracy
