@@ -161,7 +161,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   for lvl = t.nlvl:-1:1
     ts = tic;
     nlvl = nlvl + 1;
-    nrrem1 = sum(rrem); ncrem1 = sum(crem);  % remaining row/cols at start
+    nrrem1 = nnz(rrem); ncrem1 = nnz(crem);  % remaining row/cols at start
     l = t.l(:,lvl);
 
     % pull up skeletons from children
