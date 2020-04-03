@@ -45,7 +45,7 @@ function [sk,rd,T] = id(A,rank_or_tol)
 
   % compute ID
   [~,R,P] = qr(A,0);
-  if rank_or_tol < 1, k = sum(abs(diag(R)) > abs(R(1))*rank_or_tol);
+  if rank_or_tol < 1, k = nnz(abs(diag(R)) > abs(R(1))*rank_or_tol);
   else,               k = min(rank_or_tol,n);
   end
   sk = P(1:k); rd = P(k+1:end);
