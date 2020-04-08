@@ -65,13 +65,13 @@ function Y = rskel_mv(F,X,trans)
       end
       if F.symm == 'n'
         if trans == 'n', T = F.U(i).cT;
-        else,            T = F.U(i).rT';
+        else,            T = F.U(i).rT;
         end
       elseif F.symm == 's'
-        if trans == 'n', T = F.U(i).rT.';
-        else,            T = F.U(i).rT';
+        if trans == 'n', T = conj(F.U(i).rT);
+        else,            T =      F.U(i).rT ;
         end
-      elseif F.symm == 'h', T = F.U(i).rT';
+      elseif F.symm == 'h', T = F.U(i).rT;
       end
       Z{lvl+1}(sk,:) = Z{lvl+1}(sk,:) + T*Z{lvl}(rd,:);
     end
@@ -118,15 +118,15 @@ function Y = rskel_mv(F,X,trans)
       end
       if F.symm == 'n'
         if trans == 'n', T = F.U(i).rT;
-        else,            T = F.U(i).cT';
+        else,            T = F.U(i).cT;
         end
       elseif F.symm == 's'
-        if trans == 'n', T = F.U(i).rT;
+        if trans == 'n', T =      F.U(i).rT ;
         else,            T = conj(F.U(i).rT);
         end
       elseif F.symm == 'h', T = F.U(i).rT;
       end
-      Y{lvl}(rd,:) = T*Y{lvl+1}(sk2,:);
+      Y{lvl}(rd,:) = T'*Y{lvl+1}(sk2,:);
       Y{lvl}(sk1,:) = Y{lvl+1}(sk2,:);
     end
 

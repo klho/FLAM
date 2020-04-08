@@ -234,7 +234,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       F.U(nu).rrd = rslf(rrd);
       F.U(nu).csk = cslf(csk);
       F.U(nu).crd = cslf(crd);
-      F.U(nu).rT = rT';
+      F.U(nu).rT = rT;
       F.U(nu).cT = cT;
 
       % restrict to skeletons for next level
