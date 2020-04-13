@@ -220,7 +220,6 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
         end
         slf = blk.xi;
         nslf = length(slf);
-        sslf = sort(slf);
 
         % compute proxy interactions and subselect neighbors
         Kpxy = zeros(0,nslf);
@@ -233,7 +232,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
         % add neighbors with modified interactions
         [nbr_mod,~] = find(M(:,slf));
         nbr_mod = unique(nbr_mod);
-        nbr_mod = nbr_mod(~ismemb(nbr_mod,sslf));
+        nbr_mod = nbr_mod(~ismemb(nbr_mod,sort(slf)));
         nbr = unique([nbr(:); nbr_mod(:)]);
 
         % compress off-diagonal block

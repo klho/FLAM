@@ -297,7 +297,6 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
         % loop over blocks
         for i = 1:nblk
           slf = blk(i).xi;
-          sslf = sort(slf);
 
           % find neighbors
           [nbr,~] = find(A(:,slf));
@@ -306,7 +305,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
             nbr = [nbr(:); nbrc(:)]';
           end
           nbr = unique(nbr);
-          nbr = nbr(~ismemb(nbr,sslf));
+          nbr = nbr(~ismemb(nbr,sort(slf)));
 
           % compress off-diagonal block
           K = spget(A,nbr,slf);
