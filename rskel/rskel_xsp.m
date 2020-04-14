@@ -135,7 +135,7 @@ function [A,p,q] = rskel_xsp(F)
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
       rrd = F.U(i).rrd;
       rsk = F.U(i).rsk;
-      rT  = F.U(i).rT;
+      rT  = F.U(i).rT';
       if F.symm == 'n'
         crd = F.U(i).crd;
         csk = F.U(i).csk;
@@ -143,11 +143,11 @@ function [A,p,q] = rskel_xsp(F)
       elseif F.symm == 's'
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
-        cT  = conj(rT);
+        cT  = rT.';
       elseif F.symm == 'h'
         crd = F.U(i).rrd;
         csk = F.U(i).rsk;
-        cT  = rT;
+        cT  = rT';
       end
 
       % row interpolation
@@ -156,7 +156,7 @@ function [A,p,q] = rskel_xsp(F)
         n = numel(rT);
         I(nz+(1:n)) = M + P(j(:),p1);
         J(nz+(1:n)) = N + cn + P(k(:),p2);
-        S(nz+(1:n)) = rT'(:);
+        S(nz+(1:n)) = rT(:);
         nz = nz + n;
       end
 
