@@ -33,15 +33,12 @@ function [sk,rd,T] = id(A,rank_or_tol)
   % return if matrix is empty
   if isempty(A)
     sk = []; rd = 1:n;
-    if nargout > 2, T = zeros(0,n); end;
+    if nargout > 2, T = zeros(0,n); end
     return
   end
 
   % reduce row size if too rectangular
-  if m > 8*n
-    [Q,~] = qr(A,0);
-    A = Q'*A;
-  end
+  if m > 8*n, [Q,A] = qr(A,0); end
 
   % compute ID
   [~,R,P] = qr(A,0);
