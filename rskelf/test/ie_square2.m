@@ -11,16 +11,18 @@
 %   - OCC: tree occupancy parameter (default: OCC = 64)
 %   - P: number of proxy points (default: P = 64)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'H')
 
-function ie_square2(n,occ,p,rank_or_tol,symm)
+function ie_square2(n,occ,p,rank_or_tol,Tmax,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(occ), occ = 64; end
   if nargin < 3 || isempty(p), p = 64; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 5 || isempty(symm), symm = 'h'; end
+  if nargin < 5 || isempty(Tmax), Tmax = 2; end
+  if nargin < 6 || isempty(symm), symm = 'h'; end
 
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
@@ -35,7 +37,7 @@ function ie_square2(n,occ,p,rank_or_tol,symm)
   % factor matrix
   Afun = @(i,j)Afun_(i,j,x,intgrl);
   pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy);
-  opts = struct('symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'symm',symm,'verb',1);
   tic; F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('rskelf time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
