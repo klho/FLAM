@@ -243,7 +243,7 @@ Available functions:
 In addition to the main algorithms listed above, several core supporting functions may also be of independent interest:
 
 - `hypoct`: adaptive point hyperoctree construction
-- `id`: interpolative decomposition
+- `id`: interpolative decomposition with rank-revealing QR refinement
 - `snorm`: fast spectral norm estimation by randomized power method
 
 These are all located under the `core` subdirectory. Please see the source files for details.
