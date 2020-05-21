@@ -30,7 +30,7 @@
 %    F = MFX(A,X,OCC,OPTS) also passes various options to the algorithm. Valid
 %    options include:
 %
-%      - LVLMAX: maximum tree depth (default: LVLMAX = Inf). See HYPOCT.
+%      - LVLMAX: maximum tree depth (default: LVLMAX = INF). See HYPOCT.
 %
 %      - EXT: set the root node extent to [EXT(D,1) EXT(D,2)] along dimension D.
 %             If EXT is empty (default), then the root extent is calculated from
