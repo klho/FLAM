@@ -7,6 +7,8 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
   if nargin < 7, opts = []; end
   if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
   if ~isfield(opts,'ext'), opts.ext = []; end
+  if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
+  if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
@@ -241,7 +243,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
         K2 = spget(M,nbr,slf);
         if opts.symm == 'n', K2 = [K2; spget(M,slf,nbr)']; end
         K = [K1 + K2; Kpxy];
-        [sk,rd,T] = idfun(K,K1,K2,rank_or_tol);
+        [sk,rd,T] = idfun(K,K1,K2,rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
         % restrict to skeletons for next level
         if d == 3

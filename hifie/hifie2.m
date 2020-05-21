@@ -48,6 +48,11 @@
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data. See HYPOCT.
 %
+%      - TMAX: ID interpolation matrix entry bound (default: TMAX = 2). See ID.
+%
+%      - RRQR_ITER: maximum number of RRQR refinement iterations in ID (default:
+%                   RRQR_ITER = INF). See ID.
+%
 %      - SKIP: skip the additional dimension reductions on the first SKIP levels
 %              (default: SKIP = 0).
 %

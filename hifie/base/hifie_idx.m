@@ -1,6 +1,6 @@
 % HIFIE_IDX  Compression function for HIFIE2X and HIFIE3X.
 
-function [sk,rd,T] = hifie_idx(K,K1,K2,rank_or_tol)
+function [sk,rd,T] = hifie_idx(K,K1,K2,rank_or_tol,Tmax,rrqr_iter)
   n = size(K,2);
 
   % scale compression tolerance
@@ -43,7 +43,7 @@ function [sk,rd,T] = hifie_idx(K,K1,K2,rank_or_tol)
   nrd = zeros(ngrp,1);
   for k = 1:ngrp
     K_ = K(:,grp{k});
-    [sk_{k},rd_{k},T_{k}] = id(K_,ratio*rank_or_tol);
+    [sk_{k},rd_{k},T_{k}] = id(K_,ratio*rank_or_tol,Tmax,rrqr_iter);
     nsk(k) = length(sk_{k});
     nrd(k) = length(rd_{k});
   end

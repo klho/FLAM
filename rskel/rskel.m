@@ -58,6 +58,11 @@
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data. See HYPOCT.
 %
+%      - TMAX: ID interpolation matrix entry bound (default: TMAX = 2). See ID.
+%
+%      - RRQR_ITER: maximum number of RRQR refinement iterations in ID (default:
+%                   RRQR_ITER = INF). See ID.
+%
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
 %              positive definite if SYMM = 'P' (default: SYMM = 'N'). Symmetry
@@ -99,6 +104,8 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if nargin < 7, opts = []; end
   if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
   if ~isfield(opts,'ext'), opts.ext = []; end
+  if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
+  if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
@@ -209,7 +216,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         end
       end
       K = [full(A(rslf,cnbr)) Kpxy]';
-      [rsk,rrd,rT] = id(K,rank_or_tol);
+      [rsk,rrd,rT] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
       % compress column space
       if opts.symm == 'n'
@@ -220,7 +227,7 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
           end
         end
         K = [full(A(rnbr,cslf)); Kpxy];
-        [csk,crd,cT] = id(K,rank_or_tol);
+        [csk,crd,cT] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
       else
         csk = []; crd = []; cT = [];
       end

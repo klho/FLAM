@@ -55,6 +55,11 @@
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data. See HYPOCT.
 %
+%      - TMAX: ID interpolation matrix entry bound (default: TMAX = 2). See ID.
+%
+%      - RRQR_ITER: maximum number of RRQR refinement iterations in ID (default:
+%                   RRQR_ITER = INF). See ID.
+%
 %      - NEAR: additionally compress near field if NEAR = 1 (default: NEAR = 0).
 %
 %      - STORE: store no interactions if STORE = 'N' (i.e., generate them on the
@@ -91,6 +96,8 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
   if nargin < 7, opts = []; end
   if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
   if ~isfield(opts,'ext'), opts.ext = []; end
+  if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
+  if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'near'), opts.near = 0; end
   if ~isfield(opts,'store'), opts.store = 'n'; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
@@ -215,7 +222,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       else, [Kpxy,cnbr] = pxyfun('r',rx,cx,rslf,cdir,l,t.nodes(i).ctr);
       end
       K = [full(A(rslf,cnbr)) Kpxy]';
-      [rsk,rrd,rT] = id(K,rank_or_tol);
+      [rsk,rrd,rT] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
       % compress column space
       if opts.symm == 'n'
@@ -224,7 +231,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         else, [Kpxy,rnbr] = pxyfun('c',rx,cx,cslf,rdir,l,t.nodes(i).ctr);
         end
         K = [full(A(rnbr,cslf)); Kpxy];
-        [csk,crd,cT] = id(K,rank_or_tol);
+        [csk,crd,cT] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
       else
         csk = []; crd = []; cT = [];
       end
@@ -341,7 +348,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
       else
         K = zeros(length(rslf),0);
       end
-      [rsk,rrd,rT] = id(K',rank_or_tol);
+      [rsk,rrd,rT] = id(K',rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
       % compress column space
       if opts.symm == 'n'
@@ -355,7 +362,7 @@ function F = ifmm(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
         else
           K = zeros(0,length(cslf));
         end
-        [csk,crd,cT] = id(K,rank_or_tol);
+        [csk,crd,cT] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
       else
         csk = []; crd = []; cT = [];
       end

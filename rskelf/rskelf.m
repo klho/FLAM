@@ -61,6 +61,11 @@
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data. See HYPOCT.
 %
+%      - TMAX: ID interpolation matrix entry bound (default: TMAX = 2). See ID.
+%
+%      - RRQR_ITER: maximum number of RRQR refinement iterations in ID (default:
+%                   RRQR_ITER = INF). See ID.
+%
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
 %              positive definite if SYMM = 'P' (default: SYMM = 'N'). If
@@ -99,6 +104,8 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   if nargin < 6, opts = []; end
   if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
   if ~isfield(opts,'ext'), opts.ext = []; end
+  if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
+  if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
@@ -186,7 +193,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       K = full(A(nbr,slf));
       if opts.symm == 'n', K = [K; full(A(slf,nbr))']; end
       K = [K; Kpxy];
-      [sk,rd,T] = id(K,rank_or_tol);
+      [sk,rd,T] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
       % move on if no compression
       if isempty(rd), continue; end

@@ -27,6 +27,11 @@
 %             If EXT is empty (default), then the root extent is calculated from
 %             the data. See HYPOCT.
 %
+%      - TMAX: ID interpolation matrix entry bound (default: TMAX = 2). See ID.
+%
+%      - RRQR_ITER: maximum number of RRQR refinement iterations in ID (default:
+%                   RRQR_ITER = INF). See ID.
+%
 %      - SKIP: skip the additional dimension reductions on the first SKIP levels
 %              (default: SKIP = 0).
 %
@@ -77,6 +82,8 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
   if nargin < 5, opts = []; end
   if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
   if ~isfield(opts,'ext'), opts.ext = []; end
+  if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
+  if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
@@ -310,7 +317,7 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
           % compress off-diagonal block
           K = spget(A,nbr,slf);
           if opts.symm == 'n', K = [K; spget(A,slf,nbr)']; end
-          [sk,rd,T] = id(K,rank_or_tol);
+          [sk,rd,T] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
           % restrict to skeletons for next level
           for j = sk

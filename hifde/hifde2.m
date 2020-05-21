@@ -25,6 +25,8 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
   % set default parameters
   if nargin < 5, opts = []; end
   if ~isfield(opts,'lvlmax'), opts.lvlmax = Inf; end
+  if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
+  if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
@@ -177,7 +179,7 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
           % compress off-diagonal block
           K = spget(A,nbr,slf);
           if opts.symm == 'n', K = [K; spget(A,slf,nbr)']; end
-          [sk,rd,T] = id(K,rank_or_tol);
+          [sk,rd,T] = id(K,rank_or_tol,opts.Tmax,opts.rrqr_iter);
 
           % move on if no compression
           if isempty(rd), continue; end
