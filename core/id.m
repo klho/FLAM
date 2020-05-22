@@ -10,7 +10,9 @@
 %    A(:,RD) = A(:,SK)*T + E, where NORM(E) is of order TOL*NORM(A).
 %
 %    [SK,RD,T] = ID(A,RANK_OR_TOL) sets K = RANK_OR_TOL if RANK_OR_TOL >= 1 and
-%    TOL = RANK_OR_TOL if RANK_OR_TOL < 1.
+%    TOL = RANK_OR_TOL if RANK_OR_TOL < 1. More generally, both criteria can be
+%    specified simultaneously by setting RANK_OR_TOL = K + TOL, with the
+%    approximation terminating as soon as either is reached.
 %
 %    [SK,RD,T] = ID(A,RANK_OR_TOL,TMAX) iteratively refines the approximation
 %    using rank-revealing QR column swaps until 1 <= MAX(ABS(T(:))) <= TMAX.
@@ -60,14 +62,16 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter)
   % reduce row size if too rectangular
   if m > 8*n, [~,A] = qr(A,0); end
 
+  % extract approximation parameters
+  tol  = rem(rank_or_tol,1);       % relative tolerance
+  kmax = min(rank_or_tol-tol, n);  % maximum rank
+
   % compute ID
   [~,R,p] = qr(A,0);
-  if rank_or_tol < 1, tol = abs(R(1))*rank_or_tol;
-  else,               tol = 0;
-  end
+  tol = abs(R(1))*tol;             % absolute tolerance
   k = nnz(abs(diag(R)) > tol);
   R = R(1:k,:);
-  if rank_or_tol >= 1, k = min(rank_or_tol,n); end
+  if kmax > 0, k = min(k,kmax); end
   R(1:k,k+1:end) = R(1:k,1:k)\R(1:k,k+1:end);  % store T
 
   % RRQR postprocessing
