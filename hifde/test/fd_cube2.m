@@ -8,22 +8,24 @@
 %   - N: number of discretization points in each dimension (default: N = 32)
 %   - OCC: tree occupancy parameter (default: OCC = 4)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SKIP: skip parameter (default: SKIP = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'P')
 %   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
 %   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
 %       sparse apply/solves (default: DIAGMODE = 0)
 
-function fd_cube2(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
+function fd_cube2(n,occ,rank_or_tol,Tmax,skip,symm,doiter,diagmode)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 32; end
   if nargin < 2 || isempty(occ), occ = 4; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 4 || isempty(skip), skip = 2; end
-  if nargin < 5 || isempty(symm), symm = 'p'; end
-  if nargin < 6 || isempty(doiter), doiter = 1; end
-  if nargin < 7 || isempty(diagmode), diagmode = 0; end
+  if nargin < 4 || isempty(Tmax), Tmax = 2; end
+  if nargin < 5 || isempty(skip), skip = 2; end
+  if nargin < 6 || isempty(symm), symm = 'p'; end
+  if nargin < 7 || isempty(doiter), doiter = 1; end
+  if nargin < 8 || isempty(diagmode), diagmode = 0; end
 
   % initialize
   N = (n - 1)^3;  % total number of grid points
@@ -81,7 +83,7 @@ function fd_cube2(n,occ,rank_or_tol,skip,symm,doiter,diagmode)
   clear idx Jl Sl Jr Sr Ju Su Jd Sd Jf Sf Jb Sb Im Sm I J S
 
   % factor matrix
-  opts = struct('skip',skip,'symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'skip',skip,'symm',symm,'verb',1);
   tic; F = hifde3(A,n,occ,rank_or_tol,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('hifde3 time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

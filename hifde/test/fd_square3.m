@@ -10,23 +10,25 @@
 %   - K: wavenumber (default: K = 2*PI*8)
 %   - OCC: tree occupancy parameter (default: OCC = 8)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-9)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SKIP: skip parameter (default: SKIP = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'H')
 %   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
 %   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
 %       sparse apply/solves (default: DIAGMODE = 0)
 
-function fd_square3(n,k,occ,rank_or_tol,skip,symm,doiter,diagmode)
+function fd_square3(n,k,occ,rank_or_tol,Tmax,skip,symm,doiter,diagmode)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(k), k = 2*pi*8; end
   if nargin < 3 || isempty(occ), occ = 8; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
-  if nargin < 5 || isempty(skip), skip = 2; end
-  if nargin < 6 || isempty(symm), symm = 'h'; end
-  if nargin < 7 || isempty(doiter), doiter = 1; end
-  if nargin < 8 || isempty(diagmode), diagmode = 0; end
+  if nargin < 5 || isempty(Tmax), Tmax = 2; end
+  if nargin < 6 || isempty(skip), skip = 2; end
+  if nargin < 7 || isempty(symm), symm = 'h'; end
+  if nargin < 8 || isempty(doiter), doiter = 1; end
+  if nargin < 9 || isempty(diagmode), diagmode = 0; end
 
   % initialize
   N = (n - 1)^2;  % total number of grid points
@@ -55,7 +57,7 @@ function fd_square3(n,k,occ,rank_or_tol,skip,symm,doiter,diagmode)
   clear idx Jl Sl Jr Sr Ju Su Jd Sd Jm Sm I J S
 
   % factor matrix
-  opts = struct('skip',skip,'symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'skip',skip,'symm',symm,'verb',1);
   tic; F = hifde2(A,n,occ,rank_or_tol,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('hifde2 time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
