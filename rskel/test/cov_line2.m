@@ -8,20 +8,22 @@
 %   - OCC: tree occupancy parameter (default: OCC = 128)
 %   - P: half-number of proxy points (default: P = 8)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'P')
 %   - NOISE: nugget effect (default: NOISE = 1e-2)
 %   - SCALE: kernel length scale (default: SCALE = 100)
 
-function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
+function cov_line2(N,occ,p,rank_or_tol,Tmax,symm,noise,scale)
 
   % set default parameters
   if nargin < 1 || isempty(N), N = 16384; end
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(p), p = 8; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(symm), symm = 'p'; end
-  if nargin < 6 || isempty(noise), noise = 1e-2; end
-  if nargin < 7 || isempty(scale), scale = 100; end
+  if nargin < 5 || isempty(Tmax), Tmax = 2; end
+  if nargin < 6 || isempty(symm), symm = 'p'; end
+  if nargin < 7 || isempty(noise), noise = 1e-2; end
+  if nargin < 8 || isempty(scale), scale = 100; end
 
   % initialize
   x = (1:N)/N;                                          % grid points
@@ -31,7 +33,7 @@ function cov_line2(N,occ,p,rank_or_tol,symm,noise,scale)
   % compress matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale);
-  opts = struct('symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'symm',symm,'verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

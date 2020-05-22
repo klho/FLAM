@@ -22,10 +22,11 @@
 %   - OCC: tree occupancy parameter (default: OCC = 128)
 %   - P: half-number of proxy points (default: P = 8)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - STORE: FMM storage mode (default: STORE = 'A')
 %   - DOITER: whether to run naive LSQR/CG (default: DOITER = 1)
 
-function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
+function ols_line(M,N,lambda,occ,p,rank_or_tol,Tmax,store,doiter)
 
   % set default parameters
   if nargin < 1 || isempty(M), M = 16384; end
@@ -34,8 +35,9 @@ function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
   if nargin < 4 || isempty(occ), occ = 128; end
   if nargin < 5 || isempty(p), p = 8; end
   if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 7 || isempty(store), store = 'a'; end
-  if nargin < 8 || isempty(doiter), doiter = 1; end
+  if nargin < 7 || isempty(Tmax), Tmax = 2; end
+  if nargin < 8 || isempty(store), store = 'a'; end
+  if nargin < 9 || isempty(doiter), doiter = 1; end
 
   % initialize
   rx = (1:M)/M;                                         % row points
@@ -46,14 +48,14 @@ function ols_line(M,N,lambda,occ,p,rank_or_tol,store,doiter)
   % compress matrix using RSKEL
   Afun = @(i,j)Afun_(i,j,rx,cx);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
-  opts = struct('verb',1);
+  opts = struct('Tmax',Tmax,'verb',1);
   tic; F = rskel(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
 
   % compress matrix using IFMM
   rank_or_tol = max(rank_or_tol*1e-2,1e-15);  % higher accuracy for reference
-  opts = struct('store',store);
+  opts = struct('Tmax',Tmax,'store',store);
   tic; G = ifmm(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('G'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

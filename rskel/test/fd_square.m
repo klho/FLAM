@@ -17,17 +17,19 @@
 %   - N: number of discretization points in each dimension (default: N = 128)
 %   - OCC: tree occupancy parameter (default: OCC = 128)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-9)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'P')
 %   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
 
-function fd_square(n,occ,rank_or_tol,symm,doiter)
+function fd_square(n,occ,rank_or_tol,Tmax,symm,doiter)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 128; end
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(rank_or_tol), rank_or_tol = 1e-9; end
-  if nargin < 4 || isempty(symm), symm = 'p'; end
-  if nargin < 5 || isempty(doiter), doiter = 1; end
+  if nargin < 4 || isempty(Tmax), Tmax = 2; end
+  if nargin < 5 || isempty(symm), symm = 'p'; end
+  if nargin < 6 || isempty(doiter), doiter = 1; end
 
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2  % grid points
@@ -55,7 +57,7 @@ function fd_square(n,occ,rank_or_tol,symm,doiter)
   % compress matrix
   Afun = @(i,j)spget(A,i,j);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,A);
-  opts = struct('symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'symm',symm,'verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('rskel time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
