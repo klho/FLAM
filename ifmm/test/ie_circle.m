@@ -18,20 +18,22 @@
 %   - OCC: tree occupancy parameter (default: OCC = 128)
 %   - P: number of proxy points (default: P = 64)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-12)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - NEAR: near-field compression parameter (default: NEAR = 0)
 %   - STORE: storage parameter (default: STORE = 'A')
 %   - SYMM: symmetry parameter (default: SYMM = 'S')
 
-function ie_circle(N,occ,p,rank_or_tol,near,store,symm)
+function ie_circle(N,occ,p,rank_or_tol,Tmax,near,store,symm)
 
   % set default parameters
   if nargin < 1 || isempty(N), N = 16384; end
   if nargin < 2 || isempty(occ), occ = 128; end
   if nargin < 3 || isempty(p), p = 64; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-12; end
-  if nargin < 5 || isempty(near), near = 0; end
-  if nargin < 6 || isempty(store), store = 'a'; end
-  if nargin < 7 || isempty(symm), symm = 's'; end
+  if nargin < 5 || isempty(Tmax), Tmax = 2; end
+  if nargin < 6 || isempty(near), near = 0; end
+  if nargin < 7 || isempty(store), store = 'a'; end
+  if nargin < 8 || isempty(symm), symm = 's'; end
 
   % initialize
   theta = (1:N)*2*pi/N; x = [cos(theta); sin(theta)];  % discretization points
@@ -41,7 +43,7 @@ function ie_circle(N,occ,p,rank_or_tol,near,store,symm)
   % compress matrix
   Afun = @(i,j)Afun_(i,j,x);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
-  opts = struct('near',near,'store',store,'symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'near',near,'store',store,'symm',symm,'verb',1);
   tic; F = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w= whos('F'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

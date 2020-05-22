@@ -8,20 +8,22 @@
 %   - OCC: tree occupancy parameter (default: OCC = 1024)
 %   - P: number of proxy points (default: P = 512)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - NEAR: near-field compression parameter (default: NEAR = 0)
 %   - STORE: storage parameter (default: STORE = 'A')
 %   - SYMM: symmetry parameter (default: SYMM = 'S')
 
-function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
+function ie_cube(n,occ,p,rank_or_tol,Tmax,near,store,symm)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 32; end
   if nargin < 2 || isempty(occ), occ = 1024; end
   if nargin < 3 || isempty(p), p = 512; end
   if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 5 || isempty(near), near = 0; end
-  if nargin < 6 || isempty(store), store = 'a'; end
-  if nargin < 7 || isempty(symm), symm = 's'; end
+  if nargin < 5 || isempty(Tmax), Tmax = 2; end
+  if nargin < 6 || isempty(near), near = 0; end
+  if nargin < 7 || isempty(store), store = 'a'; end
+  if nargin < 8 || isempty(symm), symm = 's'; end
 
   % initialize
   [x1,x2,x3] = ndgrid((1:n)/n); x = [x1(:) x2(:) x3(:)]';  % grid points
@@ -39,7 +41,7 @@ function ie_cube(n,occ,p,rank_or_tol,near,store,symm)
   % compress matrix
   Afun = @(i,j)Afun_(i,j,x,intgrl);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy);
-  opts = struct('near',near,'store',store,'symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'near',near,'store',store,'symm',symm,'verb',1);
   tic; F = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

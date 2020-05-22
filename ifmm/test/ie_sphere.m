@@ -14,10 +14,11 @@
 %   - OCC: tree occupancy parameter (default: OCC = 1024)
 %   - P: number of proxy points (default: P = 512)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - NEAR: near-field compression parameter (default: NEAR = 0)
 %   - STORE: storage parameter (default: STORE = 'A')
 
-function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
+function ie_sphere(n,nquad,occ,p,rank_or_tol,Tmax,near,store)
 
   % set default parameters
   if nargin < 1 || isempty(n), n = 20480; end
@@ -25,8 +26,9 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   if nargin < 3 || isempty(occ), occ = 1024; end
   if nargin < 4 || isempty(p), p = 512; end
   if nargin < 5 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 6 || isempty(near), near = 0; end
-  if nargin < 7 || isempty(store), store = 'a'; end
+  if nargin < 6 || isempty(Tmax), Tmax = 2; end
+  if nargin < 7 || isempty(near), near = 0; end
+  if nargin < 8 || isempty(store), store = 'a'; end
 
   % initialize
   [V,F] = trisphere_subdiv(n);  % vertices and faces of triangle discretization
@@ -95,7 +97,7 @@ function ie_sphere(n,nquad,occ,p,rank_or_tol,near,store)
   Afun = @(i,j)Afun_(i,j,x,nu,area,S);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,nu, ...
                                             area);
-  opts = struct('near',near,'store',store,'verb',1);
+  opts = struct('Tmax',Tmax,'near',near,'store',store,'verb',1);
   tic; F = ifmm(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)

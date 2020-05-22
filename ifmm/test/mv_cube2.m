@@ -11,10 +11,11 @@
 %   - OCC: tree occupancy parameter (default: OCC = 512)
 %   - P: number of proxy points (default: P = 512)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - NEAR: near-field compression parameter (default: NEAR = 0)
 %   - STORE: storage parameter (default: STORE = 'N')
 
-function mv_cube2(M,N,k,occ,p,rank_or_tol,near,store)
+function mv_cube2(M,N,k,occ,p,rank_or_tol,Tmax,near,store)
 
   % set default parameters
   if nargin < 1 || isempty(M), M = 16384; end
@@ -23,8 +24,9 @@ function mv_cube2(M,N,k,occ,p,rank_or_tol,near,store)
   if nargin < 4 || isempty(occ), occ = 512; end
   if nargin < 5 || isempty(p), p = 512; end
   if nargin < 6 || isempty(rank_or_tol), rank_or_tol = 1e-6; end
-  if nargin < 7 || isempty(near), near = 0; end
-  if nargin < 8 || isempty(store), store = 'n'; end
+  if nargin < 7 || isempty(Tmax), Tmax = 2; end
+  if nargin < 8 || isempty(near), near = 0; end
+  if nargin < 9 || isempty(store), store = 'n'; end
 
   % initialize
   rx = rand(3,M);  % row points
@@ -36,7 +38,7 @@ function mv_cube2(M,N,k,occ,p,rank_or_tol,near,store)
   % compress matrix
   Afun = @(i,j)Afun_(i,j,rx,cx,k);
   pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,k);
-  opts = struct('near',near,'store',store,'verb',1);
+  opts = struct('Tmax',Tmax,'near',near,'store',store,'verb',1);
   tic; F = ifmm(Afun,rx,cx,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('ifmm time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
