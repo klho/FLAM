@@ -8,6 +8,7 @@
 %   - OCC: tree occupancy parameter (default: OCC = 512)
 %   - P: square root of number of proxy points (default: P = 16)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-3)
+%   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SKIP: skip parameter (default: SKIP = 0)
 %   - SYMM: symmetry parameter (default: SYMM = 'P')
 %   - NOISE: nugget effect (default: NOISE = 1e-2)
@@ -15,18 +16,19 @@
 %   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
 %       sparse apply/solves (default: DIAGMODE = 2)
 
-function cov_cube1(n,occ,p,rank_or_tol,skip,symm,noise,scale,diagmode)
+function cov_cube1(n,occ,p,rank_or_tol,Tmax,skip,symm,noise,scale,diagmode)
 
   % set default parameters
-  if nargin < 1 || isempty(n), n = 32; end
-  if nargin < 2 || isempty(occ), occ = 512; end
-  if nargin < 3 || isempty(p), p = 16; end
-  if nargin < 4 || isempty(rank_or_tol), rank_or_tol = 1e-3; end
-  if nargin < 5 || isempty(skip), skip = 0; end
-  if nargin < 6 || isempty(symm), symm = 'p'; end
-  if nargin < 7 || isempty(noise), noise = 1e-2; end
-  if nargin < 8 || isempty(scale), scale = 100; end
-  if nargin < 9 || isempty(diagmode), diagmode = 2; end
+  if nargin <  1 || isempty(n), n = 32; end
+  if nargin <  2 || isempty(occ), occ = 512; end
+  if nargin <  3 || isempty(p), p = 16; end
+  if nargin <  4 || isempty(rank_or_tol), rank_or_tol = 1e-3; end
+  if nargin <  5 || isempty(Tmax), Tmax = 2; end
+  if nargin <  6 || isempty(skip), skip = 0; end
+  if nargin <  7 || isempty(symm), symm = 'p'; end
+  if nargin <  8 || isempty(noise), noise = 1e-2; end
+  if nargin <  9 || isempty(scale), scale = 100; end
+  if nargin < 10 || isempty(diagmode), diagmode = 2; end
 
   % initialize
   [x1,x2,x3] = ndgrid((1:n)/n); x = [x1(:) x2(:) x3(:)]';  % grid points
@@ -41,7 +43,7 @@ function cov_cube1(n,occ,p,rank_or_tol,skip,symm,noise,scale,diagmode)
   % factor matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
   pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,scale);
-  opts = struct('skip',skip,'symm',symm,'verb',1);
+  opts = struct('Tmax',Tmax,'skip',skip,'symm',symm,'verb',1);
   tic; F = hifie3(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
   fprintf('hifie3 time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
