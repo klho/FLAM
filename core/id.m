@@ -63,12 +63,12 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter)
   if m > 8*n, [~,A] = qr(A,0); end
 
   % extract approximation parameters
-  tol  = rem(rank_or_tol,1);       % relative tolerance
-  kmax = min(rank_or_tol-tol, n);  % maximum rank
+  tol  = rem(rank_or_tol,1);      % relative tolerance
+  kmax = min(rank_or_tol-tol,n);  % maximum rank
 
   % compute ID
   [~,R,p] = qr(A,0);
-  tol = abs(R(1))*tol;             % absolute tolerance
+  tol = abs(R(1))*tol;            % absolute tolerance
   k = nnz(abs(diag(R)) > tol);
   R = R(1:k,:);
   if kmax > 0, k = min(k,kmax); end
