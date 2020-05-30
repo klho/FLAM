@@ -1,17 +1,17 @@
 % ID  Interpolative decomposition.
 %
-%    [SK,RD,T] = ID(A,K) produces a rank-K approximation of A via the skeleton
-%    and redundant indices SK and RD, respectively, and an interpolation matrix
-%    T such that A(:,RD) = A(:,SK)*T + E, where LENGTH(SK) = K and NORM(E) is of
-%    order S(K+1) for S = SVD(A). If K > N = SIZE(A,2), then K is set equal to
-%    N.
+%    [SK,RD,T] = ID(A,KMAX) produces a structure-preserving approximation of A
+%    of rank K = MIN(KMAX,RANK(A)) via the skeleton and redundant indices SK and
+%    RD, respectively, and an interpolation matrix T such that
+%    A(:,RD) = A(:,SK)*T + E, where LENGTH(SK) = K and NORM(E) is of order
+%    S(KMAX+1) for S = SVD(A).
 %
 %    [SK,RD,T] = ID(A,TOL) produces a rank-adaptive approximation such that
 %    A(:,RD) = A(:,SK)*T + E, where NORM(E) is of order TOL*NORM(A).
 %
-%    [SK,RD,T] = ID(A,RANK_OR_TOL) sets K = RANK_OR_TOL if RANK_OR_TOL >= 1 and
-%    TOL = RANK_OR_TOL if RANK_OR_TOL < 1. More generally, both criteria can be
-%    specified simultaneously by setting RANK_OR_TOL = K + TOL, with the
+%    [SK,RD,T] = ID(A,RANK_OR_TOL) sets KMAX = RANK_OR_TOL if RANK_OR_TOL >= 1
+%    and TOL = RANK_OR_TOL if RANK_OR_TOL < 1. More generally, both criteria can
+%    be specified simultaneously by letting RANK_OR_TOL = KMAX + TOL, with the
 %    approximation terminating as soon as either is reached.
 %
 %    [SK,RD,T] = ID(A,RANK_OR_TOL,TMAX) iteratively refines the approximation
@@ -19,11 +19,18 @@
 %    Ignored if TMAX = INF (default: TMAX = 2). Refinement can improve numerical
 %    stability and reduce the output rank.
 %
-%    [SK,RD,T] = ID(A,RANK_OR_TOL,TMAX,RRQR_ITER) performs at most RRQR
+%    [SK,RD,T] = ID(A,RANK_OR_TOL,TMAX,RRQR_ITER) performs at most RRQR_ITER
 %    refinement iterations (default: RRQR_ITER = INF).
 %
 %    [SK,RD,T,NITER] = ID(A,RANK_OR_TOL,...) also returns the number NITER of
-%    RRQR iterations performed.
+%    refinement iterations performed.
+%
+%    [SK,RD,T,...] = ID(A,RANK_OR_TOL,TMAX,RRQR_ITER,FIXED) forces the indices
+%    in FIXED to be included in SK (default: FIXED = []). An ID is computed on
+%    the residual free columns then reconstituted along with the fixed ones. The
+%    parameters TMAX and RRQR_ITER apply only to this residual ID. The maximum
+%    allowable rank KMAX = FLOOR(RANK_OR_TOL) is imposed on the full ID, with
+%    the exception that if LENGTH(FIXED) >= KMAX, then SK = FIXED.
 %
 %    References:
 %
@@ -35,11 +42,12 @@
 %
 %    See also QR.
 
-function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter)
+function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter,fixed)
 
   % set default parameters
   if nargin < 3 || isempty(Tmax), Tmax = 2; end
   if nargin < 4 || isempty(rrqr_iter), rrqr_iter = Inf; end
+  if nargin < 5, fixed = []; end
 
   % check inputs
   assert(rank_or_tol >= 0,'FLAM:id:invalidRankOrTol', ...
@@ -51,6 +59,7 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter)
 
   % initialize
   [m,n] = size(A);
+  niter = 0;
 
   % return if matrix is empty
   if isempty(A)
@@ -59,24 +68,51 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter)
     return
   end
 
+  % unpack approximation parameters
+  tol  = rem(rank_or_tol,1);               % relative tolerance
+  kmax = floor(rank_or_tol);               % maximum rank
+  if kmax == 0 || kmax > n, kmax = n; end  % special rank cases
+
+  % preprocess fixed columns
+  nfix = length(fixed);
+  if nfix > 0
+    fixed = fixed(:)';                                     % fixed indices
+    free = true(1,n); free(fixed) = 0; free = find(free);  % free  indices
+
+    % nothing left -- quick return
+    if isempty(free)
+      sk = fixed; rd = [];
+      T = zeros(nfix,0);
+      return;
+    end
+
+    % Gram-Schmidt reduction to free columns
+    Afix = A(:,fixed);
+    cmax = sqrt(max(sum(abs(Afix).^2)));  % maximum column norm among fixed
+    [Q,R1] = qr(Afix,0);
+    A = A(:,free);
+    R2 = Q'*A; A = A - Q*R2;
+    n = size(A,2);
+    kmax = max(kmax-nfix,0);
+  else
+    free = 1:n;
+    cmax = 0;
+  end
+
   % reduce row size if too rectangular
   if m > 8*n, [~,A] = qr(A,0); end
 
-  % extract approximation parameters
-  tol  = rem(rank_or_tol,1);      % relative tolerance
-  kmax = min(rank_or_tol-tol,n);  % maximum rank
-
   % compute ID
   [~,R,p] = qr(A,0);
-  tol = abs(R(1))*tol;            % absolute tolerance
-  k = nnz(abs(diag(R)) > tol);
+  cmax = max(cmax,abs(R(1)));                  % maximum column norm
+  tol = cmax*tol;                              % absolute tolerance
+  k = nnz(abs(diag(R)) > tol);                 % rank by precision
   R = R(1:k,:);
-  if kmax > 0, k = min(k,kmax); end
+  k = min(k,kmax);                             % truncate rank by input
   R(1:k,k+1:end) = R(1:k,1:k)\R(1:k,k+1:end);  % store T
 
-  % RRQR postprocessing
-  niter = 0;
-  if ~isinf(Tmax) && rrqr_iter > 0 && k < n
+  % RRQR refinement
+  if ~isinf(Tmax) && rrqr_iter > 0 && k > 0 && k < n
     f2 = Tmax^2;                      % convergence criterion
     c2 = sum(R(k+1:end,k+1:end).^2);  % column norms of residual part
     r2 = sum(inv(R(1:k,1:k)).^2,2);   % inverse row norms of main part
@@ -200,4 +236,11 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter)
   % set ID outputs
   sk = p(1:k); rd = p(k+1:end);
   T = R(1:k,k+1:end);
+
+  % postprocess for fixed columns
+  if nfix > 0
+    T = [R1\(R2(:,rd) - R2(:,sk)*T); T];
+    sk = [fixed free(sk)];
+    rd = [free(rd)];
+  end
 end
