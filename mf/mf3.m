@@ -113,7 +113,7 @@ function F = mf3(A,n,occ,opts)
 
       % move on if no compression
       if isempty(rd), continue; end
-      rem(slf(rd)) = 0;
+      rem(slf(rd)) = false;
 
       % compute factors
       K = spget(A,slf,slf);

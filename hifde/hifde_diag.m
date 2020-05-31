@@ -54,7 +54,7 @@ function D = hifde_diag(F,dinv,opts)
     nz = 0;
 
     % eliminate redundant indices
-    rem([F.factors(F.lvp(lvl)+1:F.lvp(lvl+1)).rd]) = 0;
+    rem([F.factors(F.lvp(lvl)+1:F.lvp(lvl+1)).rd]) = false;
 
     % keep entries needed directly by previous level
     [I_,J_] = find(keep{lvl});

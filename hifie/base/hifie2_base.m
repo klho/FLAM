@@ -219,7 +219,7 @@ function F = hifie2_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
 
         % move on if no compression
         if isempty(rd), continue; end
-        rem(slf(rd)) = 0;
+        rem(slf(rd)) = false;
 
         % compute factors
         K = full(A(slf,slf)) + spget(M,slf,slf);

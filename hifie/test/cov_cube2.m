@@ -167,6 +167,7 @@ end
 % FFT multiplication
 function y = mv_(F,x)
   N = length(x);
+  if N == 1, y = F*x; return; end  % compatibility with reshape(...,1,1,1)
   n = round(N^(1/3));
   y = ifftn(F.*fftn(reshape(x,n,n,n),[2*n-1 2*n-1 2*n-1]));
   y = reshape(y(1:n,1:n,1:n),N,1);

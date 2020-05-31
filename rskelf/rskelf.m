@@ -239,7 +239,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % restrict to skeletons for next level
       t.nodes(i).xi = slf(sk);
-      rem(slf(rd)) = 0;
+      rem(slf(rd)) = false;
     end
     F.lvp(nlvl+1) = n;
     te = toc(ts);

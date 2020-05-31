@@ -30,7 +30,7 @@ function [sk,rd,T] = hifie_idx(K,K1,K2,rank_or_tol,Tmax,rrqr_iter)
       if isempty(idx), continue; end         % ... pattern
       ngrp = ngrp + 1;
       grp{ngrp} = idx;
-      proc(idx) = 1;
+      proc(idx) = true;
     end
   end
   grp = grp(1:ngrp);

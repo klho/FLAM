@@ -44,8 +44,8 @@ function Y = rskel_mv(F,X,trans)
 
     % update permutation and copy-permute from lower level
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      if F.symm == 'n' && trans == 'n', qrem(F.U(i).crd) = 0;
-      else,                             qrem(F.U(i).rrd) = 0;
+      if F.symm == 'n' && trans == 'n', qrem(F.U(i).crd) = false;
+      else,                             qrem(F.U(i).rrd) = false;
       end
     end
     p1 =  pf + 1;
@@ -78,7 +78,7 @@ function Y = rskel_mv(F,X,trans)
   end
 
   % downward sweep
-  prem(:) = 0;
+  prem(:) = false;
   P = zeros(np,2);  % reset permutations
   Q = zeros(nq,1);  % permutation for data from upward sweep
   pf = 0;
@@ -89,11 +89,11 @@ function Y = rskel_mv(F,X,trans)
     % update permutation and copy-permute from higher level
     r = p(prem(p));
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      if F.symm == 'n' && trans == 'c', prem(F.U(i).crd) = 1;
-      else,                             prem(F.U(i).rrd) = 1;
+      if F.symm == 'n' && trans == 'c', prem(F.U(i).crd) = true;
+      else,                             prem(F.U(i).rrd) = true;
       end
-      if F.symm == 'n' && trans == 'n', qrem(F.U(i).crd) = 1;
-      else,                             qrem(F.U(i).rrd) = 1;
+      if F.symm == 'n' && trans == 'n', qrem(F.U(i).crd) = true;
+      else,                             qrem(F.U(i).rrd) = true;
       end
     end
     p1 =  pf + 1;

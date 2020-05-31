@@ -131,7 +131,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
 
           % move on if no compression
           if isempty(rd), continue; end
-          rem(slf(rd)) = 0;
+          rem(slf(rd)) = false;
 
           % store data
           nb = nb + 1;
@@ -208,7 +208,7 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
 
           % move on if no compression
           if isempty(rd), continue; end
-          rem(slf(rd)) = 0;
+          rem(slf(rd)) = false;
 
           % store data
           nb = nb + 1;

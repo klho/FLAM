@@ -127,8 +127,8 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
             dx = abs(c(1,:)' - c(1,:))/l(1);  % scaled distance between boxes
             dy = abs(c(2,:)' - c(2,:))/l(2);
             dz = abs(c(3,:)' - c(3,:))/l(3);
-            dist = round(dx + dy + dz);              % convert to integer
-            if any(dist(:) == 2), keep(ip) = 1; end  % diagonal -> dist = 2
+            dist = round(dx + dy + dz);                 % convert to integer
+            if any(dist(:) == 2), keep(ip) = true; end  % diagonal -> dist = 2
           end
           p = p(keep);
         end
@@ -256,7 +256,7 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
 
         % move on if no compression
         if isempty(rd), continue; end
-        rem(slf(rd)) = 0;
+        rem(slf(rd)) = false;
 
         % compute factors
         K = full(A(slf,slf)) + spget(M,slf,slf);

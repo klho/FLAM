@@ -61,12 +61,12 @@ function [A,p,q] = rskel_xsp(F)
   for lvl = 1:nlvl
     for i = F.lvpd(lvl)+1:F.lvpd(lvl+1), nz = nz + numel(F.D(i).D); end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrem(F.U(i).rrd) = 0;
+      rrem(F.U(i).rrd) = false;
       if F.symm == 'n'
-        crem(F.U(i).crd) = 0;
+        crem(F.U(i).crd) = false;
         nz = nz + numel(F.U(i).rT) + numel(F.U(i).cT);
       else
-        crem(F.U(i).rrd) = 0;
+        crem(F.U(i).rrd) = false;
         nz = nz + numel(F.U(i).rT);
       end
     end
@@ -78,8 +78,8 @@ function [A,p,q] = rskel_xsp(F)
   J = zeros(nz,1);
   S = zeros(nz,1);
   nz = 0;
-  rrem(:) = 1;
-  crem(:) = 1;
+  rrem(:) = true;
+  crem(:) = true;
 
   % loop over levels
   for lvl = 1:nlvl
@@ -88,9 +88,9 @@ function [A,p,q] = rskel_xsp(F)
     rn = nnz(rrem);
     cn = nnz(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrem(F.U(i).rrd) = 0;
-      if F.symm == 'n', crem(F.U(i).crd) = 0;
-      else,             crem(F.U(i).rrd) = 0;
+      rrem(F.U(i).rrd) = false;
+      if F.symm == 'n', crem(F.U(i).crd) = false;
+      else,             crem(F.U(i).rrd) = false;
       end
     end
     rk = nnz(rrem);

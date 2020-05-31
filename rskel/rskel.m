@@ -246,13 +246,13 @@ function F = rskel(A,rx,cx,occ,rank_or_tol,pxyfun,opts)
 
       % restrict to skeletons for next level
       t.nodes(i).rxi = rslf(rsk);
-      rrem(rslf(rrd)) = 0;
+      rrem(rslf(rrd)) = false;
       if opts.symm == 'n'
         t.nodes(i).cxi = cslf(csk);
-        crem(cslf(crd)) = 0;
+        crem(cslf(crd)) = false;
       else
         t.nodes(i).cxi = t.nodes(i).rxi;
-        crem(cslf(rrd)) = 0;
+        crem(cslf(rrd)) = false;
       end
     end
     F.lvpd(nlvl+1) = nd;

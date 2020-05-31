@@ -76,8 +76,8 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter,fixed)
   % preprocess fixed columns
   nfix = length(fixed);
   if nfix > 0
-    fixed = fixed(:)';                                     % fixed indices
-    free = true(1,n); free(fixed) = 0; free = find(free);  % free  indices
+    fixed = fixed(:)';                                         % fixed indices
+    free = true(1,n); free(fixed) = false; free = find(free);  % free  indices
 
     % nothing left -- quick return
     if isempty(free)
@@ -106,7 +106,10 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter,fixed)
   [~,R,p] = qr(A,0);
   cmax = max(cmax,abs(R(1)));                  % maximum column norm
   tol = cmax*tol;                              % absolute tolerance
-  k = nnz(abs(diag(R)) > tol);                 % rank by precision
+  if any(size(R) == 1), diagR = R(1);          % in case R is a vector ...
+  else,                 diagR = diag(R);       % ... instead of a matrix
+  end
+  k = nnz(abs(diagR) > tol);                   % rank by precision
   R = R(1:k,:);
   k = min(k,kmax);                             % truncate rank by input
   R(1:k,k+1:end) = R(1:k,1:k)\R(1:k,k+1:end);  % store T
