@@ -28,9 +28,8 @@
 %    [SK,RD,T,...] = ID(A,RANK_OR_TOL,TMAX,RRQR_ITER,FIXED) forces the indices
 %    in FIXED to be included in SK (default: FIXED = []). An ID is computed on
 %    the residual free columns then reconstituted along with the fixed ones. The
-%    parameters TMAX and RRQR_ITER apply only to this residual ID. The maximum
-%    allowable rank KMAX = FLOOR(RANK_OR_TOL) is imposed on the full ID, with
-%    the exception that if LENGTH(FIXED) >= KMAX, then SK = FIXED.
+%    parameters TMAX and RRQR_ITER apply only to this residual ID. If
+%    KMAX = FLOOR(RANK_OR_TOL) > 0 and LENGTH(FIXED) >= KMAX, then SK = FIXED.
 %
 %    References:
 %
