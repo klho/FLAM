@@ -15,15 +15,15 @@
 %    [X,CRES] = LSEDC(LSFUN,A,B,C,D,TAU) also returns the constraint residual
 %    matrix CRES upon termination.
 %
-%    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU) further returns the number NITER
-%    of deferred correction iterations required for convergence. If NITER = -1,
-%    then convergence was not detected.
-%
-%    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU,TOL) iterates until the constraint
+%    [X,CRES] = LSEDC(LSFUN,A,B,C,D,TAU,TOL) iterates until the constraint
 %    residual matrix has norm less than or equal to TOL (default: TOL = 1E-12).
 %
-%    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU,TOL,NITER_MAX) uses at most
-%    NITER_MAX iterations (default: NITER_MAX = 8).
+%    [X,CRES] = LSEDC(LSFUN,A,B,C,D,TAU,TOL,NITER_MAX) uses at most NITER_MAX
+%    iterations (default: NITER_MAX = 8).
+%
+%    [X,CRES,NITER] = LSEDC(LSFUN,A,B,C,D,TAU,...) further returns the number
+%    NITER of iterations required for convergence. If NITER = -1, then
+%    convergence was not detected.
 %
 %    References:
 %

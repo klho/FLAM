@@ -17,7 +17,7 @@
 %    (default: NITER_MAX = 32).
 %
 %    [S,NITER] = SNORM(N,MV,MVA,...) also returns the number NITER of iterations
-%    performed.
+%    required for convergence. If NITER = -1, then convergence was not detected.
 %
 %    References:
 %
@@ -44,11 +44,9 @@ function [s,niter] = snorm(n,mv,mva,tol,herm,niter_max)
   x = rand(n,1);
   xnorm = norm(x);
   s = xnorm;
-  niter = 0;
 
   % main loop
-  while niter < niter_max
-    niter = niter + 1;
+  for niter = 1:niter_max
     x = x/xnorm;
     s_ = s;
 
@@ -68,6 +66,7 @@ function [s,niter] = snorm(n,mv,mva,tol,herm,niter_max)
     if abs(s - s_) <= s_*tol, return; end  % within tolerance
   end
 
-  % loop didn't return; maximum number of iterations reached
+  % loop didn't return; no convergence
+  niter = -1;
   warning('FLAM:snorm:maxIterCount','Maximum number of iterations reached.')
 end
