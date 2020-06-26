@@ -86,10 +86,10 @@ function fd_square3(n,k,occ,symm,doiter,diagmode)
           (iter(1)+1)*iter(2))
 
   % compute log-determinant
-  tic
-  ld = mf_logdet(F);
-  t = toc;
-  fprintf('mf_logdet: %22.16e / %10.4e (s)\n',ld,t)
+  tic; ld = mf_logdet(F); t = toc;
+  fprintf('mf_logdet:\n')
+  fprintf('  real/imag: %22.16e / %22.16e\n',real(ld),imag(ld))
+  fprintf('  time: %10.4e (s)\n',t)
 
   if diagmode > 0
     % prepare for diagonal extraction

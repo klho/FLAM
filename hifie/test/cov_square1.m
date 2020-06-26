@@ -113,7 +113,9 @@ function cov_square1(n,occ,p,rank_or_tol,Tmax,skip,symm,noise,scale,diagmode)
 
   % compute log-determinant
   tic; ld = hifie_logdet(F); t = toc;
-  fprintf('hifie_logdet: %22.16e / %10.4e (s)\n',ld,t)
+  fprintf('hifie_logdet:\n')
+  fprintf('  real/imag: %22.16e / %22.16e\n',real(ld),imag(ld))
+  fprintf('  time: %10.4e (s)\n',t)
 
   if diagmode > 0
     % prepare for diagonal extraction

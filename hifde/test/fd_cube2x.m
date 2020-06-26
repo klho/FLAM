@@ -137,10 +137,10 @@ function fd_cube2x(n,occ,rank_or_tol,Tmax,skip,symm,doiter,diagmode)
   fprintf('  precon/unprecon iter: %d / %d\n',piter,iter)
 
   % compute log-determinant
-  tic
-  ld = hifde_logdet(F);
-  t = toc;
-  fprintf('hifde_logdet: %22.16e / %10.4e (s)\n',ld,t)
+  tic; ld = hifde_logdet(F); t = toc;
+  fprintf('hifde_logdet:\n')
+  fprintf('  real/imag: %22.16e / %22.16e\n',real(ld),imag(ld))
+  fprintf('  time: %10.4e (s)\n',t)
 
   if diagmode > 0
     % prepare for diagonal extraction

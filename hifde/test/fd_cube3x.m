@@ -104,7 +104,7 @@ function fd_cube3x(n,k,occ,rank_or_tol,Tmax,skip,symm,doiter,diagmode)
   if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,32,1e-12,32); end
 
   % run preconditioned GMRES
-  tic;
+  tic
   [Y,~,~,piter] = gmres(@(x)(A*x),B,32,1e-12,32,@(x)hifde_sv(F,x));
   t = toc;
   err1 = norm(X - Y)/norm(X);
@@ -115,10 +115,10 @@ function fd_cube3x(n,k,occ,rank_or_tol,Tmax,skip,symm,doiter,diagmode)
           (iter(1)+1)*iter(2))
 
   % compute log-determinant
-  tic
-  ld = hifde_logdet(F);
-  t = toc;
-  fprintf('hifde_logdet: %22.16e / %10.4e (s)\n',ld,t)
+  tic; ld = hifde_logdet(F); t = toc;
+  fprintf('hifde_logdet:\n')
+  fprintf('  real/imag: %22.16e / %22.16e\n',real(ld),imag(ld))
+  fprintf('  time: %10.4e (s)\n',t)
 
   if diagmode > 0
     % prepare for diagonal extraction

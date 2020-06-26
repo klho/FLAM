@@ -91,7 +91,9 @@ function cov_square2(n,occ,p,rank_or_tol,Tmax,symm,noise,scale,diagmode)
 
   % compute log-determinant
   tic; ld = rskelf_logdet(F); t = toc;
-  fprintf('rskelf_logdet: %22.16e / %10.4e (s)\n',ld,t)
+  fprintf('rskelf_logdet:\n')
+  fprintf('  real/imag: %22.16e / %22.16e\n',real(ld),imag(ld))
+  fprintf('  time: %10.4e (s)\n',t)
 
   if diagmode > 0
     % prepare for diagonal extraction
