@@ -1,7 +1,7 @@
 FLAM (Fast Linear Algebra in MATLAB): Algorithms for Hierarchical Matrices
 ==========================================================================
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1253581.svg)](https://doi.org/10.5281/zenodo.1253581)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1253581.svg)](https://doi.org/10.5281/zenodo.1253581) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01906/status.svg)](https://doi.org/10.21105/joss.01906)
 
 This MATLAB (and Octave-compatible) library implements various fast algorithms for certain classes of matrices with hierarchical low-rank block structure. Such matrices commonly arise in physical problems, including many classical integral (IE) and differential equations (DE), as well as in statistical contexts such as uncertainty quantification and machine learning. They have appeared in the literature under an assortment of related names and frameworks (e.g., H-, H2-, FMM, HODLR, HSS, HBS), where their special properties have been used to develop highly accelerated algorithms for many fundamental linear algebraic operations.
 
@@ -26,11 +26,15 @@ It was originally intended as a research testbed for personal prototyping, thoug
 
 See [Algorithms](#algorithms) for details.
 
-FLAM has been written to emphasize readability and ease of use. This follows the choice of MATLAB as the computing platform, and we have preferred standard idiomatic MATLAB over more complicated constructions where possible. A key goal is for the codes to be readily understood at an introductory graduate level so that they may be broadly deployed, modified, and tested in an effort to make such fast matrix methods more accessible. Of course, this design may not yield the best performance; a more serious undertaking would re-implement the algorithms in a lower-level language -- but this is beyond the scope of FLAM.
+FLAM has been written to emphasize readability and ease of use. This follows the choice of MATLAB as the computing platform, and we have preferred standard idiomatic MATLAB over more complicated constructions where possible. A key goal is for the codes to be readily understood at an introductory graduate level so that they may be broadly deployed, modified, and tested in an effort to make such fast matrix methods more accessible. Of course, this design may not yield the best performance; a more serious undertaking would re-implement the algorithms in a lower-level language&mdash;but this is beyond the scope of FLAM.
 
 FLAM is freely available under the GNU GPLv3 and was last tested on MATLAB R2019a and Octave 4.2.2.
 
 **Note**: Although FLAM is technically compatible with Octave, its practical performance may lag behind that in MATLAB, even in terms of asymptotic scaling. This is because certain functions make use of MATLAB's facilities for in-place computation, which Octave does not yet support. Despite this admittedly very significant drawback, we have chosen to write the code in this way for reasons of clarity and modularity.
+
+If you use FLAM, please cite:
+
+- K.L. Ho. FLAM: Fast linear algebra in MATLAB &ndash; algorithms for hierarchical matrices. J. Open Source Softw. 5 (51): 1906, 2020. [doi:10.21105/joss.01906](http://dx.doi.org/10.21105/joss.01906).
 
 ## Contents
 
@@ -131,13 +135,13 @@ rskelf time/mem: 4.8768e+01 (s) / 750.45 (MB)
 
 Perfect linear scaling is observed. However, this property does not extend to higher dimensions, for which more advanced algorithms like `hifie` may be better suited; see [Algorithms](#algorithms) for further information.
 
-Many other tests beyond `ie_circle` are also available, including IEs with different kernels and on various other geometries (prefixed with `ie_*`), sparse finite difference discretizations of DEs (`fd_*`), and kernel covariance matrices (`cov_*`). The same general style is followed for tests belonging to other algorithms as well. From this, you should now be able to navigate FLAM's directory structure and to understand the usage and performance characteristics of the different algorithms by running the tests and -- when in doubt -- reading the source.
+Many other tests beyond `ie_circle` are also available, including IEs with different kernels and on various other geometries (prefixed with `ie_*`), sparse finite difference discretizations of DEs (`fd_*`), and kernel covariance matrices (`cov_*`). The same general style is followed for tests belonging to other algorithms as well. From this, you should now be able to navigate FLAM's directory structure and to understand the usage and performance characteristics of the different algorithms by running the tests and&mdash;when in doubt&mdash;reading the source.
 
 ## Algorithms
 
 FLAM contains a variety of methods for working with structured matrices. All are fundamentally based on using geometry to reveal rank structure and so require this information to be passed in by attaching a spatial coordinate to each matrix index. Other common features include optimizations for matrix symmetry (which the user must specify since we cannot afford to check) and a tunable accuracy parameter.
 
-The algorithms can largely be divided into two groups: those designed for dense matrices and those for sparse ones. The former is nominally more complicated but somewhat more generic and hence easier to explain -- so we'll start there. Throughout, let `M >= N` denote the matrix dimensions and let `d` be the intrinsic dimension of the corresponding spatial geometry. While the algorithms are mostly designed for `d <= 3`, there is no such explicit limitation in the code.
+The algorithms can largely be divided into two groups: those designed for dense matrices and those for sparse ones. The former is nominally more complicated but somewhat more generic and hence easier to explain&mdash;so we'll start there. Throughout, let `M >= N` denote the matrix dimensions and let `d` be the intrinsic dimension of the corresponding spatial geometry. While the algorithms are mostly designed for `d <= 3`, there is no such explicit limitation in the code.
 
 ### Dense matrices
 
@@ -145,7 +149,7 @@ There are two main objectives when dealing with dense matrices. The first is *co
 
 This is in contrast to *factorization*, which employs instead a multiplicative structure as in a generalized LU decomposition. Fast direct inversion is naturally supported, as are other capabilities facilitated by the standard LU, e.g., determinant computation and Cholesky square roots, where applicable. Factorization is often more complicated than compression because of the extra internal structure required and consequently may impose more restrictions on the input matrix.
 
-The matrix itself is passed in as a function handle in order to avoid the cost of generating and storing it full. Similarly, we will often need to compress, in principle, an entire off-diagonal block row/column, which is global in extent; the user can provide a "proxy" function -- utilizing, for instance, analytic properties of the underlying matrix kernel -- to localize and accelerate this step. The interpolative decomposition (ID) is used for all low-rank approximation since it has a special structure-preserving property that is critical for high efficiency.
+The matrix itself is passed in as a function handle in order to avoid the cost of generating and storing it full. Similarly, we will often need to compress, in principle, an entire off-diagonal block row/column, which is global in extent; the user can provide a "proxy" function&mdash;utilizing, for instance, analytic properties of the underlying matrix kernel&mdash;to localize and accelerate this step. The interpolative decomposition (ID) is used for all low-rank approximation since it has a special structure-preserving property that is critical for high efficiency.
 
 #### Interpolative fast multipole method
 
