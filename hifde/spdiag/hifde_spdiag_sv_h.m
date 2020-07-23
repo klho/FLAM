@@ -32,7 +32,7 @@ function D = hifde_spdiag_sv_h(F,spinfo)
       rd = P(F.factors(j).rd);
       T = F.factors(j).T;
       if ~isempty(T), Y(rd,:) = Y(rd,:) - T'*Y(sk,:); end
-      Y(rd,:) = F.factors(j).L\Y(rd(F.factors(j).p),:);
+      Y(rd,:) = F.factors(j).L\Y(rd,:);
       Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
     end
 

@@ -12,7 +12,7 @@ function Y = hifde_sv_h(F,X)
     rd = F.factors(i).rd;
     T = F.factors(i).T;
     if ~isempty(T), Y(rd,:) = Y(rd,:) - T'*Y(sk,:); end
-    Y(rd,:) = F.factors(i).L\Y(rd(F.factors(i).p),:);
+    Y(rd,:) = F.factors(i).L\Y(rd,:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
     Y(rd,:) = F.factors(i).U\Y(rd,:);
   end
@@ -23,7 +23,7 @@ function Y = hifde_sv_h(F,X)
     rd = F.factors(i).rd;
     T = F.factors(i).T;
     Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
-    Y(rd(F.factors(i).p),:) = F.factors(i).L'\Y(rd,:);
+    Y(rd,:) = F.factors(i).L'\Y(rd,:);
     if ~isempty(T), Y(sk,:) = Y(sk,:) - T*Y(rd,:); end
   end
 end

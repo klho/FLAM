@@ -196,9 +196,10 @@ function F = mfx(A,x,occ,opts)
         G = L\K(rd(p),sk);
       elseif opts.symm == 'h'
         [L,U,p] = ldl(K(rd,rd),'vector');
+        rd = rd(p);
         U = sparse(U);
-        E = (K(sk,rd(p))/L')/U.';
-        G = [];
+        E = (K(sk,rd)/L')/U.';
+        p = []; G = [];
       elseif opts.symm == 'p'
         L = chol(K(rd,rd),'lower');
         E = K(sk,rd)/L';

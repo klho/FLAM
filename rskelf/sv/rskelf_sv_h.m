@@ -11,7 +11,7 @@ function Y = rskelf_sv_h(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     Y(rd,:) = Y(rd,:) - F.factors(i).T'*Y(sk,:);
-    Y(rd,:) = F.factors(i).L\Y(rd(F.factors(i).p),:);
+    Y(rd,:) = F.factors(i).L\Y(rd,:);
     Y(sk,:) = Y(sk,:) - F.factors(i).E*Y(rd,:);
     Y(rd,:) = F.factors(i).U\Y(rd,:);
   end
@@ -21,7 +21,7 @@ function Y = rskelf_sv_h(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     Y(rd,:) = Y(rd,:) - F.factors(i).E'*Y(sk,:);
-    Y(rd(F.factors(i).p),:) = F.factors(i).L'\Y(rd,:);
+    Y(rd,:) = F.factors(i).L'\Y(rd,:);
     Y(sk,:) = Y(sk,:) - F.factors(i).T*Y(rd,:);
   end
 end
