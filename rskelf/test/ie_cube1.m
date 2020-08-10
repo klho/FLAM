@@ -10,7 +10,7 @@
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-3)
 %   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'H')
-%   - DOITER: whether to run unpreconditioned GMRES (default: DOITER = 1)
+%   - DOITER: whether to run unpreconditioned MINRES (default: DOITER = 1)
 
 function ie_cube1(n,occ,p,rank_or_tol,Tmax,symm,doiter)
 
@@ -76,19 +76,39 @@ function ie_cube1(n,occ,p,rank_or_tol,Tmax,symm,doiter)
   err = snorm(N,@(x)(x - mv(rskelf_sv(F,x))),@(x)(x - rskelf_sv(F,mv(x),'c')));
   fprintf('rskelf_sv err/time: %10.4e / %10.4e (s)\n',err,t)
 
-  % run unpreconditioned GMRES
   B = mv(X);
-  iter(1:2) = nan;
-  if doiter, [~,~,~,iter] = gmres(mv,B,32,1e-12,32); end
+  do_minres = 1;
+  if isoctave()
+    warning('No MINRES in Octave; using GMRES.')
+    do_minres = 0;
+  end
 
-  % run preconditioned GMRES
-  tic; [Y,~,~,piter] = gmres(mv,B,32,1e-12,32,@(x)rskelf_sv(F,x)); t = toc;
+  % run unpreconditioned MINRES
+  if do_minres
+    iter = nan;
+    if doiter, [~,~,~,iter] = minres(mv,B,1e-12,128); end
+  else
+    iter(1:2) = nan;
+    if doiter, [~,~,~,iter] = gmres(mv,B,32,1e-12,32); end
+    iter = (iter(1) + 1)*iter(2);  % total iterations
+  end
+
+  % run preconditioned MINRES
+  tic;
+  if do_minres
+    [Y,~,~,piter] = minres(mv,B,1e-12,32,@(x)rskelf_sv(F,x));
+  else
+    [Y,~,~,piter] = gmres(mv,B,32,1e-12,32,@(x)rskelf_sv(F,x));
+    piter = (piter(1) + 1)*piter(2);  % total iterations
+  end
+  t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - mv(Y))/norm(B);
-  fprintf('gmres:\n')
+  if do_minres, fprintf('minres:\n')
+  else,         fprintf('gmres:\n')
+  end
   fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
-  fprintf('  precon/unprecon iter: %d / %d\n',(piter(1)+1)*piter(2), ...
-          (iter(1)+1)*iter(2))
+  fprintf('  precon/unprecon iter: %d / %d\n',piter,iter)
 end
 
 % kernel function
