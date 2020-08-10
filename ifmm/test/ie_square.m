@@ -12,7 +12,7 @@
 %
 %   - compress the matrix
 %   - check multiply error/time
-%   - check solve error/time using GMRES
+%   - check solve error/time using MINRES
 %
 % Inputs (defaults are used if not provided or set empty):
 %
@@ -77,14 +77,23 @@ function ie_square(n,occ,p,rank_or_tol,Tmax,near,store,symm)
   err = err/snorm(N,mv,[],[],1);
   fprintf('ifmm_mv err/time: %10.4e / %10.4e (s)\n',err,t)
 
-  % run GMRES
+  % run MINRES
   B = mv(X);
-  tic; [Y,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-12,32); t = toc;
+  tic
+  if isoctave()
+    warning('No MINRES in Octave; using GMRES.')
+    [Y,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-12,32);
+    iter = (iter(1) + 1)*iter(2);  % total iterations
+    fprintf('gmres:\n')
+  else
+    [Y,~,~,iter] = minres(@(x)ifmm_mv(F,x,Afun),B,1e-12,32);
+    fprintf('minres:\n')
+  end
+  t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - mv(Y))/norm(B);
-  fprintf('gmres:\n')
   fprintf('  soln/resid err: %10.4e / %10.4e\n',err1,err2)
-  fprintf('  iter/time: %d / %10.4e (s)\n',(iter(1)+1)*iter(2),t)
+  fprintf('  iter/time: %d / %10.4e (s)\n',iter,t)
 end
 
 % kernel function

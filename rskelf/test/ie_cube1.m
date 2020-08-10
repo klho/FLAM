@@ -94,7 +94,7 @@ function ie_cube1(n,occ,p,rank_or_tol,Tmax,symm,doiter)
   end
 
   % run preconditioned MINRES
-  tic;
+  tic
   if do_minres
     [Y,~,~,piter] = minres(mv,B,1e-12,32,@(x)rskelf_sv(F,x));
   else

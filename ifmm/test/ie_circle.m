@@ -9,7 +9,7 @@
 %
 %   - compress the matrix
 %   - check multiply error/time
-%   - check solve error/time using GMRES
+%   - check solve error/time using MINRES
 %   - check PDE solve error by applying to known solution
 %
 % Inputs (defaults are used if not provided or set empty):
@@ -69,10 +69,19 @@ function ie_circle(N,occ,p,rank_or_tol,Tmax,near,store,symm)
   B = Kfun(x,src,'s')*q;  % field evaluated at boundary
 
   % solve for boundary density
-  tic; [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-12,32); t = toc;
+  tic
+  if isoctave()
+    warning('No MINRES in Octave; using GMRES.')
+    [X,~,~,iter] = gmres(@(x)ifmm_mv(F,x,Afun),B,32,1e-12,32);
+    iter = (iter(1) + 1)*iter(2);  % total iterations
+    fprintf('gmres ')
+  else
+    [X,~,~,iter] = minres(@(x)ifmm_mv(F,x,Afun),B,1e-12,32);
+    fprintf('minres ')
+  end
+  t = toc;
   err = norm(B - mv(X))/norm(B);
-  fprintf('gmres resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err, ...
-          (iter(1)+1)*iter(2),t)
+  fprintf('resid/iter/time: %10.4e / %4d / %10.4e (s)\n',err,iter,t)
 
   % evaluate field from solved density at interior targets
   trg = 0.5*[cos(theta); sin(theta)];  % target points

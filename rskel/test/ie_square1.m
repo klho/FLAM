@@ -13,7 +13,7 @@
 %   - check multiply error/time
 %   - build/factor extended sparsification
 %   - check solve error/time using extended sparsification
-%   - compare GMRES with/without preconditioning by approximate solve
+%   - compare MINRES with/without preconditioning by approximate solve
 %
 % Inputs (defaults are used if not provided or set empty):
 %
@@ -23,7 +23,7 @@
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-6)
 %   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SYMM: symmetry parameter (default: SYMM = 'S')
-%   - DOITER: whether to run unpreconditioned GMRES (default: DOITER = 1)
+%   - DOITER: whether to run unpreconditioned MINRES (default: DOITER = 1)
 
 function ie_square1(n,occ,p,rank_or_tol,Tmax,symm,doiter)
 
@@ -104,19 +104,39 @@ function ie_square1(n,occ,p,rank_or_tol,Tmax,symm,doiter)
   err = snorm(N,@(x)(x - mv(sv(x,'n'))),@(x)(x - sv(mv(x),'c')));
   fprintf('  solve err/time: %10.4e / %10.4e (s)\n',err,t)
 
-  % run unpreconditioned GMRES
   B = mv(X);
-  iter(1:2) = nan;
-  if doiter, [~,~,~,iter] = gmres(mv,B,32,1e-12,32); end
+  do_minres = 1;
+  if isoctave()
+    warning('No MINRES in Octave; using GMRES.')
+    do_minres = 0;
+  end
 
-  % run preconditioned GMRES
-  tic; [Y,~,~,piter] = gmres(mv,B,32,1e-12,32,@(x)sv(x,'n')); t = toc;
+  % run unpreconditioned MINRES
+  if do_minres
+    iter = nan;
+    if doiter, [~,~,~,iter] = minres(mv,B,1e-12,128); end
+  else
+    iter(1:2) = nan;
+    if doiter, [~,~,~,iter] = gmres(mv,B,32,1e-12,32); end
+    iter = (iter(1) + 1)*iter(2);  % total iterations
+  end
+
+  % run preconditioned MINRES
+  tic
+  if do_minres
+    [Y,~,~,piter] = minres(mv,B,1e-12,32,@(x)sv(x,'n'));
+  else
+    [Y,~,~,piter] = gmres(mv,B,32,1e-12,32,@(x)sv(x,'n'));
+    piter = (piter(1) + 1)*piter(2);  % total iterations
+  end
+  t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - mv(Y))/norm(B);
-  fprintf('gmres:\n')
+  if do_minres, fprintf('minres:\n')
+  else,         fprintf('gmres:\n')
+  end
   fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
-  fprintf('  precon/unprecon iter: %d / %d\n',(piter(1)+1)*piter(2), ...
-          (iter(1)+1)*iter(2))
+  fprintf('  precon/unprecon iter: %d / %d\n',piter,iter)
 end
 
 % kernel function

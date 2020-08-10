@@ -9,7 +9,7 @@
 %   - K: wavenumber (default: K = 2*PI*4)
 %   - OCC: tree occupancy parameter (default: OCC = 4)
 %   - SYMM: symmetry parameter (default: SYMM = 'H')
-%   - DOITER: whether to run unpreconditioned CG (default: DOITER = 1)
+%   - DOITER: whether to run unpreconditioned MINRES (default: DOITER = 1)
 %   - DIAGMODE: diagonal extraction mode - 0: skip; 1: matrix unfolding; 2:
 %       sparse apply/solves (default: DIAGMODE = 0)
 
@@ -88,19 +88,39 @@ function fd_cube3(n,k,occ,symm,doiter,diagmode)
     fprintf('mf_cholsv: %10.4e / %10.4e (s)\n',err,t)
   end
 
-  % run unpreconditioned GMRES
   B = A*X;
-  iter(1:2) = nan;
-  if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,32,1e-12,32); end
+  do_minres = 1;
+  if isoctave()
+    warning('No MINRES in Octave; using GMRES.')
+    do_minres = 0;
+  end
 
-  % run preconditioned GMRES
-  tic; [Y,~,~,piter] = gmres(@(x)(A*x),B,32,1e-12,32,@(x)mf_sv(F,x)); t = toc;
+  % run unpreconditioned MINRES
+  if do_minres
+    iter = nan;
+    if doiter, [~,~,~,iter] = minres(@(x)(A*x),B,1e-12,128); end
+  else
+    iter(1:2) = nan;
+    if doiter, [~,~,~,iter] = gmres(@(x)(A*x),B,32,1e-12,32); end
+    iter = (iter(1) + 1)*iter(2);  % total iterations
+  end
+
+  % run preconditioned MINRES
+  tic
+  if do_minres
+    [Y,~,~,piter] = minres(@(x)(A*x),B,1e-12,32,@(x)mf_sv(F,x));
+  else
+    [Y,~,~,piter] = gmres(@(x)(A*x),B,32,1e-12,32,@(x)mf_sv(F,x));
+    piter = (piter(1) + 1)*piter(2);  % total iterations
+  end
+  t = toc;
   err1 = norm(X - Y)/norm(X);
   err2 = norm(B - A*Y)/norm(B);
-  fprintf('gmres:\n')
+  if do_minres, fprintf('minres:\n')
+  else,         fprintf('gmres:\n')
+  end
   fprintf('  soln/resid err/time: %10.4e / %10.4e / %10.4e (s)\n',err1,err2,t)
-  fprintf('  precon/unprecon iter: %d / %d\n',(piter(1)+1)*piter(2), ...
-          (iter(1)+1)*iter(2))
+  fprintf('  precon/unprecon iter: %d / %d\n',piter,iter)
 
   % compute log-determinant
   tic; ld = mf_logdet(F); t = toc;
