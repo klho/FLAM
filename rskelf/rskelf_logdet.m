@@ -16,9 +16,14 @@ function ld = rskelf_logdet(F)
 
   % loop over nodes
   for i = 1:n
-    if F.symm == 'p', ld = ld + 2*sum(log(diag(F.factors(i).L)));
-    else,             ld = ld +   sum(log(diag(F.factors(i).U)));
-      if F.symm ~= 'h', ld = ld + log(detperm(F.factors(i).p)); end
+    if F.symm == 'p'
+      ld = ld + 2*sum(log(diag(F.factors(i).L)));
+    else
+      if F.symm == 'h'
+        ld = ld + logdet_ldl(F.factors(i).U);
+      else
+        ld = ld + sum(log(diag(F.factors(i).U))) + log(detperm(F.factors(i).p));
+      end
     end
   end
 
