@@ -171,12 +171,12 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       nslf = length(slf);
 
       % generate modified diagonal block
-      M{i} = full(A(slf,slf));
+      M{i} = zeros(nslf);
       if lvl < t.nlvl
         P(slf) = 1:nslf;
         for j = t.nodes(i).chld
           k = P(t.nodes(j).xi);
-          M{i}(k,k) = M{j};  % overwrite subblock from child
+          M{i}(k,k) = M{j};  % pull subblock from child
           M{j} = [];         % clear child storage
         end
       end
@@ -199,7 +199,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       if isempty(rd), continue; end
 
       % compute factors
-      K = M{i};
+      K = full(A(slf,slf)) + M{i};
       if opts.symm == 's', K(rd,:) = K(rd,:) - T.'*K(sk,:);
       else,                K(rd,:) = K(rd,:) - T' *K(sk,:);
       end
