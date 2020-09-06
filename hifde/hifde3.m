@@ -34,14 +34,13 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
+  if isnumeric(opts.skip), opts.skip = @(lvl)(lvl < opts.skip); end
 
   % check inputs
   assert(n > 0,'FLAM:hifde3:invalidMeshSize','Mesh size must be positive.')
   assert(occ > 0,'FLAM:hifde3:invalidOcc','Leaf occupancy must be positive.')
   assert(opts.lvlmax >= 1,'FLAM:hifde3:invalidLvlmax', ...
          'Maximum tree depth must be at least 1.')
-  assert(opts.skip >= 0,'FLAM:hifde3:invalidSkip', ...
-         'Skip parameter must be nonnegative.')
   opts.symm = chksymm(opts.symm);
   if opts.symm == 'h' && isoctave()
     warning('FLAM:hifde3:octaveLDL','No LDL decomposition in Octave; using LU.')
@@ -142,8 +141,8 @@ function F = hifde3(A,n,occ,rank_or_tol,opts)
 
       % skeletonization
       else
-        if lvl == 1, break; end                     % done if at root
-        if lvl > F.nlvl - opts.skip, continue; end  % continue if in skip stage
+        if lvl == 1, break; end                  % done if at root
+        if opts.skip(F.nlvl-lvl), continue; end  % continue if in skip stage
 
         % initialize
         nblk = 3*nb1^2*(nb1 - 1);  % number of faces

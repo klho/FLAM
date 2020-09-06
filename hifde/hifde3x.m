@@ -34,7 +34,10 @@
 %      - SKIP: skip the additional dimension reductions on the first SKIP levels
 %              (default: SKIP = 0). For further control, SKIP(D) sets the skip
 %              setting for skeletonization in dimension D (faces for D = 2 and
-%              edges for D = 1).
+%              edges for D = 1). More generally, this can be a logical function
+%              of the form SKIP(LVL,L,D) that specifies whether to skip a
+%              particular reduction based on the current tree level LVL above
+%              the bottom, the node size L, and the reduction dimension D.
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
@@ -75,11 +78,12 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
-  if length(opts.skip) == 1, opts.skip = opts.skip*ones(1,2); end
+  if isnumeric(opts.skip)
+    if length(opts.skip) == 1, opts.skip = opts.skip*ones(1,2); end
+    opts.skip = @(lvl,l,d)(lvl < opts.skip(d));
+  end
 
   % check inputs
-  assert(all(opts.skip >= 0),'FLAM:hifde3x:invalidSkip', ...
-         'Skip parameter must be nonnegative.')
   opts.symm = chksymm(opts.symm);
   if opts.symm == 'h' && isoctave()
     warning('FLAM:hifde3x:octaveLDL','No LDL decomposition in Octave; using LU.')
@@ -223,8 +227,8 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
 
       % skeletonization
       else
-        if lvl == 1, break; end                        % done if at root
-        if lvl > t.nlvl - opts.skip(d), continue; end  % continue if skipping
+        if lvl == 1, break; end                      % done if at root
+        if opts.skip(t.nlvl-lvl,l,d), continue; end  % continue if in skip stage
 
         % generate face centers
         if d == 2

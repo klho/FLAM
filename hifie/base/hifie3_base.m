@@ -12,10 +12,9 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
+  if isnumeric(opts.skip), opts.skip = @(lvl,l)(lvl < opts.skip); end
 
   % check inputs
-  assert(opts.skip >= 0,'FLAM:hifie3_base:invalidSkip', ...
-         'Skip parameter must be nonnegative.')
   opts.symm = chksymm(opts.symm);
   if opts.symm == 'h' && isoctave()
     warning('FLAM:hifie3_base:octaveLDL', ...
@@ -79,8 +78,8 @@ function F = hifie3_base(A,x,occ,rank_or_tol,idfun,pxyfun,opts)
 
       % dimension reduction
       if d < 3
-        if lvl == 1, break; end                     % done if at root
-        if lvl > t.nlvl - opts.skip, continue; end  % continue if in skip stage
+        if lvl == 1, break; end                    % done if at root
+        if opts.skip(t.nlvl-lvl,l), continue; end  % continue if in skip stage
 
         % generate face centers
         if d == 2

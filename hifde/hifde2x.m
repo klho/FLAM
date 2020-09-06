@@ -33,7 +33,10 @@
 %                   RRQR_ITER = INF). See ID.
 %
 %      - SKIP: skip the additional dimension reductions on the first SKIP levels
-%              (default: SKIP = 0).
+%              (default: SKIP = 0). More generally, this can be a logical
+%              function of the form SKIP(LVL,L) that specifies whether to skip a
+%              particular reduction based on the current tree level LVL above
+%              the bottom and node size L.
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
@@ -87,10 +90,9 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
+  if isnumeric(opts.skip), opts.skip = @(lvl,l)(lvl < opts.skip); end
 
   % check inputs
-  assert(opts.skip >= 0,'FLAM:hifde2x:invalidSkip', ...
-         'Skip parameter must be nonnegative.')
   opts.symm = chksymm(opts.symm);
   if opts.symm == 'h' && isoctave()
     warning('FLAM:hifde2x:octaveLDL','No LDL decomposition in Octave; using LU.')
@@ -223,8 +225,8 @@ function F = hifde2x(A,x,occ,rank_or_tol,opts)
 
       % skeletonization
       else
-        if lvl == 1, break; end                     % done if at root
-        if lvl > t.nlvl - opts.skip, continue; end  % continue if in skip stage
+        if lvl == 1, break; end                    % done if at root
+        if opts.skip(t.nlvl-lvl,l), continue; end  % continue if in skip stage
 
         % generate edge centers
         ctr = zeros(2,4*nbox);

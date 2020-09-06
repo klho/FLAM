@@ -54,7 +54,10 @@
 %                   RRQR_ITER = INF). See ID.
 %
 %      - SKIP: skip the additional dimension reductions on the first SKIP levels
-%              (default: SKIP = 0).
+%              (default: SKIP = 0). More generally, this can be a logical
+%              function of the form SKIP(LVL,L) that specifies whether to skip a
+%              particular reduction based on the current tree level LVL above
+%              the bottom and node size L.
 %
 %      - SYMM: assume that the matrix is unsymmetric if SYMM = 'N', (complex-)
 %              symmetric if SYMM = 'S', Hermitian if SYMM = 'H', and Hermitian
