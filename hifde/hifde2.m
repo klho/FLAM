@@ -30,13 +30,13 @@ function F = hifde2(A,n,occ,rank_or_tol,opts)
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
-  if isnumeric(opts.skip), opts.skip = @(lvl)(lvl < opts.skip); end
 
   % check inputs
   assert(n > 0,'FLAM:hifde2:invalidMeshSize','Mesh size must be positive.')
   assert(occ > 0,'FLAM:hifde2:invalidOcc','Leaf occupancy must be positive.')
   assert(opts.lvlmax >= 1,'FLAM:hifde2:invalidLvlmax', ...
          'Maximum tree depth must be at least 1.')
+  if isnumeric(opts.skip), opts.skip = @(lvl)(lvl < opts.skip); end
   opts.symm = chksymm(opts.symm);
   if opts.symm == 'h' && isoctave()
     warning('FLAM:hifde2:octaveLDL','No LDL decomposition in Octave; using LU.')

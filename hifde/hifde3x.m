@@ -78,12 +78,12 @@ function F = hifde3x(A,x,occ,rank_or_tol,opts)
   if ~isfield(opts,'skip'), opts.skip = 0; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
+
+  % check inputs
   if isnumeric(opts.skip)
     if length(opts.skip) == 1, opts.skip = opts.skip*ones(1,2); end
     opts.skip = @(lvl,l,d)(lvl < opts.skip(d));
   end
-
-  % check inputs
   opts.symm = chksymm(opts.symm);
   if opts.symm == 'h' && isoctave()
     warning('FLAM:hifde3x:octaveLDL','No LDL decomposition in Octave; using LU.')
