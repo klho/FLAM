@@ -1,19 +1,18 @@
 % HIFDE_MV_SN  Dispatch for HIFDE_MV with F.SYMM = 'S' and TRANS = 'N'.
 
-function Y = hifde_mv_sn(F,X)
+function X = hifde_mv_sn(F,X)
 
   % initialize
   n = F.lvp(end);
-  Y = X;
 
   % upward sweep
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     T = F.factors(i).T;
-    if ~isempty(T), Y(sk,:) = Y(sk,:) + T*Y(rd,:); end
-    Y(rd,:) = F.factors(i).U*Y(rd,:);
-    Y(rd,:) = Y(rd,:) + F.factors(i).F*Y(sk,:);
+    if ~isempty(T), X(sk,:) = X(sk,:) + T*X(rd,:); end
+    X(rd,:) = F.factors(i).U*X(rd,:);
+    X(rd,:) = X(rd,:) + F.factors(i).F*X(sk,:);
   end
 
   % downward sweep
@@ -21,8 +20,8 @@ function Y = hifde_mv_sn(F,X)
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
     T = F.factors(i).T;
-    Y(sk,:) = Y(sk,:) + F.factors(i).E*Y(rd,:);
-    Y(rd(F.factors(i).p),:) = F.factors(i).L*Y(rd,:);
-    if ~isempty(T), Y(rd,:) = Y(rd,:) + T.'*Y(sk,:); end
+    X(sk,:) = X(sk,:) + F.factors(i).E*X(rd,:);
+    X(rd(F.factors(i).p),:) = F.factors(i).L*X(rd,:);
+    if ~isempty(T), X(rd,:) = X(rd,:) + T.'*X(sk,:); end
   end
 end

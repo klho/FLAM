@@ -12,11 +12,11 @@
 %    See also HIFIE2, HIFIE2X, HIFIE3, HIFIE3X, HIFIE_CHOLMV, HIFIE_CHOLSV,
 %    HIFIE_SV.
 
-function Y = hifie_mv(F,X,trans)
+function X = hifie_mv(F,X,trans)
 
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
 
   % apply matrix
-  Y = rskelf_mv(F,X,trans);
+  X = rskelf_mv(F,X,trans);
 end

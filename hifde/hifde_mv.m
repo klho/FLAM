@@ -12,7 +12,7 @@
 %    See also HIFDE2, HIFDE2X, HIFDE3, HIFDE3X, HIFDE_CHOLMV, HIFDE_CHOLSV,
 %    HIFDE_SV.
 
-function Y = hifde_mv(F,X,trans)
+function X = hifde_mv(F,X,trans)
 
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
@@ -21,18 +21,18 @@ function Y = hifde_mv(F,X,trans)
   trans = chktrans(trans);
 
   % handle transpose by conjugation
-  if trans == 't', Y = conj(hifde_mv(F,conj(X),'c')); return; end
+  if trans == 't', X = conj(hifde_mv(F,conj(X),'c')); return; end
 
   % dispatch to eliminate overhead
   if F.symm == 'n'
-    if trans == 'n', Y = hifde_mv_nn(F,X);
-    else,            Y = hifde_mv_nc(F,X);
+    if trans == 'n', X = hifde_mv_nn(F,X);
+    else,            X = hifde_mv_nc(F,X);
     end
   elseif F.symm == 's'
-    if trans == 'n', Y = hifde_mv_sn(F,X);
-    else,            Y = hifde_mv_sc(F,X);
+    if trans == 'n', X = hifde_mv_sn(F,X);
+    else,            X = hifde_mv_sc(F,X);
     end
-  elseif F.symm == 'h', Y = hifde_mv_h(F,X);
-  elseif F.symm == 'p', Y = hifde_mv_p(F,X);
+  elseif F.symm == 'h', X = hifde_mv_h(F,X);
+  elseif F.symm == 'p', X = hifde_mv_p(F,X);
   end
 end

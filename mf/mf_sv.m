@@ -10,7 +10,7 @@
 %
 %    See also MF2, MF3, MF_CHOLMV, MF_CHOLSV, MF_MV, MFX.
 
-function Y = mf_sv(F,X,trans)
+function X = mf_sv(F,X,trans)
 
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
@@ -19,14 +19,14 @@ function Y = mf_sv(F,X,trans)
   trans = chktrans(trans);
 
   % handle transpose by conjugation
-  if trans == 't', Y = conj(mf_sv(F,conj(X),'c')); return; end
+  if trans == 't', X = conj(mf_sv(F,conj(X),'c')); return; end
 
   % dispatch to eliminate overhead
   if F.symm == 'n' || F.symm == 's'
-    if trans == 'n', Y = mf_sv_nn(F,X);
-    else,            Y = mf_sv_nc(F,X);
+    if trans == 'n', X = mf_sv_nn(F,X);
+    else,            X = mf_sv_nc(F,X);
     end
-  elseif F.symm == 'h', Y = mf_sv_h(F,X);
-  elseif F.symm == 'p', Y = mf_sv_p(F,X);
+  elseif F.symm == 'h', X = mf_sv_h(F,X);
+  elseif F.symm == 'p', X = mf_sv_p(F,X);
   end
 end

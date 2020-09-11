@@ -1,26 +1,25 @@
 % RSKELF_MV_NC  Dispatch for RSKELF_MV with F.SYMM = 'N' and TRANS = 'C'.
 
-function Y = rskelf_mv_nc(F,X)
+function X = rskelf_mv_nc(F,X)
 
   % initialize
   n = F.lvp(end);
-  Y = X;
 
   % upward sweep
   for i = 1:n
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    Y(sk,:) = Y(sk,:) + F.factors(i).T*Y(rd,:);
-    Y(rd,:) = F.factors(i).L'*Y(rd(F.factors(i).p),:);
-    Y(rd,:) = Y(rd,:) + F.factors(i).E'*Y(sk,:);
+    X(sk,:) = X(sk,:) + F.factors(i).T*X(rd,:);
+    X(rd,:) = F.factors(i).L'*X(rd(F.factors(i).p),:);
+    X(rd,:) = X(rd,:) + F.factors(i).E'*X(sk,:);
   end
 
   % downward sweep
   for i = n:-1:1
     sk = F.factors(i).sk;
     rd = F.factors(i).rd;
-    Y(sk,:) = Y(sk,:) + F.factors(i).F'*Y(rd,:);
-    Y(rd,:) = F.factors(i).U'*Y(rd,:);
-    Y(rd,:) = Y(rd,:) + F.factors(i).T'*Y(sk,:);
+    X(sk,:) = X(sk,:) + F.factors(i).F'*X(rd,:);
+    X(rd,:) = F.factors(i).U'*X(rd,:);
+    X(rd,:) = X(rd,:) + F.factors(i).T'*X(sk,:);
   end
 end

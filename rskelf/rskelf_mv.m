@@ -10,7 +10,7 @@
 %
 %    See also RSKELF, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_SV.
 
-function Y = rskelf_mv(F,X,trans)
+function X = rskelf_mv(F,X,trans)
 
   % set default parameters
   if nargin < 3 || isempty(trans), trans = 'n'; end
@@ -19,18 +19,18 @@ function Y = rskelf_mv(F,X,trans)
   trans = chktrans(trans);
 
   % handle transpose by conjugation
-  if trans == 't', Y = conj(rskelf_mv(F,conj(X),'c')); return; end
+  if trans == 't', X = conj(rskelf_mv(F,conj(X),'c')); return; end
 
   % dispatch to eliminate overhead
   if F.symm == 'n'
-    if trans == 'n', Y = rskelf_mv_nn(F,X);
-    else,            Y = rskelf_mv_nc(F,X);
+    if trans == 'n', X = rskelf_mv_nn(F,X);
+    else,            X = rskelf_mv_nc(F,X);
     end
   elseif F.symm == 's'
-    if trans == 'n', Y = rskelf_mv_sn(F,X);
-    else,            Y = rskelf_mv_sc(F,X);
+    if trans == 'n', X = rskelf_mv_sn(F,X);
+    else,            X = rskelf_mv_sc(F,X);
     end
-  elseif F.symm == 'h', Y = rskelf_mv_h(F,X);
-  elseif F.symm == 'p', Y = rskelf_mv_p(F,X);
+  elseif F.symm == 'h', X = rskelf_mv_h(F,X);
+  elseif F.symm == 'p', X = rskelf_mv_p(F,X);
   end
 end
