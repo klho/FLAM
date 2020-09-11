@@ -22,7 +22,7 @@ function X = mf_sv(F,X,trans)
   if trans == 't', X = conj(mf_sv(F,conj(X),'c')); return; end
 
   % dispatch to eliminate overhead
-  if F.symm == 'n' || F.symm == 's'
+  if F.symm == 'n'
     if trans == 'n', X = mf_sv_nn(F,X);
     else,            X = mf_sv_nc(F,X);
     end

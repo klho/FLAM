@@ -42,7 +42,9 @@
 %              SYMM = 'N' or 'S', then local factors are computed using the LU
 %              decomposition; if SYMM = 'H', the LDL decomposition; and if
 %              SYMM = 'P', the Cholesky decomposition. Symmetry can reduce the
-%              computation time by about a factor of two.
+%              computation time by about a factor of two (except for SYMM = 'S',
+%              which is functionally identical to SYMM = 'N' but is maintained
+%              for compatibility).
 %
 %      - VERB: display status info if VERB = 1 (default: VERB = 0). This prints
 %              to screen a table tracking compression statistics through level.
@@ -74,6 +76,7 @@ function F = mfx(A,x,occ,opts)
 
   % check inputs
   opts.symm = chksymm(opts.symm);
+  if opts.symm == 's', opts.symm = 'n'; end
   if opts.symm == 'h' && isoctave()
     warning('FLAM:mfx:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
@@ -190,7 +193,7 @@ function F = mfx(A,x,occ,opts)
 
       % compute factors
       K = spget(A,slf,slf);
-      if opts.symm == 'n' || opts.symm == 's'
+      if opts.symm == 'n'
         [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
         G = L\K(rd(p),sk);

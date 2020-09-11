@@ -114,7 +114,7 @@ function D = mf_diag(F,dinv,opts)
       L = F.factors(i).L;
       p = F.factors(i).p;
       E = F.factors(i).E;
-      if F.symm == 'n' || F.symm == 's'
+      if F.symm == 'n'
         U = F.factors(i).U;
         G = F.factors(i).F;
       else

@@ -90,7 +90,7 @@ function D = mf_spdiag(F,dinv)
   spinfo.t = spinfo.t(spinfo.i);
 
   % dispatch to eliminate overhead
-  if F.symm == 'n' || F.symm == 's'
+  if F.symm == 'n'
     if dinv, D = mf_spdiag_sv_n(F,spinfo);
     else,    D = mf_spdiag_mv_n(F,spinfo);
     end

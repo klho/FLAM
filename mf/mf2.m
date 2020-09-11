@@ -33,6 +33,7 @@ function F = mf2(A,n,occ,opts)
   assert(opts.lvlmax >= 1,'FLAM:mf2:invalidLvlmax', ...
          'Maximum tree depth must be at least 1.')
   opts.symm = chksymm(opts.symm);
+  if opts.symm == 's', opts.symm = 'n'; end
   if opts.symm == 'h' && isoctave()
     warning('FLAM:mf2:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
@@ -111,7 +112,7 @@ function F = mf2(A,n,occ,opts)
 
       % compute factors
       K = spget(A,slf,slf);
-      if opts.symm == 'n' || opts.symm == 's'
+      if opts.symm == 'n'
         [L,U,p] = lu(K(rd,rd),'vector');
         E = K(sk,rd)/U;
         G = L\K(rd(p),sk);
