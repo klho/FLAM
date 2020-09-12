@@ -23,14 +23,14 @@ function X = rskelf_sv(F,X,trans)
 
   % dispatch to eliminate overhead
   if F.symm == 'n'
-    if trans == 'n', X = rskelf_sv_nn(F,X);
-    else,            X = rskelf_sv_nc(F,X);
+    if trans == 'n', X = rskelf_sv_nn(F,X,3);
+    else,            X = rskelf_sv_nc(F,X,3);
     end
   elseif F.symm == 's'
-    if trans == 'n', X = rskelf_sv_sn(F,X);
-    else,            X = rskelf_sv_sc(F,X);
+    if trans == 'n', X = rskelf_sv_sn(F,X,3);
+    else,            X = rskelf_sv_sc(F,X,3);
     end
-  elseif F.symm == 'h', X = rskelf_sv_h(F,X);
-  elseif F.symm == 'p', X = rskelf_sv_p(F,X);
+  elseif F.symm == 'h', X = rskelf_sv_h(F,X,3);
+  elseif F.symm == 'p', X = rskelf_sv_p(F,X,3);
   end
 end

@@ -1,25 +1,29 @@
 % RSKELF_MV_P  Dispatch for RSKELF_MV with F.SYMM = 'P'.
 
-function X = rskelf_mv_p(F,X)
+function X = rskelf_mv_p(F,X,mode)
 
   % initialize
   n = F.lvp(end);
 
   % upward sweep
-  for i = 1:n
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    X(sk,:) = X(sk,:) + F.factors(i).T*X(rd,:);
-    X(rd,:) = F.factors(i).L'*X(rd,:);
-    X(rd,:) = X(rd,:) + F.factors(i).E'*X(sk,:);
+  if bitget(mode,1)
+    for i = 1:n
+      sk = F.factors(i).sk;
+      rd = F.factors(i).rd;
+      X(sk,:) = X(sk,:) + F.factors(i).T*X(rd,:);
+      X(rd,:) = F.factors(i).L'*X(rd,:);
+      X(rd,:) = X(rd,:) + F.factors(i).E'*X(sk,:);
+    end
   end
 
   % downward sweep
-  for i = n:-1:1
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    X(sk,:) = X(sk,:) + F.factors(i).E*X(rd,:);
-    X(rd,:) = F.factors(i).L*X(rd,:);
-    X(rd,:) = X(rd,:) + F.factors(i).T'*X(sk,:);
+  if bitget(mode,2)
+    for i = n:-1:1
+      sk = F.factors(i).sk;
+      rd = F.factors(i).rd;
+      X(sk,:) = X(sk,:) + F.factors(i).E*X(rd,:);
+      X(rd,:) = F.factors(i).L*X(rd,:);
+      X(rd,:) = X(rd,:) + F.factors(i).T'*X(sk,:);
+    end
   end
 end
