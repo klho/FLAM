@@ -179,8 +179,7 @@ function A = Afun_(i,j,x,nu,area,S)
   A = Kfun(x(:,i),x(:,j),'d',nu(:,j)).*area(j);
   % replace near-field with precomputed quadratures
   M = spget(S,i,j); nzidx = M ~= 0; A(nzidx) = M(nzidx);
-  % replace diagonal with identity -- note: this is a crude approximation and
-  % basically ignores the fine behavior of the (removable) kernel singularity
+  % replace diagonal with identity (double-layer vanishes on flat triangles)
   [I,J] = ndgrid(i,j); A(I == J) = -0.5;
 end
 
