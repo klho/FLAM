@@ -74,6 +74,14 @@
 %              SYMM = 'P', the Cholesky decomposition. Symmetry can reduce the
 %              computation time by about a factor of two.
 %
+%      - STOP: stop the factorization after the first STOP levels (default:
+%              STOP = INF). More generally, this can be a logical function of
+%              the form STOP(LVL,L) that specifies whether to stop based on the
+%              current tree level LVL above the bottom and node size L. Early-
+%              terminated partial factorizations provide a framework for
+%              reducing the original system to a sparsely modified subsystem,
+%              which can then be solved iteratively or by other means.
+%
 %      - VERB: display status info if VERB = 1 (default: VERB = 0). This prints
 %              to screen a table tracking compression statistics through level.
 %              Special levels: 'T', tree sorting.
@@ -95,7 +103,8 @@
 %        (6): 953-976, 2010.
 %
 %    See also HYPOCT, ID, RSKELF_CHOLMV, RSKELF_CHOLSV, RSKELF_DIAG,
-%    RSKELF_LOGDET, RSKELF_MV, RSKELF_SPDIAG, RSKELF_SV.
+%    RSKELF_LOGDET, RSKELF_MV, RSKELF_PARTIAL_INFO, RSKELF_PARTIAL_MV,
+%    RSKELF_PARTIAL_SV, RSKELF_SPDIAG, RSKELF_SV.
 
 function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
@@ -107,6 +116,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   if ~isfield(opts,'Tmax'), opts.Tmax = 2; end
   if ~isfield(opts,'rrqr_iter'), opts.rrqr_iter = Inf; end
   if ~isfield(opts,'symm'), opts.symm = 'n'; end
+  if ~isfield(opts,'stop'), opts.stop = Inf; end
   if ~isfield(opts,'verb'), opts.verb = 0; end
 
   % check inputs
@@ -115,6 +125,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
     warning('FLAM:rskelf:octaveLDL','No LDL decomposition in Octave; using LU.')
     opts.symm = 'n';
   end
+  if isnumeric(opts.stop), opts.stop = @(lvl,l)(lvl >= opts.stop); end
 
   % print header
   if opts.verb
@@ -148,16 +159,21 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
              opts.symm);
   nlvl = 0;
   n = 0;
-  rem = true(N,1);   % which points remain?
-  M = cell(nbox,1);  % storage for modified diagonal blocks
-  P = zeros(N,1);    % auxiliary array for indexing
+  rem = true(N,1);    % which points remain?
+  M  = cell(nbox,1);  % storage for modified diagonal blocks
+  Mi = cell(nbox,1);  % indices for modified block storage
+  P = zeros(N,1);     % auxiliary array for indexing
 
   % loop over tree levels
   for lvl = t.nlvl:-1:1
+    l = t.l(:,lvl);  % current node size
+
+    % check for early termination
+    if ~isempty(opts.stop) && opts.stop(t.nlvl-lvl,l), break; end
+
     ts = tic;
     nlvl = nlvl + 1;
     nrem1 = nnz(rem);  % remaining points at start
-    l = t.l(:,lvl);
 
     % pull up skeletons from children
     for i = t.lvp(lvl)+1:t.lvp(lvl+1)
@@ -172,12 +188,13 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
 
       % generate modified diagonal block
       M{i} = zeros(nslf);
+      Mi{i} = slf;
       if lvl < t.nlvl
         P(slf) = 1:nslf;
         for j = t.nodes(i).chld
           k = P(t.nodes(j).xi);
-          M{i}(k,k) = M{j};  % pull subblock from child
-          M{j} = [];         % clear child storage
+          M{i}(k,k) = M{j};       % pull subblock from child
+          M{j} = []; Mi{j} = [];  % clear child storage
         end
       end
 
@@ -226,6 +243,7 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
       else,                    X = E*G;
       end
       M{i} = M{i}(sk,sk) - X;
+      Mi{i} = slf(sk);
 
       % store matrix factors
       n = n + 1;
@@ -257,4 +275,35 @@ function F = rskelf(A,x,occ,rank_or_tol,pxyfun,opts)
   % finish
   F.factors = F.factors(1:n);
   if opts.verb, fprintf([repmat('-',1,69) '\n']), end
+
+  % assemble sparse modifications for partial factorization
+  Sn = nnz(rem);
+  if Sn
+    F.lvp = F.lvp(1:nlvl+1);  % truncated tree
+    F.Si = find(rem);         % remaining skeletons from partial factorization
+    P(F.Si) = 1:Sn;           % compressed indices
+
+    % preallocate storage
+    nz = 0;
+    for i = 1:nbox
+      if isempty(M{i}), continue; end
+      nz = nz + nnz(M{i});
+    end
+    I = zeros(nz,1);
+    J = zeros(nz,1);
+    V = zeros(nz,1);
+
+    % fill nonzeros
+    nz = 0;
+    for i = 1:nbox
+      if isempty(M{i}), continue; end
+      n = numel(M{i});
+      [I_,J_] = ndgrid(P(Mi{i}));
+      I(nz+(1:n)) = I_;
+      J(nz+(1:n)) = J_;
+      V(nz+(1:n)) = M{i};
+      nz = nz + n;
+    end
+    F.S = sparse(I,J,V,Sn,Sn);  % remaining skeleton system
+  end
 end
