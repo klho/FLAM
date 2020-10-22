@@ -30,7 +30,7 @@ function fd_cube2(n,occ,symm,doiter,diagmode)
   A = fftn(A,[2*n-3 2*n-3 2*n-3]);
   [X,Y,Z] = ndgrid(0:n-2);
   % Gaussian smoothing over 4 grid points
-  C = normpdf(X,0,4).*normpdf(Y,0,4).*normpdf(Z,0,4);
+  C = gausspdf(X,0,4).*gausspdf(Y,0,4).*gausspdf(Z,0,4);
   B = zeros(2*n-3,2*n-3,2*n-3);
   B(1:n-1,1:n-1,1:n-1) = C;
   B(1:n-1,1:n-1,n:end) = C( :   , :   ,2:n-1);
@@ -167,9 +167,4 @@ function fd_cube2(n,occ,symm,doiter,diagmode)
     err = norm(D(r) - E)/norm(E);
     fprintf('  inv: %10.4e / %10.4e (s)\n',err,t)
   end
-end
-
-% Gaussian PDF -- in case statistics toolbox not available
-function y = normpdf(x,mu,sigma)
-  y = exp(-0.5*((x - mu)./sigma).^2)./(sqrt(2*pi)*sigma);
 end

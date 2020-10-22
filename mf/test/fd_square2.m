@@ -31,7 +31,7 @@ function fd_square2(n,occ,symm,doiter,diagmode)
   A = rand(n-1,n-1);                   % random field
   A = fft2(A,2*n-3,2*n-3);
   [X,Y] = ndgrid(0:n-2);
-  C = normpdf(X,0,4).*normpdf(Y,0,4);  % Gaussian smoothing over 4 grid points
+  C = gausspdf(X,0,4).*gausspdf(Y,0,4);  % Gaussian smoothing over 4 grid points
   B = zeros(2*n-3,2*n-3);
   B(1:n-1,1:n-1) = C;
   B(1:n-1,n:end) = C( :   ,2:n-1);
@@ -161,9 +161,4 @@ function fd_square2(n,occ,symm,doiter,diagmode)
     err = norm(D(r) - E)/norm(E);
     fprintf('  inv: %10.4e / %10.4e (s)\n',err,t)
   end
-end
-
-% Gaussian PDF -- in case statistics toolbox not available
-function y = normpdf(x,mu,sigma)
-  y = exp(-0.5*((x - mu)./sigma).^2)./(sqrt(2*pi)*sigma);
 end
