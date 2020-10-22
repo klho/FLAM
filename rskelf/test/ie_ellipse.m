@@ -108,7 +108,7 @@ function K = Kfun(x,y,lp,nu)
     K = -1/(2*pi)*log(dr);
   elseif lp == 'd'  % double-layer: dG/dn
     rdotn = dx.*nu(1,:) + dy.*nu(2,:);
-    K = 1/(2*pi).*rdotn./dr.^2;
+    K = 1/(2*pi)*rdotn./dr.^2;
   end
 end
 

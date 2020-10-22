@@ -151,7 +151,7 @@ function f = quadfun(x,y,trg)
   dy = trg(2) - y;
   dz = trg(3);
   dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  f = 1/(4*pi).*dz./dr.^3;  % double-layer, normal in z-direction
+  f = 1/(4*pi)*dz./dr.^3;  % double-layer, normal in z-direction
 end
 
 % kernel function
@@ -164,7 +164,7 @@ function K = Kfun(x,y,lp,nu)
     K = 1/(4*pi)./dr;
   elseif lp == 'd'  % double-layer: dG/dn
     rdotn = dx.*nu(1,:) + dy.*nu(2,:) + dz.*nu(3,:);
-    K = 1/(4*pi).*rdotn./dr.^3;
+    K = 1/(4*pi)*rdotn./dr.^3;
   end
 end
 

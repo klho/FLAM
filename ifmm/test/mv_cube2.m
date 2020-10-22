@@ -71,7 +71,7 @@ function K = Kfun(x,y,k)
   dy = x(2,:)' - y(2,:);
   dz = x(3,:)' - y(3,:);
   dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  K = 1/(4*pi).*exp(1i*k*dr)./dr;
+  K = 1/(4*pi)*exp(1i*k*dr)./dr;
 end
 
 % matrix entries
