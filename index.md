@@ -183,6 +183,9 @@ Available functions:
 - `rskelf_cholsv`: apply factored matrix Cholesky square root inverse to a vector (positive definite only)
 - `rskelf_logdet`: compute log-determinant of factored matrix
 - `rskelf_diag`: extract diagonal of factored matrix or its inverse by "matrix unfolding"
+- `rskelf_partial_info`: retrieve compressed skeleton information from partial factorization
+- `rskelf_partial_mv`: apply partially factored matrix to a vector
+- `rskelf_partial_sv`: apply partially factored matrix inverse to a vector
 - `rskelf_spdiag`: extract diagonal of factored matrix or its inverse by sparse multiply/solves
 
 #### Hierarchical interpolative factorization for integral equations
