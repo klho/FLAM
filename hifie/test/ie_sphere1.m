@@ -46,13 +46,10 @@ function ie_sphere1(n,nquad,occ,p,rank_or_tol,Tmax,skip,store)
   tic
   if nquad > 0
 
-    % generate reference transformations for each triangle
-    [trans,rot,V2,V3] = tri3transrot(V,F);
-
     % initialize quadrature on the unit square
     [xq,wq] = glegquad(nquad,0,1);
-    [xq,yq] = meshgrid(xq); wq = wq*wq';  % tensor product rule
-    xq = xq(:); yq = yq(:); wq = wq(:);
+    [xq,yq] = ndgrid(xq); wq = wq*wq';  % tensor product rule
+    xq = [xq(:) yq(:)]'; wq = wq(:);
 
     % find neighbors of each triangle
     lrt = 2;                   % root node size
@@ -77,15 +74,12 @@ function ie_sphere1(n,nquad,occ,p,rank_or_tol,Tmax,skip,store)
       node = T.nodes(i);
       nbor = [T.nodes(node.nbor).xi];
       for k = node.xi
-        % map quadrature rule from square to reference triangle
-        [X,Y,W] = qmap_sqtri2(xq,yq,wq,V2(k),V3(:,k));
-        for j = [node.xi nbor]
-          if j == k, continue; end                 % skip self-interaction
-          trg = rot(:,:,k)*(x(:,j) + trans(:,k));  % target in reference space
-          q = W'*quadfun(X,Y,trg);                 % apply quadrature
-          nz = nz + 1;
-          I(nz) = j; J(nz) = k; S(nz) = q;
-        end
+        j = setdiff([node.xi nbor],k);             % skip self-interaction
+        [Xq,Wq] = quad_sqtri3(xq,wq,V(:,F(:,k)));  % map quadrature to triangle
+        K = Kfun(x(:,j),Xq,'d',nu(:,k))*Wq;        % apply quadrature
+        n = length(j);
+        I(nz+(1:n)) = j; J(nz+(1:n)) = k; S(nz+(1:n)) = K;
+        nz = nz + n;
       end
     end
   else  % skip quadratures -- just use area-weighted point interactions
@@ -95,7 +89,7 @@ function ie_sphere1(n,nquad,occ,p,rank_or_tol,Tmax,skip,store)
   t = toc;
   w = whos('S'); mem = w.bytes/1e6;
   fprintf('quad time/mem: %10.4e (s) / %6.2f (MB)\n',t,mem)
-  clear V F trans rot V2 V3 T I J
+  clear V F T I J
 
   % factor matrix using HIFIE
   Afun = @(i,j)Afun_(i,j,x,nu,area,S);
@@ -152,15 +146,6 @@ function ie_sphere1(n,nquad,occ,p,rank_or_tol,Tmax,skip,store)
   Z = Kfun(trg,src,'s')*q;
   err = norm(Z - Y)/norm(Z);
   fprintf('pde solve err: %10.4e\n',err)
-end
-
-% quadrature function on reference geometry
-function f = quadfun(x,y,trg)
-  dx = trg(1) - x;
-  dy = trg(2) - y;
-  dz = trg(3);
-  dr = sqrt(dx.^2 + dy.^2 + dz.^2);
-  f = 1/(4*pi)*dz./dr.^3;  % double-layer, normal in z-direction
 end
 
 % kernel function
