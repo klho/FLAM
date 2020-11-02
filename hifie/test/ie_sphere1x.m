@@ -5,7 +5,7 @@
 % Inputs (defaults are used if not provided or set empty):
 %
 %   - N: minimum number of triangles from subdivision (default: N = 20480)
-%   - NQUAD: quadrature order (default: NQUAD = 4)
+%   - NQUAD: 1D quadrature order (default: NQUAD = 4)
 %   - OCC: tree occupancy parameter (default: OCC = 1024)
 %   - P: number of proxy points (default: P = 512)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-3)
