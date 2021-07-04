@@ -34,7 +34,7 @@ FLAM is freely available under the GNU GPLv3 and was last tested on MATLAB R2019
 
 If you use FLAM, please cite:
 
-- K.L. Ho. FLAM: Fast linear algebra in MATLAB &ndash; algorithms for hierarchical matrices. J. Open Source Softw. 5 (51): 1906, 2020. [doi:10.21105/joss.01906](http://dx.doi.org/10.21105/joss.01906).
+- K.L. Ho. FLAM: Fast linear algebra in MATLAB &ndash; Algorithms for hierarchical matrices. J. Open Source Softw. 5 (51): 1906, 2020. [doi:10.21105/joss.01906](http://dx.doi.org/10.21105/joss.01906).
 
 ## Contents
 
