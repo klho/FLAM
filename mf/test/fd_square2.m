@@ -37,8 +37,8 @@ function fd_square2(n,occ,symm,doiter,diagmode)
   B(1:n-1,n:end) = C( :   ,2:n-1);
   B(n:end,1:n-1) = C(2:n-1, :   );
   B(n:end,n:end) = C(2:n-1,2:n-1);
-  B(:,n:end) = flipdim(B(:,n:end),2);
-  B(n:end,:) = flipdim(B(n:end,:),1);
+  B(n:end,:) = flip(B(n:end,:),1);
+  B(:,n:end) = flip(B(:,n:end),2);
   B = fft2(B);
   A = ifft2(A.*B);                     % convolution in Fourier domain
   A = A(1:n-1,1:n-1);

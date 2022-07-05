@@ -63,7 +63,7 @@ function cov_line1(N,occ,p,rank_or_tol,Tmax,symm,noise,scale)
   a = Afun(1:N,1);
   B = zeros(2*N-1,1);  % zero-pad
   B(1:N) = a;
-  B(N+1:end) = flipud(a(2:N));
+  B(N+1:end) = flip(a(2:N));
   G = fft(B);
   mv = @(x)mv_(G,x);
 

@@ -55,9 +55,9 @@ function ie_cube1(n,occ,p,rank_or_tol,Tmax,symm,doiter)
   B(n+1:end,  1:n  ,n+1:end) = a(2:n,:,2:n);
   B(n+1:end,n+1:end,  1:n  ) = a(2:n,2:n,:);
   B(n+1:end,n+1:end,n+1:end) = a(2:n,2:n,2:n);
-  B(:,:,n+1:end) = flipdim(B(:,:,n+1:end),3);
-  B(:,n+1:end,:) = flipdim(B(:,n+1:end,:),2);
-  B(n+1:end,:,:) = flipdim(B(n+1:end,:,:),1);
+  B(n+1:end,:,:) = flip(B(n+1:end,:,:),1);
+  B(:,n+1:end,:) = flip(B(:,n+1:end,:),2);
+  B(:,:,n+1:end) = flip(B(:,:,n+1:end),3);
   G = fftn(B);
   mv = @(x)mv_(G,x);
 

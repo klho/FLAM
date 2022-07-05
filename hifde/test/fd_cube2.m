@@ -46,9 +46,9 @@ function fd_cube2(n,occ,rank_or_tol,Tmax,skip,symm,doiter,diagmode)
   B(n:end,1:n-1,n:end) = C(2:n-1, :   ,2:n-1);
   B(n:end,n:end,1:n-1) = C(2:n-1,2:n-1, :   );
   B(n:end,n:end,n:end) = C(2:n-1,2:n-1,2:n-1);
-  B(:,:,n:end) = flipdim(B(:,:,n:end),3);
-  B(:,n:end,:) = flipdim(B(:,n:end,:),2);
-  B(n:end,:,:) = flipdim(B(n:end,:,:),1);
+  B(n:end,:,:) = flip(B(n:end,:,:),1);
+  B(:,n:end,:) = flip(B(:,n:end,:),2);
+  B(:,:,n:end) = flip(B(:,:,n:end),3);
   B = fftn(B);
   A = ifftn(A.*B);        % convolution in Fourier domain
   A = A(1:n-1,1:n-1,1:n-1);
