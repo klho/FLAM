@@ -31,15 +31,21 @@ function cov_circle1(N,occ,p,rank_or_tol,Tmax,symm,noise,scale,diagmode)
 
   % initialize
   theta = (1:N)*2*pi/N; x = [cos(theta); sin(theta)];  % row/col points
-  % proxy points -- a few concentric rings
-  theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];  % base ring
-  proxy = [];  % accumulate several rings
-  for r = linspace(1.5,2.5,p), proxy = [proxy r*proxy_]; end
-  % reference proxy points are for unit box [-1, 1]^2
+  % proxy points -- rectangular annulus
+  theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];  % base "ring"
+  idx1 = find(abs(proxy_(1,:)) >= abs(proxy_(2,:)));
+  idx2 = find(abs(proxy_(1,:)) <= abs(proxy_(2,:)));
+  proxy_(:,idx1) = proxy_(:,idx1)./abs(proxy_(1,idx1));
+  proxy_(:,idx2) = proxy_(:,idx2)./abs(proxy_(2,idx2));
+  proxy = zeros(2,p,p);
+  R = 3/scale;  % annular width
+  for i = 1:p, proxy(:,:,i) = R*(i-1)/(p-1)*proxy_; end
+  % reference proxy points are for a single point at the origin only
+  shift = 1.5*proxy_;  % reference shift for the unit box [-1, 1]^2
 
   % factor matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale);
   opts = struct('Tmax',Tmax,'symm',symm,'verb',1);
   tic; F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -141,12 +147,12 @@ function A = Afun_(i,j,x,noise,scale)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = proxy.*l + ctr;  % scale and translate reference points
+function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale)
+  pxy = proxy + ctr + shift.*l;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
-  % proxy points form ellipse of scaled "radius" 1.5 around current box
-  % keep among neighbors only those within ellipse
-  nbr = nbr(sum(((x(:,nbr) - ctr)./l).^2) < 1.5^2);
+  % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
+  % keep among neighbors only those within annulus
+  nbr = nbr(max(abs(x(:,nbr) - ctr)./l) < 1.5);
 end
 
 % FFT multiplication
