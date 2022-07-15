@@ -32,14 +32,10 @@ function cov_square1(n,occ,p,rank_or_tol,Tmax,symm,noise,scale,diagmode)
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
   N = size(x,2);
   % proxy points -- rectangular annulus
-  theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];  % base "ring"
-  idx1 = find(abs(proxy_(1,:)) >= abs(proxy_(2,:)));
-  idx2 = find(abs(proxy_(1,:)) <= abs(proxy_(2,:)));
-  proxy_(:,idx1) = proxy_(:,idx1)./abs(proxy_(1,idx1));
-  proxy_(:,idx2) = proxy_(:,idx2)./abs(proxy_(2,idx2));
-  proxy = zeros(2,p,p);
-  R = 3/scale;  % annular width
-  for i = 1:p, proxy(:,:,i) = R*(i-1)/(p-1)*proxy_; end
+  theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];
+  proxy_ = proxy_./max(abs(proxy_));                           % base "ring"
+  R = 3/scale;                                                 % annular width
+  proxy = reshape(proxy_(:)*linspace(0,R,p),2,p,p);            % proxy points
   % reference proxy points are for a single point at the origin only
   shift = 1.5*proxy_;  % reference shift for the unit box [-1, 1]^2
 
@@ -156,7 +152,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale)
-  pxy = proxy + ctr + shift.*l;  % scale and translate reference points
+  pxy = proxy + shift.*l + ctr;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
   % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
   % keep among neighbors only those within annulus

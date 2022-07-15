@@ -162,7 +162,7 @@ end
 
 % proxy function
 function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale)
-  pxy = proxy + ctr + shift.*l;  % scale and translate reference points
+  pxy = proxy + shift.*l + ctr;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
   % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
   % keep among neighbors only those within annulus

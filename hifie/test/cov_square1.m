@@ -53,15 +53,17 @@ function cov_square1(n,occ,p,rank_or_tol,Tmax,skip,symm,noise,scale,diagmode)
   % initialize
   [x1,x2] = ndgrid((1:n)/n); x = [x1(:) x2(:)]'; clear x1 x2;  % grid points
   N = size(x,2);
-  % proxy points -- a few concentric rings
-  theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];  % base ring
-  proxy = [];  % accumulate several rings
-  for r = linspace(1.5,2.5,p), proxy = [proxy r*proxy_]; end
-  % reference proxy points are for unit box [-1, 1]^2
+  % proxy points -- rectangular annulus
+  theta = (1:p)*2*pi/p; proxy_ = [cos(theta); sin(theta)];
+  proxy_ = proxy_./max(abs(proxy_));                           % base "ring"
+  R = 3/scale;                                                 % annular width
+  proxy = reshape(proxy_(:)*linspace(0,R,p),2,p,p);            % proxy points
+  % reference proxy points are for a single point at the origin only
+  shift = 1.5*proxy_;  % reference shift for the unit box [-1, 1]^2
 
   % factor matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale);
   opts = struct('Tmax',Tmax,'skip',skip,'symm',symm,'verb',1);
   tic; F = hifie2(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -171,12 +173,12 @@ function A = Afun_(i,j,x,noise,scale)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = proxy.*l + ctr;  % scale and translate reference points
+function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale)
+  pxy = proxy + shift.*l + ctr;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
-  % proxy points form ellipse of scaled "radius" 1.5 around current box
-  % keep among neighbors only those within ellipse
-  nbr = nbr(sum(((x(:,nbr) - ctr)./l).^2) < 1.5^2);
+  % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
+  % keep among neighbors only those within annulus
+  nbr = nbr(max(abs(x(:,nbr) - ctr)./l) < 1.5);
 end
 
 % FFT multiplication
