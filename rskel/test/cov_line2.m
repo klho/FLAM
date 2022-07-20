@@ -154,10 +154,10 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale)
   N = size(rx,2);
   if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy,scale);
-    dr = cx(nbr) - ctr;
+    dr = cx(:,nbr) - ctr;
   else
     Kpxy = Kfun(pxy,cx(:,slf),scale);
-    dr = rx(nbr) - ctr;
+    dr = rx(:,nbr) - ctr;
   end
   % proxy points form interval of scaled radius 1.5 around current box
   % keep among neighbors only those within interval
