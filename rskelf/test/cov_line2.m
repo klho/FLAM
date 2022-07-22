@@ -29,13 +29,15 @@ function cov_line2(N,occ,p,rank_or_tol,Tmax,symm,noise,scale,diagmode)
   if nargin < 9 || isempty(diagmode), diagmode = 1; end
 
   % initialize
-  x = (1:N)/N;                                          % grid points
-  proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
-  % reference proxy points are for unit box [-1, 1]
+  x = (1:N)/N;                                      % grid points
+  R = 3/scale;                                      % annular width
+  proxy = linspace(0,R,p); proxy = [-proxy proxy];  % proxy points
+  % reference proxy points are for a single point at the origin only
+  shift = 1.5*sign(proxy);  % reference shift for the unit box [-1, 1]^2
 
   % factor matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale);
   opts = struct('Tmax',Tmax,'symm',symm,'verb',1);
   tic; F = rskelf(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -139,12 +141,12 @@ function A = Afun_(i,j,x,noise,scale)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = proxy.*l + ctr;  % scale and translate reference points
+function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale)
+  pxy = proxy + shift.*l + ctr;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
-  % proxy points form interval of scaled radius 1.5 around current box
-  % keep among neighbors only those within interval
-  nbr = nbr(abs(x(:,nbr) - ctr)/l < 1.5);
+  % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
+  % keep among neighbors only those within annulus
+  nbr = nbr(abs(x(:,nbr) - ctr)./l < 1.5);
 end
 
 % FFT multiplication

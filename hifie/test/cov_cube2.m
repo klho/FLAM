@@ -6,7 +6,7 @@
 %
 %   - N: number of points in each dimension (default: N = 32)
 %   - OCC: tree occupancy parameter (default: OCC = 512)
-%   - P: square root of number of proxy points (default: P = 16)
+%   - P: cube root of number of proxy points (default: P = 16)
 %   - RANK_OR_TOL: local precision parameter (default: RANK_OR_TOL = 1e-3)
 %   - TMAX: ID interpolation matrix entry bound (default: TMAX = 2)
 %   - SKIP: skip parameter (default: SKIP = 0)
@@ -34,15 +34,18 @@ function cov_cube2(n,occ,p,rank_or_tol,Tmax,skip,symm,noise,scale,diagmode)
   [x1,x2,x3] = ndgrid((1:n)/n); x = [x1(:) x2(:) x3(:)]';  % grid points
   clear x1 x2 x3
   N = size(x,2);
-  % proxy points -- a few concentric rings
-  proxy_ = trisphere_subdiv(p,'v');  % base ring
-  proxy = [];  % accumulate several rings
-  for r = linspace(1.5,2.5,p), proxy = [proxy r*proxy_]; end
-  % reference proxy points are for unit box [-1, 1]^3
+  % proxy points -- rectangular annulus
+  proxy_ = trisphere_subdiv(p^2,'v');
+  r = randperm(size(proxy_,2)); proxy_ = proxy_(:,r(1:p^2));
+  proxy_ = proxy_./max(abs(proxy_));                       % base "ring"
+  R = 3/scale;                                             % annular width
+  proxy = reshape(proxy_(:)*linspace(0,R,p),3,p^2,p);      % proxy points
+  % reference proxy points are for a single point at the origin only
+  shift = 1.5*proxy_;  % reference shift for the unit box [-1, 1]^3
 
   % factor matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
-  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,scale);
+  pxyfun = @(x,slf,nbr,l,ctr)pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale);
   opts = struct('Tmax',Tmax,'skip',skip,'symm',symm,'verb',1);
   tic; F = hifie3(Afun,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -158,12 +161,12 @@ function A = Afun_(i,j,x,noise,scale)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,scale)
-  pxy = proxy.*l + ctr;  % scale and translate reference points
+function [Kpxy,nbr] = pxyfun_(x,slf,nbr,l,ctr,proxy,shift,scale)
+  pxy = proxy + shift.*l + ctr;  % scale and translate reference points
   Kpxy = Kfun(pxy,x(:,slf),scale);
-  % proxy points form ellipsoid of scaled "radius" 1.5 around current box
-  % keep among neighbors only those within ellipsoid
-  nbr = nbr(sum(((x(:,nbr) - ctr)./l).^2) < 1.5^2);
+  % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
+  % keep among neighbors only those within annulus
+  nbr = nbr(max(abs(x(:,nbr) - ctr)./l) < 1.5);
 end
 
 % FFT multiplication

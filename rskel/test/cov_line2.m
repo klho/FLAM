@@ -26,13 +26,16 @@ function cov_line2(N,occ,p,rank_or_tol,Tmax,symm,noise,scale)
   if nargin < 8 || isempty(scale), scale = 100; end
 
   % initialize
-  x = (1:N)/N;                                          % grid points
-  proxy = linspace(1.5,2.5,p); proxy = [-proxy proxy];  % proxy points
-  % reference proxy points are for unit box [-1, 1]
+  x = (1:N)/N;                                      % grid points
+  R = 3/scale;                                      % annular width
+  proxy = linspace(0,R,p); proxy = [-proxy proxy];  % proxy points
+  % reference proxy points are for a single point at the origin only
+  shift = 1.5*sign(proxy);  % reference shift for the unit box [-1, 1]^2
 
   % compress matrix
   Afun = @(i,j)Afun_(i,j,x,noise,scale);
-  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale);
+  pxyfun = @(rc,rx,cx,slf,nbr,l,ctr)pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy, ...
+                                            shift,scale);
   opts = struct('Tmax',Tmax,'symm',symm,'verb',1);
   tic; F = rskel(Afun,x,x,occ,rank_or_tol,pxyfun,opts); t = toc;
   w = whos('F'); mem = w.bytes/1e6;
@@ -149,8 +152,8 @@ function A = Afun_(i,j,x,noise,scale)
 end
 
 % proxy function
-function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale)
-  pxy = proxy.*l + ctr;  % scale and translate reference points
+function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,shift,scale)
+  pxy = proxy + shift.*l + ctr;  % scale and translate reference points
   N = size(rx,2);
   if rc == 'r'
     Kpxy = Kfun(rx(:,slf),pxy,scale);
@@ -159,9 +162,9 @@ function [Kpxy,nbr] = pxyfun_(rc,rx,cx,slf,nbr,l,ctr,proxy,scale)
     Kpxy = Kfun(pxy,cx(:,slf),scale);
     dr = rx(:,nbr) - ctr;
   end
-  % proxy points form interval of scaled radius 1.5 around current box
-  % keep among neighbors only those within interval
-  nbr = nbr(abs(dr)/l < 1.5);
+  % proxy points form "annulus" of scaled inner "radius" 1.5 around current box
+  % keep among neighbors only those within annulus
+  nbr = nbr(abs(dr)./l < 1.5);
 end
 
 % FFT multiplication
