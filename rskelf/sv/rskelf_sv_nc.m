@@ -8,22 +8,22 @@ function X = rskelf_sv_nc(F,X,mode)
   % upward sweep
   if bitget(mode,1)
     for i = 1:n
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      X(rd,:) = X(rd,:) - F.factors(i).T'*X(sk,:);
-      X(rd,:) = F.factors(i).U'\X(rd,:);
-      X(sk,:) = X(sk,:) - F.factors(i).F'*X(rd,:);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
+      X(rd,:) = X(rd,:) - f.T'*X(sk,:);
+      X(rd,:) = f.U'\X(rd,:);
+      X(sk,:) = X(sk,:) - f.F'*X(rd,:);
     end
   end
 
   % downward sweep
   if bitget(mode,2)
     for i = n:-1:1
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      X(rd,:) = X(rd,:) - F.factors(i).E'*X(sk,:);
-      X(rd(F.factors(i).p),:) = F.factors(i).L'\X(rd,:);
-      X(sk,:) = X(sk,:) - F.factors(i).T*X(rd,:);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
+      X(rd,:) = X(rd,:) - f.E'*X(sk,:);
+      X(rd(f.p),:) = f.L'\X(rd,:);
+      X(sk,:) = X(sk,:) - f.T*X(rd,:);
     end
   end
 end

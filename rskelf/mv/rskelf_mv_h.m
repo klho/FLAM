@@ -8,23 +8,23 @@ function X = rskelf_mv_h(F,X,mode)
   % upward sweep
   if bitget(mode,1)
     for i = 1:n
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      X(sk,:) = X(sk,:) + F.factors(i).T*X(rd,:);
-      X(rd,:) = F.factors(i).L'*X(rd,:);
-      X(rd,:) = X(rd,:) + F.factors(i).E'*X(sk,:);
-      X(rd,:) = F.factors(i).U*X(rd,:);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
+      X(sk,:) = X(sk,:) + f.T*X(rd,:);
+      X(rd,:) = f.L'*X(rd,:);
+      X(rd,:) = X(rd,:) + f.E'*X(sk,:);
+      X(rd,:) = f.U*X(rd,:);
     end
   end
 
   % downward sweep
   if bitget(mode,2)
     for i = n:-1:1
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      X(sk,:) = X(sk,:) + F.factors(i).E*X(rd,:);
-      X(rd,:) = F.factors(i).L*X(rd,:);
-      X(rd,:) = X(rd,:) + F.factors(i).T'*X(sk,:);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
+      X(sk,:) = X(sk,:) + f.E*X(rd,:);
+      X(rd,:) = f.L*X(rd,:);
+      X(rd,:) = X(rd,:) + f.T'*X(sk,:);
     end
   end
 end

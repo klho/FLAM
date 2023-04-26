@@ -19,10 +19,8 @@ function D = rskelf_spdiag_sv_p(F,spinfo)
     P(rem) = 1:nrem;
 
     % allocate active submatrix for current block
-    j = spinfo.i(i);
-    sk = F.factors(j).sk;
-    rd = F.factors(j).rd;
-    slf = [sk rd];
+    f = F.factors(spinfo.i(i));
+    slf = [f.sk f.rd];
     nslf = length(slf);
     Y = zeros(nrem,nslf);
     Y(P(slf),:) = eye(nslf);
@@ -30,11 +28,11 @@ function D = rskelf_spdiag_sv_p(F,spinfo)
     % upward sweep
     for j = spinfo.t(i,:)
       if j == 0, continue; end
-      sk = P(F.factors(j).sk);
-      rd = P(F.factors(j).rd);
-      Y(rd,:) = Y(rd,:) - F.factors(j).T'*Y(sk,:);
-      Y(rd,:) = F.factors(j).L\Y(rd,:);
-      Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
+      f = F.factors(j);
+      sk = P(f.sk); rd = P(f.rd);
+      Y(rd,:) = Y(rd,:) - f.T'*Y(sk,:);
+      Y(rd,:) = f.L\Y(rd,:);
+      Y(sk,:) = Y(sk,:) - f.E*Y(rd,:);
     end
 
     % extract diagonal

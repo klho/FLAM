@@ -32,19 +32,19 @@ function Y = rskelf_cholmv(F,X,trans)
   % upward/downward sweep
   if trans == 'n'
     for i = n:-1:1
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      Y(sk,:) = Y(sk,:) + F.factors(i).E*Y(rd,:);
-      Y(rd,:) = F.factors(i).L*Y(rd,:);
-      Y(rd,:) = Y(rd,:) + F.factors(i).T'*Y(sk,:);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
+      Y(sk,:) = Y(sk,:) + f.E*Y(rd,:);
+      Y(rd,:) = f.L*Y(rd,:);
+      Y(rd,:) = Y(rd,:) + f.T'*Y(sk,:);
     end
   else
     for i = 1:n
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      Y(sk,:) = Y(sk,:) + F.factors(i).T*Y(rd,:);
-      Y(rd,:) = F.factors(i).L'*Y(rd,:);
-      Y(rd,:) = Y(rd,:) + F.factors(i).E'*Y(sk,:);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
+      Y(sk,:) = Y(sk,:) + f.T*Y(rd,:);
+      Y(rd,:) = f.L'*Y(rd,:);
+      Y(rd,:) = Y(rd,:) + f.E'*Y(sk,:);
     end
   end
 end

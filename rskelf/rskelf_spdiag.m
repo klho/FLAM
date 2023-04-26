@@ -31,9 +31,8 @@ function D = rskelf_spdiag(F,dinv)
   % bottom-up loop: set up immediate parent-child dependencies
   for lvl = 1:nlvl
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      slf = [sk rd];
+      f = F.factors(i);
+      slf = [f.sk f.rd];
 
       % initialize current block
       spinfo.t(i,lvl) = i;
@@ -58,9 +57,8 @@ function D = rskelf_spdiag(F,dinv)
     if lvl < nlvl, spinfo.t(i,lvl+1:end) = spinfo.t(j,lvl+1:end); end
 
     % find leaf block for each index
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    x([sk rd]) = i;
+    f = F.factors(i);
+    x([f.sk f.rd]) = i;
   end
 
   % store leaf blocks and prune tree

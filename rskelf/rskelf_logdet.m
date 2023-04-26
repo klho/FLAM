@@ -22,7 +22,8 @@ function ld = rskelf_logdet(F)
       if F.symm == 'h'
         ld = ld + logdet_ldl(F.factors(i).U);
       else
-        ld = ld + sum(log(diag(F.factors(i).U))) + log(detperm(F.factors(i).p));
+        f = F.factors(i);
+        ld = ld + sum(log(diag(f.U))) + log(detperm(f.p));
       end
     end
   end
