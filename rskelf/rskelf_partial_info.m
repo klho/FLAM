@@ -10,7 +10,7 @@
 %    See also RSKELF, RSKELF_PARTIAL_MV, RSKELF_PARTIAL_SV.
 
 function [sk,S] = rskelf_partial_info(F)
-  if isfield(F,'Si'), sk = F.si;
+  if isfield(F,'Si'), sk = F.Si;
   else,               sk = [];
   end
   if isfield(F,'S'), S = F.S;

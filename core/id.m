@@ -118,7 +118,7 @@ function [sk,rd,T,niter] = id(A,rank_or_tol,Tmax,rrqr_iter,fixed)
     f2 = Tmax^2;                      % convergence criterion
     c2 = sum(R(k+1:end,k+1:end).^2);  % column norms of residual part
     r2 = sum(inv(R(1:k,1:k)).^2,2);   % inverse row norms of main part
-    conv  = 0;                        % converged?
+    conv = 0;                         % converged?
 
     % one-loop variant of Gu-Eisenstat -- allows early rank reduction
     while niter < rrqr_iter
