@@ -61,13 +61,14 @@ function [A,p,q] = rskel_xsp(F)
   for lvl = 1:nlvl
     for i = F.lvpd(lvl)+1:F.lvpd(lvl+1), nz = nz + numel(F.D(i).D); end
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrem(F.U(i).rrd) = false;
+      f = F.U(i);
+      rrem(f.rrd) = false;
       if F.symm == 'n'
-        crem(F.U(i).crd) = false;
-        nz = nz + numel(F.U(i).rT) + numel(F.U(i).cT);
+        crem(f.crd) = false;
+        nz = nz + numel(f.rT) + numel(f.cT);
       else
-        crem(F.U(i).rrd) = false;
-        nz = nz + numel(F.U(i).rT);
+        crem(f.rrd) = false;
+        nz = nz + numel(f.rT);
       end
     end
     if F.symm == 'n', nz = nz + 2*(nnz(rrem) + nnz(crem));
@@ -88,9 +89,10 @@ function [A,p,q] = rskel_xsp(F)
     rn = nnz(rrem);
     cn = nnz(crem);
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrem(F.U(i).rrd) = false;
-      if F.symm == 'n', crem(F.U(i).crd) = false;
-      else,             crem(F.U(i).rrd) = false;
+      f = F.U(i);
+      rrem(f.rrd) = false;
+      if F.symm == 'n', crem(f.crd) = false;
+      else,             crem(f.rrd) = false;
       end
     end
     rk = nnz(rrem);
@@ -103,8 +105,9 @@ function [A,p,q] = rskel_xsp(F)
 
     % embed diagonal matrices
     for i = F.lvpd(lvl)+1:F.lvpd(lvl+1)
-      [j,k] = ndgrid(F.D(i).i,F.D(i).j);
-      D = F.D(i).D;
+      f = F.D(i);
+      [j,k] = ndgrid(f.i,f.j);
+      D = f.D;
       n = numel(D);
       I(nz+(1:n)) = M + P(j(:),p1);
       J(nz+(1:n)) = N + Q(k(:),p1);
@@ -133,20 +136,21 @@ function [A,p,q] = rskel_xsp(F)
 
     % embed interpolation matrices
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
-      rrd = F.U(i).rrd;
-      rsk = F.U(i).rsk;
-      rT  = F.U(i).rT';
+      f = F.U(i);
+      rrd = f.rrd;
+      rsk = f.rsk;
+      rT  = f.rT';
       if F.symm == 'n'
-        crd = F.U(i).crd;
-        csk = F.U(i).csk;
-        cT  = F.U(i).cT;
+        crd = f.crd;
+        csk = f.csk;
+        cT  = f.cT;
       elseif F.symm == 's'
-        crd = F.U(i).rrd;
-        csk = F.U(i).rsk;
+        crd = f.rrd;
+        csk = f.rsk;
         cT  = rT.';
       elseif F.symm == 'h'
-        crd = F.U(i).rrd;
-        csk = F.U(i).rsk;
+        crd = f.rrd;
+        csk = f.rsk;
         cT  = rT';
       end
 
