@@ -60,22 +60,23 @@ function Y = ifmm_mv(F,X,A,trans)
 
     % apply interpolation operators
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
+      f = F.U(i);
       if F.symm == 'n' && trans == 'n'
-        rd = P(F.U(i).crd,p1);
-        sk = P(F.U(i).csk,p2);
+        rd = P(f.crd,p1);
+        sk = P(f.csk,p2);
       else
-        rd = P(F.U(i).rrd,p1);
-        sk = P(F.U(i).rsk,p2);
+        rd = P(f.rrd,p1);
+        sk = P(f.rsk,p2);
       end
       if F.symm == 'n'
-        if trans == 'n', T = F.U(i).cT;
-        else,            T = F.U(i).rT;
+        if trans == 'n', T = f.cT;
+        else,            T = f.rT;
         end
       elseif F.symm == 's'
-        if trans == 'n', T = conj(F.U(i).rT);
-        else,            T =      F.U(i).rT ;
+        if trans == 'n', T = conj(f.rT);
+        else,            T =      f.rT ;
         end
-      elseif F.symm == 'h', T = F.U(i).rT;
+      elseif F.symm == 'h', T = f.rT;
       end
       Z{lvl+1}(sk,:) = Z{lvl+1}(sk,:) + T*Z{lvl}(rd,:);
     end
@@ -111,24 +112,25 @@ function Y = ifmm_mv(F,X,A,trans)
 
     % apply interpolation operators
     for i = F.lvpu(lvl)+1:F.lvpu(lvl+1)
+      f = F.U(i);
       if F.symm == 'n' && trans == 'c'
-        rd  = P(F.U(i).crd,p1);
-        sk1 = P(F.U(i).csk,p1);
-        sk2 = P(F.U(i).csk,p2);
+        rd  = P(f.crd,p1);
+        sk1 = P(f.csk,p1);
+        sk2 = P(f.csk,p2);
       else
-        rd  = P(F.U(i).rrd,p1);
-        sk1 = P(F.U(i).rsk,p1);
-        sk2 = P(F.U(i).rsk,p2);
+        rd  = P(f.rrd,p1);
+        sk1 = P(f.rsk,p1);
+        sk2 = P(f.rsk,p2);
       end
       if F.symm == 'n'
-        if trans == 'n', T = F.U(i).rT;
-        else,            T = F.U(i).cT;
+        if trans == 'n', T = f.rT;
+        else,            T = f.cT;
         end
       elseif F.symm == 's'
-        if trans == 'n', T =      F.U(i).rT ;
-        else,            T = conj(F.U(i).rT);
+        if trans == 'n', T =      f.rT ;
+        else,            T = conj(f.rT);
         end
-      elseif F.symm == 'h', T = F.U(i).rT;
+      elseif F.symm == 'h', T = f.rT;
       end
       Y{lvl}(rd,:) = T'*Y{lvl+1}(sk2,:);
       Y{lvl}(sk1,:) = Y{lvl+1}(sk2,:);
@@ -136,11 +138,12 @@ function Y = ifmm_mv(F,X,A,trans)
 
     % apply interaction matrices
     for i = F.lvpb(lvl)+1:F.lvpb(lvl+1)
-      is = F.B(i).is;
-      ie = F.B(i).ie;
+      f = F.B(i);
+      is = f.is;
+      ie = f.ie;
       if F.symm == 'n'
-        js = F.B(i).js;
-        je = F.B(i).je;
+        js = f.js;
+        je = f.je;
       else
         js = is;
         je = ie;
@@ -149,17 +152,17 @@ function Y = ifmm_mv(F,X,A,trans)
       % get self-interactions
       if lvl == 1
         if F.store == 'n', D = A(is,js);
-        else,              D = F.B(i).D;
+        else,              D = f.D;
         end
 
       % get external interactions
       else
         near = lvl == 2 && F.store == 'r';  % near field stored?
-        if F.store == 'a' || near, Bo = F.B(i).Bo;
+        if F.store == 'a' || near, Bo = f.Bo;
         else,                      Bo = A(ie,js);
         end
         if F.symm == 'n'
-          if F.store == 'a' || near, Bi = F.B(i).Bi;
+          if F.store == 'a' || near, Bi = f.Bi;
           else,                      Bi = A(is,je);
           end
         elseif F.symm == 's', Bi = Bo.';
