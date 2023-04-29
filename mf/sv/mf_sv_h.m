@@ -7,18 +7,18 @@ function X = mf_sv_h(F,X)
 
   % upward sweep
   for i = 1:n
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    X(rd,:) = F.factors(i).L\X(rd,:);
-    X(sk,:) = X(sk,:) - F.factors(i).E*X(rd,:);
-    X(rd,:) = F.factors(i).U\X(rd,:);
+    f = F.factors(i);
+    sk = f.sk; rd = f.rd;
+    X(rd,:) = f.L\X(rd,:);
+    X(sk,:) = X(sk,:) - f.E*X(rd,:);
+    X(rd,:) = f.U\X(rd,:);
   end
 
   % downward sweep
   for i = n:-1:1
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    X(rd,:) = X(rd,:) - F.factors(i).E'*X(sk,:);
-    X(rd,:) = F.factors(i).L'\X(rd,:);
+    f = F.factors(i);
+    sk = f.sk; rd = f.rd;
+    X(rd,:) = X(rd,:) - f.E'*X(sk,:);
+    X(rd,:) = f.L'\X(rd,:);
   end
 end

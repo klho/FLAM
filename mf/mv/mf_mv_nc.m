@@ -7,17 +7,17 @@ function X = mf_mv_nc(F,X)
 
   % upward sweep
   for i = 1:n
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    X(rd,:) = F.factors(i).L'*X(rd(F.factors(i).p),:);
-    X(rd,:) = X(rd,:) + F.factors(i).E'*X(sk,:);
+    f = F.factors(i);
+    sk = f.sk; rd = f.rd;
+    X(rd,:) = f.L'*X(rd(f.p),:);
+    X(rd,:) = X(rd,:) + f.E'*X(sk,:);
   end
 
   % downward sweep
   for i = n:-1:1
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    X(sk,:) = X(sk,:) + F.factors(i).F'*X(rd,:);
-    X(rd,:) = F.factors(i).U'*X(rd,:);
+    f = F.factors(i);
+    sk = f.sk; rd = f.rd;
+    X(sk,:) = X(sk,:) + f.F'*X(rd,:);
+    X(rd,:) = f.U'*X(rd,:);
   end
 end

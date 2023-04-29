@@ -106,30 +106,30 @@ function D = mf_diag(F,dinv,opts)
 
     % loop over nodes
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      nsk = length(sk);
-      nrd = length(rd);
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
 
-      L = F.factors(i).L;
-      p = F.factors(i).p;
-      E = F.factors(i).E;
+      L = f.L;
+      p = f.p;
+      E = f.E;
       if F.symm == 'n'
-        U = F.factors(i).U;
-        G = F.factors(i).F;
+        U = f.U;
+        G = f.F;
       else
-        U = F.factors(i).L';
-        G = F.factors(i).E';
+        U = f.L';
+        G = f.E';
       end
 
       % unfold local factorization
+      nrd = length(rd);
+      nsk = length(sk);
       ird = 1:nrd;
       isk = nrd+(1:nsk);
       X = zeros(nrd+nsk);
       % redundant part
       if F.symm == 'h'
-        if dinv, X(ird,ird) = inv(F.factors(i).U);
-        else,    X(ird,ird) =     F.factors(i).U ;
+        if dinv, X(ird,ird) = inv(f.U);
+        else,    X(ird,ird) =     f.U ;
         end
       else,      X(ird,ird) = eye(nrd);
       end
