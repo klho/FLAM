@@ -31,9 +31,8 @@ function D = hifie_spdiag(F,dinv)
   % bottom-up loop: set up immediate parent-child dependencies
   for lvl = 1:nlvl
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      slf = [sk rd];
+      f = F.factors(i);
+      slf = [f.sk f.rd];
 
       % set ancestor dependencies of children blocks
       if lvl > 1
@@ -54,9 +53,8 @@ function D = hifie_spdiag(F,dinv)
     spinfo.t{i} = unique([i spinfo.t{spinfo.t{i}}]);
 
     % find leaf block for each index
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    x([sk rd]) = i;
+    f = F.factors(i);
+    x([f.sk f.rd]) = i;
   end
 
   % store leaf blocks and prune tree

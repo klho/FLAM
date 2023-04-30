@@ -18,30 +18,28 @@ function D = hifie_spdiag_sv_s(F,spinfo)
     P(rem) = 1:nrem;
 
     % allocate active submatrix for current block
-    j = spinfo.i(i);
-    sk = F.factors(j).sk;
-    rd = F.factors(j).rd;
-    slf = [sk rd];
+    f = F.factors(spinfo.i(i));
+    slf = [f.sk f.rd];
     nslf = length(slf);
     Y = zeros(nrem,nslf);
     Y(P(slf),:) = eye(nslf);
 
     % upward sweep
     for j = spinfo.t{i}
-      sk = P(F.factors(j).sk);
-      rd = P(F.factors(j).rd);
-      Y(rd,:) = Y(rd,:) - F.factors(j).T.'*Y(sk,:);
-      Y(rd,:) = F.factors(j).L\Y(rd(F.factors(j).p),:);
-      Y(sk,:) = Y(sk,:) - F.factors(j).E*Y(rd,:);
+      f = F.factors(j);
+      sk = P(f.sk); rd = P(f.rd);
+      Y(rd,:) = Y(rd,:) - f.T.'*Y(sk,:);
+      Y(rd,:) = f.L\Y(rd(f.p),:);
+      Y(sk,:) = Y(sk,:) - f.E*Y(rd,:);
     end
 
     % downward sweep
     for j = spinfo.t{i}(end:-1:1)
-      sk = P(F.factors(j).sk);
-      rd = P(F.factors(j).rd);
-      Y(rd,:) = Y(rd,:) - F.factors(j).F*Y(sk,:);
-      Y(rd,:) = F.factors(j).U\Y(rd,:);
-      Y(sk,:) = Y(sk,:) - F.factors(j).T*Y(rd,:);
+      f = F.factors(j);
+      sk = P(f.sk); rd = P(f.rd);
+      Y(rd,:) = Y(rd,:) - f.F*Y(sk,:);
+      Y(rd,:) = f.U\Y(rd,:);
+      Y(sk,:) = Y(sk,:) - f.T*Y(rd,:);
     end
 
     % extract diagonal
