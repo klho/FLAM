@@ -117,19 +117,19 @@ function D = hifde_diag(F,dinv,opts)
 
     % loop over nodes
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
+      f = F.factors(i);
+      sk = f.sk; rd = f.rd;
 
-      T = F.factors(i).T;
-      L = F.factors(i).L;
-      p = F.factors(i).p;
-      E = F.factors(i).E;
+      T = f.T;
+      L = f.L;
+      p = f.p;
+      E = f.E;
       if F.symm == 'n' || F.symm == 's'
-        U = F.factors(i).U;
-        G = F.factors(i).F;
+        U = f.U;
+        G = f.F;
       else
-        U = F.factors(i).L';
-        G = F.factors(i).E';
+        U = f.L';
+        G = f.E';
       end
 
       % find external interactions
@@ -148,8 +148,8 @@ function D = hifde_diag(F,dinv,opts)
       X = zeros(nrd+nsk+nex);
       % redundant part
       if F.symm == 'h'
-        if dinv, X(ird,ird) = inv(F.factors(i).U);
-        else,    X(ird,ird) =     F.factors(i).U ;
+        if dinv, X(ird,ird) = inv(f.U);
+        else,    X(ird,ird) =     F.U ;
         end
       else,      X(ird,ird) = eye(nrd);
       end

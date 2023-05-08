@@ -41,9 +41,8 @@ function D = hifde_spdiag(F,dinv)
 
     % loop through blocks on current level
     for i = F.lvp(lvl)+1:F.lvp(lvl+1)
-      sk = F.factors(i).sk;
-      rd = F.factors(i).rd;
-      slf = [sk rd];
+      f = F.factors(i);
+      slf = [f.sk f.rd];
 
       if lvl == 1  % find neighbors if first elimination
         nbr = unique([x{slf}]);
@@ -62,7 +61,7 @@ function D = hifde_spdiag(F,dinv)
       for j = slf, x{j} = [x{j} i]; end
 
       % remove redundant indices
-      rem(rd) = false;
+      rem(f.rd) = false;
     end
 
     % pull block data from previous level if not touched at this level
@@ -81,9 +80,8 @@ function D = hifde_spdiag(F,dinv)
     spinfo.t{i} = unique([i nbor{i} spinfo.t{prnt{i}}]);
 
     % find leaf block for each index
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    x([sk rd]) = i;
+    f = F.factors(i);
+    x([f.sk f.rd]) = i;
   end
 
   % store leaf blocks and prune tree

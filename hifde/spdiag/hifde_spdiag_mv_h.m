@@ -18,22 +18,19 @@ function D = hifde_spdiag_mv_h(F,spinfo)
     P(rem) = 1:nrem;
 
     % allocate active submatrix for current block
-    j = spinfo.i(i);
-    sk = F.factors(j).sk;
-    rd = F.factors(j).rd;
-    slf = [sk rd];
+    f = F.factors(spinfo.i(i));
+    slf = [f.sk f.rd];
     nslf = length(slf);
     Y = zeros(nrem,nslf);
     Y(P(slf),:) = eye(nslf);
 
     % upward sweep
     for j = spinfo.t{i}
-      sk = P(F.factors(j).sk);
-      rd = P(F.factors(j).rd);
-      T = F.factors(j).T;
-      if ~isempty(T), Y(sk,:) = Y(sk,:) + T*Y(rd,:); end
-      Y(rd,:) = F.factors(j).L'*Y(rd,:);
-      Y(rd,:) = Y(rd,:) + F.factors(j).E'*Y(sk,:);
+      f = F.factors(j);
+      sk = P(f.sk); rd = P(f.rd);
+      if ~isempty(f.T), Y(sk,:) = Y(sk,:) + f.T*Y(rd,:); end
+      Y(rd,:) = f.L'*Y(rd,:);
+      Y(rd,:) = Y(rd,:) + f.E'*Y(sk,:);
     end
 
     % store matrix at top level
@@ -41,8 +38,9 @@ function D = hifde_spdiag_mv_h(F,spinfo)
 
     % apply diagonal factors
     for j = spinfo.t{i}
-      rd = P(F.factors(j).rd);
-      Y(rd,:) = F.factors(j).U*Y(rd,:);
+      f = F.factors(j);
+      rd = P(f.rd);
+      Y(rd,:) = f.U*Y(rd,:);
     end
 
     % extract diagonal

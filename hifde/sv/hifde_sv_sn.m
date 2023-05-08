@@ -7,21 +7,19 @@ function X = hifde_sv_sn(F,X)
 
   % upward sweep
   for i = 1:n
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    T = F.factors(i).T;
-    if ~isempty(T), X(rd,:) = X(rd,:) - T.'*X(sk,:); end
-    X(rd,:) = F.factors(i).L\X(rd(F.factors(i).p),:);
-    X(sk,:) = X(sk,:) - F.factors(i).E*X(rd,:);
+    f = F.factors(i);
+    sk = f.sk; rd = f.rd;
+    if ~isempty(f.T), X(rd,:) = X(rd,:) - f.T.'*X(sk,:); end
+    X(rd,:) = f.L\X(rd(f.p),:);
+    X(sk,:) = X(sk,:) - f.E*X(rd,:);
   end
 
   % downward sweep
   for i = n:-1:1
-    sk = F.factors(i).sk;
-    rd = F.factors(i).rd;
-    T = F.factors(i).T;
-    X(rd,:) = X(rd,:) - F.factors(i).F*X(sk,:);
-    X(rd,:) = F.factors(i).U\X(rd,:);
-    if ~isempty(T), X(sk,:) = X(sk,:) - T*X(rd,:); end
+    f = F.factors(i);
+    sk = f.sk; rd = f.rd;
+    X(rd,:) = X(rd,:) - f.F*X(sk,:);
+    X(rd,:) = f.U\X(rd,:);
+    if ~isempty(f.T), X(sk,:) = X(sk,:) - f.T*X(rd,:); end
   end
 end
